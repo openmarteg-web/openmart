@@ -1535,7 +1535,9 @@ function BrandStrip(){
   );
 }
 
-function CategoryRow({go, setCatFilter}){
+function CategoryRow({go, setCatFilter, categories}){
+  const list = (categories && categories.length > 0) ? categories : CATEGORIES;
+
   return (
     <section className="section wrap">
       <div className="section-head">
@@ -1545,7 +1547,7 @@ function CategoryRow({go, setCatFilter}){
         </div>
       </div>
       <div className="cat-row">
-        {CATEGORIES.map(c=>(
+        {list.map(c=>(
           <a href="#" className="cat-card" key={c.id} onClick={(e)=>{e.preventDefault();setCatFilter(c.id);go("shop");}}>
             <div className="cat-circle"><img src={c.img} alt={c.name}/></div>
             <span className="cat-name">{c.name}</span>
@@ -1555,7 +1557,6 @@ function CategoryRow({go, setCatFilter}){
     </section>
   );
 }
-
 function ProductGridSection({title, eyebrow, items, go, wishlist, toggleWish, quickAdd, viewAllGo}){
   return (
     <section className="section wrap">
@@ -1622,13 +1623,13 @@ const items = [
   );
 }
 
-function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, user}){  
+function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, user, categories}){  
   const displayItems = products.length > 0 ? products : [];
   
   return (
     <>
       <Hero go={go}/>
-      <CategoryRow go={go} setCatFilter={setCatFilter}/>
+<CategoryRow go={go} setCatFilter={setCatFilter} categories={categories}/>
       <ProductGridSection 
         title="المنتجات الأكثر مبيعاً" 
         eyebrow="المفضلة لدى العملاء" 
@@ -1656,8 +1657,8 @@ function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, u
 /* ============================================================
    SHOP PAGE
 ============================================================ */
-function ShopPage({go, wishlist, toggleWish, quickAdd, catFilter, setCatFilter, search, products}){
-  const [selectedCats, setSelectedCats] = useState(catFilter? [catFilter] : []);
+function ShopPage({go, wishlist, toggleWish, quickAdd, catFilter, setCatFilter, search, products, categories}){  const [selectedCats, setSelectedCats] = useState(catFilter? [catFilter] : []);
+  const currentCats = (categories && categories.length > 0) ? categories : CATEGORIES;
   const [selectedBrands, setSelectedBrands] = useState([]);
 const highestPrice = useMemo(() => {
     if (!products || products.length === 0) return 5000;
@@ -1699,7 +1700,7 @@ let result = products.filter(p => {
   const totalPages = Math.max(1, Math.ceil(filtered.length/perPage));
   const shown = filtered.slice((page-1)*perPage, page*perPage);
 
-const catCounts = Object.fromEntries(CATEGORIES.map(c=>[c.id, products.filter(p=>p.cat===c.id).length]));
+const catCounts = Object.fromEntries(currentCats.map(c=>[c.id, products.filter(p=>p.cat===c.id).length]));
   return (
     <>
    <div className="page-head">
@@ -1725,7 +1726,7 @@ const catCounts = Object.fromEntries(CATEGORIES.map(c=>[c.id, products.filter(p=
         <aside className={"filter-sidebar"+(mobileFiltersOpen?" mobile-open":"")}>
           <div className="filter-block">
             <div className="filter-title">القسم</div>
-            {CATEGORIES.map(c=>(
+            {currentCats.map(c=>(
               <label key={c.id} className={"filter-opt"+(selectedCats.includes(c.id)?" checked":"")} onClick={()=>{toggleCat(c.id);setPage(1);}}>
                 <span className="chk">{selectedCats.includes(c.id) && <CheckIcon size={12}/>}</span>
                 {c.name}<span className="fcount">{catCounts[c.id]}</span>
@@ -2499,6 +2500,8 @@ const handleEmailAuth = async (e) => {
     } catch (err) {
       if (err.message && err.message.includes("Invalid login credentials")) {
         alert("بيانات الدخول غير صحيحة. إذا لم يكن لديك حساب، اضغط بالأسفل على 'إنشاء حساب جديد'");
+      } else if (err.message && err.message.includes("rate limit")) {
+        alert("تم تجاوز الحد المسموح من المحاولات مؤقتاً. يرجى الانتظار بضع دقائق والمحاولة مرة أخرى.");
       } else {
         alert("خطأ: " + err.message);
       }
@@ -2718,9 +2721,8 @@ useEffect(() => {
       {/* إضافة صفحة تسجيل الدخول هنا */}
       {page==="auth" && <AuthPage user={user} isSignUpMode={isSignUpMode} setIsSignUpMode={setIsSignUpMode} emailInput={emailInput} setEmailInput={setEmailInput} passInput={passInput} setPassInput={setPassInput} handleEmailAuth={handleEmailAuth} go={go}/>}
 
-      {page==="home" && <HomePage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} setCatFilter={setCatFilter} products={products}/>}
-      {page==="shop" && <ShopPage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} catFilter={catFilter} setCatFilter={setCatFilter} search={search} products={products}/>}
-      {page==="product" && <ProductPage productId={productId} go={go} wishlist={wishlist} toggleWish={toggleWish} addToCart={addToCart} products={products}/>}
+      {page==="home" && <HomePage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} setCatFilter={setCatFilter} products={products} categories={categories}/>}
+{page==="shop" && <ShopPage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} catFilter={catFilter} setCatFilter={setCatFilter} search={search} products={products} categories={categories}/>}      {page==="product" && <ProductPage productId={productId} go={go} wishlist={wishlist} toggleWish={toggleWish} addToCart={addToCart} products={products}/>}
       {page==="cart" && <CartPage cart={cart} go={go} updateQty={updateQty} removeItem={removeItem}/>}
       {page==="checkout" && <CheckoutPage cart={cart} go={go} placeOrder={placeOrder}/>}
 
