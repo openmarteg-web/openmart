@@ -2239,32 +2239,42 @@ function CheckoutPage({cart, go, placeOrder}){
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
-  const [email, setEmail] = useState("");
+  const [notes, setNotes] = useState("");
   
-  const subtotal = cart.reduce((s,i)=>s+i.product.price*i.qty,0);
+  const subtotal = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
   const shippingCost = subtotal > 75 || subtotal === 0 ? 0 : 8.95;
   const total = subtotal + shippingCost;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    placeOrder({name, phone, address, email});
+    placeOrder({ name, phone, address, notes });
   };
+
+  if (cart.length === 0) {
+    return (
+      <div className="wrap">
+        <div className="empty-state">
+          <div className="icon-circle"><BagIcon size={38}/></div>
+          <h2 style={{fontSize: 24, marginBottom: 10}}>السلة فارغة</h2>
+          <p style={{color: "var(--ink-soft)", marginBottom: 26}}>يرجى اختيار منتجات أولاً قبل إتمام الطلب.</p>
+          <button className="btn btn-primary btn-lg" onClick={() => go("shop")}>تصفح المتجر</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
       <div className="page-head">
         <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
           <div>
-           <div className="page-head">
-        <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
-          <div>
             <div className="breadcrumb">
-              <a href="#" onClick={(e)=>{e.preventDefault(); go("home");}}>الرئيسية</a> / <span>المفضلة</span>
+              <a href="#" onClick={(e) => { e.preventDefault(); go("home"); }}>الرئيسية</a> / <a href="#" onClick={(e) => { e.preventDefault(); go("cart"); }}>السلة</a> / <span>بيانات التوصيل</span>
             </div>
-            <h1 className="page-title">المنتجات المفضلة ({wishedProducts.length})</h1>
+            <h1 className="page-title">إتمام الطلب عبر واتساب</h1>
           </div>
           <button 
-            onClick={()=>go("home")}
+            onClick={() => go("home")}
             className="btn btn-outline"
             style={{padding: "8px 14px", fontSize: "13px", gap: "4px"}}
           >
@@ -2272,45 +2282,53 @@ function CheckoutPage({cart, go, placeOrder}){
           </button>
         </div>
       </div>
-       <div className="breadcrumb">
-              <a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>الرئيسية</a> / <a href="#" onClick={(e)=>{e.preventDefault();go("cart");}}>السلة</a> / <span>إتمام الطلب</span>
-            </div>
-            <h1 className="page-title">إتمام الطلب</h1>
-          </div>
-          <button 
-            onClick={()=>go("home")}
-            className="btn btn-outline"
-            style={{padding: "8px 14px", fontSize: "13px", gap: "4px"}}
-          >
-            <ChevronRight size={16} /> الرئيسية
-          </button>
-        </div>
-      </div>
+
       <div className="wrap checkout-layout">
         <form onSubmit={handleSubmit}>
           <div className="co-section">
-            <div className="co-section-title"><span className="co-num">1</span> تفاصيل التوصيل (الدفع عند الاستلام)</div>
-            <div className="field"><label>الاسم بالكامل</label><input required value={name} onChange={e=>setName(e.target.value)} placeholder="الاسم ثلاثي" /></div>
-            <div className="field"><label>رقم الموبايل</label><input required type="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="01X XXXX XXXX" /></div>
-            <div className="field"><label>عنوان التوصيل بالتفصيل</label><textarea required rows="3" value={address} onChange={e=>setAddress(e.target.value)} style={{padding:"12px", border:"1.5px solid var(--line)", borderRadius:"12px", fontFamily:"inherit", fontSize:"14.5px", outline:"none"}} placeholder="المحافظة، المدينة، الشارع، رقم العمارة..."></textarea></div>
-            <div className="field"><label>البريد الإلكتروني (اختياري)</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="أدخل بريدك الإلكتروني" /></div>
+            <div className="co-section-title">
+              <span className="co-num">1</span> تفاصيل العميل والتوصيل
+            </div>
+            
+            <div className="field">
+              <label>الاسم ثلاثي *</label>
+              <input required value={name} onChange={e => setName(e.target.value)} placeholder="اكتب اسمك الكريم" />
+            </div>
+
+            <div className="field">
+              <label>رقم هاتف الواتساب *</label>
+              <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="01X XXXX XXXX" />
+            </div>
+
+            <div className="field">
+              <label>عنوان التوصيل بالتفصيل *</label>
+              <textarea required rows="3" value={address} onChange={e => setAddress(e.target.value)} style={{padding: "12px", border: "1.5px solid var(--line)", borderRadius: "12px", fontFamily: "inherit", fontSize: "14.5px", outline: "none"}} placeholder="المحافظة، المدينة، اسم الشارع، رقم العمارة والشقة..."></textarea>
+            </div>
+
+            <div className="field">
+              <label>ملاحظات إضافية (اختياري)</label>
+              <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="أي تعليمات خاصة للمندوب أو الطلب" />
+            </div>
           </div>
-          <button type="submit" className="btn btn-coral btn-block btn-lg">تأكيد الطلب — {money(total)}</button>
+
+          <button type="submit" className="btn btn-coral btn-block btn-lg" style={{background: "#25D366", borderColor: "#25D366"}}>
+            تأكيد الطلب والمتابعة عبر واتساب ← ({money(total)})
+          </button>
         </form>
 
-        <div className="summary-card" style={{top:100}}>
-          <h3 style={{fontSize:18,marginBottom:14}}>ملخص الطلب</h3>
-          {cart.map((item,idx)=>(
+        <div className="summary-card" style={{top: 100}}>
+          <h3 style={{fontSize: 18, marginBottom: 14}}>ملخص الطلب</h3>
+          {cart.map((item, idx) => (
             <div className="co-mini-item" key={idx}>
               <img src={item.product.img} alt=""/>
-              <span className="n">{item.product.name} <span style={{color:"var(--ink-faint)",fontWeight:600}}>×{item.qty}</span></span>
-              <span className="p mono">{money(item.product.price*item.qty)}</span>
+              <span className="n">{item.product.name} <span style={{color: "var(--ink-faint)", fontWeight: 600}}>×{item.qty}</span></span>
+              <span className="p mono">{money(item.product.price * item.qty)}</span>
             </div>
           ))}
-          <div className="summary-row" style={{marginTop:10}}><span>المجموع</span><span className="mono">{money(subtotal)}</span></div>
-          <div className="summary-row"><span>الشحن</span><span className="mono">{shippingCost===0?"مجاني":money(shippingCost)}</span></div>
-          <div className="summary-row total"><span>الإجمالي</span><span className="mono">{money(total)}</span></div>
-          <div className="trust-row"><ShieldIcon size={15}/> الدفع نقداً عند الاستلام فقط</div>
+          <div className="summary-row" style={{marginTop: 10}}><span>المجموع الفرعي</span><span className="mono">{money(subtotal)}</span></div>
+          <div className="summary-row"><span>الشحن</span><span className="mono">{shippingCost === 0 ? "مجاني" : money(shippingCost)}</span></div>
+          <div className="summary-row total"><span>الإجمالي المطلوب</span><span className="mono">{money(total)}</span></div>
+          <div className="trust-row"><ShieldIcon size={15}/> الدفع عند الاستلام نقداً</div>
         </div>
       </div>
     </>
@@ -2525,49 +2543,56 @@ useEffect(() => {
   const removeItem = (idx) => setCart(c=>c.filter((_,i)=>i!==idx));
   const toggleWish = (id) => setWishlist(w=> w.includes(id) ? w.filter(x=>x!==id) : (showToast("تمت الإضافة إلى قائمة الأمنيات"), [...w,id]));
 
-  const placeOrder = async (customer) => {
-  const subtotal = cart.reduce((s,i)=>s+i.product.price*i.qty, 0);
-  const shipping = subtotal > 75 || subtotal === 0 ? 0 : 8.95;
-  const totalAmount = subtotal + shipping;
+ const placeOrder = async (customer) => {
+    const subtotal = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
+    const shipping = subtotal > 75 || subtotal === 0 ? 0 : 8.95;
+    const totalAmount = subtotal + shipping;
 
-  showToast("جاري تسجيل الطلب...");
+    showToast("جاري تسجيل الطلب...");
 
-  try {
-    if (window.saveOrderToDatabase) {
-      await window.saveOrderToDatabase(cart, totalAmount, customer);
+    try {
+      if (window.saveOrderToDatabase) {
+        await window.saveOrderToDatabase(cart, totalAmount, customer);
+      }
+
+      const newOrder = {
+        id: Date.now().toString().slice(-6),
+        date: new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        items: [...cart],
+        total: totalAmount,
+        customer: customer,
+        status: "new"
+      };
+
+      setOrders(prev => [newOrder, ...prev]);
+
+      // تجهيز رسالة الواتساب المنسقة
+      let msg = "مرحباً، أود إتمام هذا الطلب (دفع عند الاستلام):%0A%0A";
+      msg += `👤 *الاسم:* ${customer.name}%0A`;
+      msg += `📞 *الموبايل:* ${customer.phone}%0A`;
+      msg += `📍 *العنوان:* ${customer.address}%0A`;
+      if (customer.notes) {
+        msg += `📝 *ملاحظات:* ${customer.notes}%0A`;
+      }
+      msg += `%0A🛒 *تفاصيل المنتجات:*%0A`;
+      cart.forEach((item, idx) => {
+        msg += `${idx + 1}. ${item.product.name}%0A`;
+        msg += `   - الكمية: ${item.qty}%0A`;
+        if (item.variant && item.variant.color) msg += `   - اللون: ${item.variant.color}%0A`;
+        if (item.variant && item.variant.size) msg += `   - المقاس: ${item.variant.size}%0A`;
+        msg += `   - السعر: ${item.product.price * item.qty} ج.م%0A`;
+      });
+      msg += `%0A💰 *الإجمالي النهائي:* ${totalAmount} ج.م`;
+
+      // تفريغ السلة وتوجيه العميل مباشرة للرقم المطلوب
+      setCart([]);
+      window.open(`https://wa.me/201041397168?text=${msg}`, '_blank');
+      go("orders");
+    } catch (error) {
+      console.error(error);
+      showToast("حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.");
     }
-
-    // حفظ تفاصيل الطلب في قائمة الطلبات السابقة
-    const newOrder = {
-      id: Date.now().toString().slice(-6),
-      date: new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      items: [...cart],
-      total: totalAmount,
-      customer: customer,
-      status: "قيد التنفيذ"
-    };
-
-    setOrders(prev => [newOrder, ...prev]);
-
-    // تجهيز رسالة الواتساب
-    let msg = "مرحباً، أود إتمام هذا الطلب (دفع عند الاستلام):%0A%0A";
-    msg += `👤 الاسم: ${customer.name}%0A`;
-    msg += `📞 الموبايل: ${customer.phone}%0A`;
-    msg += `📍 العنوان: ${customer.address}%0A%0A`;
-    msg += `🛒 المنتجات:%0A`;
-    cart.forEach(item => {
-      msg += `▪ ${item.product.name} (الكمية: ${item.qty})%0A`;
-    });
-    msg += `%0A💰 الإجمالي: ${totalAmount} ج.م`;
-
-    setCart([]);
-    window.open(`https://wa.me/201035419531?text=${msg}`, '_blank');
-    go("orders"); // توجيه العميل لصفحة طلباته السابقة لمشاهدة طلبه
-  } catch (error) {
-    console.error(error);
-    showToast("حدث خطأ أثناء الطلب، تأكد من اتصالك بالإنترنت.");
-  }
-};
+  };
   const cartCount = cart.reduce((s,i)=>s+i.qty,0);
 
   // إذا كانت المنتجات قيد التحميل يمكن إظهار شاشة تحميل أو تركها فارغة مؤقتاً
