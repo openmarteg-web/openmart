@@ -1017,20 +1017,40 @@ window.fetchCategoriesFromDB = async function() {
     if (error) throw error;
     return data;
   };
-  // دالة تسجيل الدخول بجوجل عبر Supabase
-  window.signInWithGoogle = async function() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.href
-      }
+// دالة إنشاء حساب جديد بالبريد الإلكتروني وكلمة المرور
+  window.signUpWithEmail = async function(email, password) {
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password,
     });
     if (error) throw error;
+    return data;
+  };
+
+  // دالة تسجيل الدخول بالبريد الإلكتروني وكلمة المرور
+  window.signInWithEmail = async function(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  // دالة تسجيل الدخول بالبريد الإلكتروني وكلمة المرور
+  window.signInWithEmail = async function(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+    if (error) throw error;
+    return data;
   };
 
   // دالة تسجيل الخروج
   window.signOutUser = async function() {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 </script>
 <script type="text/babel" data-presets="react,env">
@@ -1252,16 +1272,29 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
   <button 
     className="icon-btn" 
     onClick={logout} 
-    title={`تسجيل خروج (${user.displayName || user.email || "حسابي"})`} 
-    style={{background: "var(--periwinkle)", color: "#fff", fontWeight: "bold"}}
+    title={`تسجيل خروج (${user.email || "حسابي"})`} 
+    style={{
+      background: "var(--periwinkle)",
+      color: "#ffffff",
+      fontWeight: "800",
+      fontSize: "15px",
+      borderRadius: "50%",
+      width: "40px",
+      height: "40px",
+      border: "2px solid #ffffff",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      textTransform: "uppercase"
+    }}
   >
-    {((user.displayName ? user.displayName.charAt(0) : (user.email ? user.email.charAt(0) : "U"))).toUpperCase()}
+    {(user.email ? user.email.charAt(0) : "U").toUpperCase()}
   </button>
 ) : (
-  <button className="icon-btn" aria-label="الحساب" onClick={login} title="تسجيل الدخول باستخدام جوجل">
+  <button className="icon-btn" aria-label="الحساب" onClick={login} title="تسجيل الدخول">
     <UserIcon size={19}/>
   </button>
-  
 )}
 <button className="icon-btn" aria-label="طلباتي" onClick={()=>go("orders")} title="طلباتي السابقة">
   <TruckIcon size={19}/>
@@ -1589,8 +1622,7 @@ const items = [
   );
 }
 
-function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products}){
-  // عرض المنتجات القادمة من Supabase مباشرة
+function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, user}){  
   const displayItems = products.length > 0 ? products : [];
   
   return (
@@ -2334,7 +2366,52 @@ function CheckoutPage({cart, go, placeOrder}){
     </>
   );
 }
+function AuthPage({user, isSignUpMode, setIsSignUpMode, emailInput, setEmailInput, passInput, setPassInput, handleEmailAuth, go}) {
+  return (
+    <div className="wrap" style={{padding: "60px 20px", maxWidth: "460px"}}>
+      <div style={{background: "var(--sand)", padding: "32px", borderRadius: "20px", border: "1.5px solid var(--line)", boxShadow: "var(--shadow-md)"}}>
+        <h2 style={{fontSize: "22px", marginBottom: "8px", textAlign: "center"}}>
+          {isSignUpMode ? "إنشاء حساب جديد" : "تسجيل الدخول"}
+        </h2>
+        <p style={{fontSize: "13.5px", color: "var(--ink-soft)", textAlign: "center", marginBottom: "24px"}}>
+          أدخل بيانات بريدك الإلكتروني للمتابعة
+        </p>
 
+        <form onSubmit={handleEmailAuth} style={{display: "flex", flexDirection: "column", gap: "14px"}}>
+          <input 
+            type="email" 
+            required 
+            placeholder="البريد الإلكتروني" 
+            value={emailInput} 
+            onChange={e => setEmailInput(e.target.value)}
+            style={{padding: "13px 16px", borderRadius: "12px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit", fontSize: "14.5px"}}
+          />
+          <input 
+            type="password" 
+            required 
+            placeholder="كلمة المرور (6 أحرف على الأقل)" 
+            value={passInput} 
+            onChange={e => setPassInput(e.target.value)}
+            style={{padding: "13px 16px", borderRadius: "12px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit", fontSize: "14.5px"}}
+          />
+          <button type="submit" className="btn btn-primary btn-lg" style={{width: "100%", marginTop: "6px"}}>
+            {isSignUpMode ? "تسجيل حساب جديد" : "تسجيل الدخول"}
+          </button>
+        </form>
+
+        <div style={{textAlign: "center", marginTop: "20px"}}>
+          <button 
+            type="button" 
+            onClick={() => setIsSignUpMode(!isSignUpMode)} 
+            style={{background: "none", border: "none", color: "var(--periwinkle-deep)", cursor: "pointer", fontSize: "14px", fontWeight: "bold"}}
+          >
+            {isSignUpMode ? "لديك حساب بالفعل؟ سجل دخول من هنا" : "ليس لديك حساب؟ أنشئ حساباً جديداً"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 /* ============================================================
    FOOTER
 ============================================================ */
@@ -2396,6 +2473,37 @@ function Footer({go}){
 }
 
 function App(){
+// استبدل هذا الجزء داخل دالة App
+const [emailInput, setEmailInput] = useState("");
+const [passInput, setPassInput] = useState("");
+const [isSignUpMode, setIsSignUpMode] = useState(false);
+
+const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    try {
+      if (isSignUpMode) {
+        const data = await window.signUpWithEmail(emailInput, passInput);
+        if (data?.user) {
+          setUser(data.user);
+        }
+        showToast("تم إنشاء الحساب بنجاح!");
+        go("home");
+      } else {
+        const data = await window.signInWithEmail(emailInput, passInput);
+        if (data?.user) {
+          setUser(data.user);
+        }
+        showToast("تم تسجيل الدخول بنجاح!");
+        go("home");
+      }
+    } catch (err) {
+      if (err.message && err.message.includes("Invalid login credentials")) {
+        alert("بيانات الدخول غير صحيحة. إذا لم يكن لديك حساب، اضغط بالأسفل على 'إنشاء حساب جديد'");
+      } else {
+        alert("خطأ: " + err.message);
+      }
+    }
+  };
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
@@ -2458,13 +2566,15 @@ useEffect(() => {
 useEffect(() => {
   localStorage.setItem("openmart_orders", JSON.stringify(orders));
 }, [orders]);
-  // 2. مراقبة جلسة المستخدم الحالية في Supabase تلقائياً
+// مراقبة حالة جلسة المستخدم وحفظها تلقائياً
   useEffect(() => {
     if (window.supabase) {
+      // التحقق من الجلسة المخزنة مسبقاً
       window.supabase.auth.getSession().then(({ data: { session } }) => {
         setUser(session ? session.user : null);
       });
 
+      // الاستماع لأي تغيير في حالة تسجيل الدخول أو الخروج
       const { data: { subscription } } = window.supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session ? session.user : null);
       });
@@ -2600,9 +2710,13 @@ useEffect(() => {
 
   return (
     <>
-      <Header page={page} go={go} cartCount={cartCount} wishCount={wishlist.length} onOpenMenu={()=>setMenuOpen(true)} search={search} setSearch={setSearch} user={user} login={loginWithGoogle} logout={logout} />      
+      {/* تعديل خاصية login لتوجهنا لصفحة auth */}
+      <Header page={page} go={go} cartCount={cartCount} wishCount={wishlist.length} onOpenMenu={()=>setMenuOpen(true)} search={search} setSearch={setSearch} user={user} login={() => go("auth")} logout={logout} />      
       
       <MobileDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} go={go} search={search} setSearch={setSearch}/>
+
+      {/* إضافة صفحة تسجيل الدخول هنا */}
+      {page==="auth" && <AuthPage user={user} isSignUpMode={isSignUpMode} setIsSignUpMode={setIsSignUpMode} emailInput={emailInput} setEmailInput={setEmailInput} passInput={passInput} setPassInput={setPassInput} handleEmailAuth={handleEmailAuth} go={go}/>}
 
       {page==="home" && <HomePage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} setCatFilter={setCatFilter} products={products}/>}
       {page==="shop" && <ShopPage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} catFilter={catFilter} setCatFilter={setCatFilter} search={search} products={products}/>}
