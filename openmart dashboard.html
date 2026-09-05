@@ -154,7 +154,6 @@
       <span id="adminUserBadge" style="font-size: 12.5px; color: var(--muted);"></span>
     </div>
     <div class="header-actions">
-      <a href="openmart_10.html" target="_blank">← معاينة المتجر</a>
       <button class="btn-logout" id="logoutBtn">تسجيل خروج</button>
     </div>
   </div>
@@ -179,6 +178,32 @@
     </div>
   </div>
 
+  <div class="card" style="margin-bottom: 28px;">
+    <h2 class="card-title">نص الشريط العلوي للعملاء</h2>
+    <form id="topbarForm">
+      <div class="form-group">
+        <label for="topbarText">النص الظاهر أعلى الموقع</label>
+        <input type="text" id="topbarText" maxlength="180" placeholder="شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة">
+      </div>
+      <button type="submit" class="btn" id="topbarSaveBtn">حفظ النص</button>
+    </form>
+  </div>
+
+  <div class="card" style="margin-bottom: 28px;">
+    <h2 class="card-title">صورة الهيرو الرئيسية</h2>
+    <form id="heroImageForm">
+      <div class="form-group">
+        <label for="heroImageFile">اختر الصورة الرئيسية الظاهرة في الصفحة الرئيسية</label>
+        <div class="file-upload-box" onclick="document.getElementById('heroImageFile').click()">
+          <input type="file" id="heroImageFile" accept="image/*" style="display: none;">
+          <div id="heroImageUploadText" style="color: var(--muted); font-size: 13.5px;">📁 اضغط لاختيار صورة الهيرو</div>
+          <img id="heroImagePreview" alt="معاينة صورة الهيرو" style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin-top: 10px; display: none;">
+        </div>
+      </div>
+      <button type="submit" class="btn" id="heroImageSaveBtn">حفظ صورة الهيرو</button>
+    </form>
+  </div>
+
   <!-- التبويبات -->
   <div class="dashboard-tabs">
     <button class="dash-tab-btn active" id="tabBtnProducts" onclick="switchDashboardTab('products')">🛍️ إدارة المنتجات</button>
@@ -193,9 +218,15 @@
         <h2 class="card-title">إضافة صنف وتفاصيله</h2>
         <form id="productForm">
           <div class="form-group">
-            <label>اسم المنتج *</label>
+            <label>اسم المنتج بالعربي *</label>
             <input type="text" id="name" required placeholder="مثال: قفازات نيتريل سوداء">
           </div>
+          
+          <div class="form-group">
+            <label>اسم المنتج بالإنجليزي (اختياري)</label>
+            <input type="text" id="name_en" dir="ltr" placeholder="Example: Black Nitrile Gloves">
+          </div>
+          <input type="hidden" id="editing_product_id" value="">
           
           <div class="form-group">
             <label>القسم *</label>
@@ -262,8 +293,11 @@
             <label><input type="checkbox" id="is_new" checked> وصل حديثاً</label>
           </div>
 
-          <button type="submit" class="btn" id="submitBtn">حفظ ونشر الصنف</button>
-        </form>
+<div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn" id="submitBtn">حفظ ونشر الصنف</button>
+            <button type="button" class="btn hidden" id="cancelEditBtn" style="background: var(--muted);" onclick="resetProductForm()">إلغاء التعديل</button>
+          </div>
+                </form>
       </div>
 
       <div class="card">
@@ -362,6 +396,7 @@
               <th>العميل</th>
               <th>الهاتف</th>
               <th>العنوان</th>
+              <th>الأصناف</th>
               <th>القطع</th>
               <th>المبلغ</th>
               <th>الحالة</th>
@@ -384,6 +419,10 @@
   const supabaseUrl = 'https://hxftmpgotsxyqbwayrnv.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZnRtcGdvdHN4eXFid2F5cm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjI2NTgsImV4cCI6MjEwNDAzODY1OH0.3YttRUv4uH-tWVwPtGr6-K0xMCbAVuElOxs_brooANw';
   const supabase = createClient(supabaseUrl, supabaseKey);
+  const DASHBOARD_LOGIN_KEY = 'openmart_dashboard_login';
+  const DASHBOARD_EMAIL_KEY = 'openmart_dashboard_email';
+  let dashboardLoginCompleted = localStorage.getItem(DASHBOARD_LOGIN_KEY) === 'true';
+  const TOPBAR_STORAGE_KEY = 'openmart_topbar_text';
 
   const loginSection = document.getElementById('loginSection');
   const dashboardSection = document.getElementById('dashboardSection');
@@ -443,14 +482,18 @@
   // فحص الجلسة
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
+    const dashboardEmail = localStorage.getItem(DASHBOARD_EMAIL_KEY);
+    if (session && dashboardLoginCompleted && session.user.email === dashboardEmail) {
       loginSection.classList.add('hidden');
       dashboardSection.classList.remove('hidden');
-      document.getElementById('adminUserBadge').innerText = `المشرف: ${session.user.email}`;
+      document.getElementById('adminUserBadge').innerText = `المشرف: ${dashboardEmail}`;
       loadProducts();
       loadCategories();
       loadOrdersAndStats();
     } else {
+      dashboardLoginCompleted = false;
+      localStorage.removeItem(DASHBOARD_LOGIN_KEY);
+      localStorage.removeItem(DASHBOARD_EMAIL_KEY);
       loginSection.classList.remove('hidden');
       dashboardSection.classList.add('hidden');
     }
@@ -475,6 +518,9 @@
     } else {
       btn.disabled = false;
       btn.innerText = 'دخول للوحة التحكم';
+      dashboardLoginCompleted = true;
+      localStorage.setItem(DASHBOARD_LOGIN_KEY, 'true');
+      localStorage.setItem(DASHBOARD_EMAIL_KEY, email);
       checkAuth();
     }
   });
@@ -482,7 +528,64 @@
   // تسجيل الخروج
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await supabase.auth.signOut();
+    dashboardLoginCompleted = false;
+    localStorage.removeItem(DASHBOARD_LOGIN_KEY);
+    localStorage.removeItem(DASHBOARD_EMAIL_KEY);
     checkAuth();
+  });
+
+  const topbarForm = document.getElementById('topbarForm');
+  const topbarTextInput = document.getElementById('topbarText');
+  topbarTextInput.value = localStorage.getItem(TOPBAR_STORAGE_KEY) || 'شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم';
+  topbarForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = topbarTextInput.value.trim();
+    if (!text) {
+      alert('اكتب نصًا للشريط العلوي أولًا');
+      return;
+    }
+    localStorage.setItem(TOPBAR_STORAGE_KEY, text);
+    alert('تم حفظ نص الشريط العلوي بنجاح');
+  });
+
+  const HERO_IMAGE_STORAGE_KEY = 'openmart_hero_image';
+  const heroImageForm = document.getElementById('heroImageForm');
+  const heroImageFile = document.getElementById('heroImageFile');
+  const heroImagePreview = document.getElementById('heroImagePreview');
+  const heroImageUploadText = document.getElementById('heroImageUploadText');
+  const savedHeroImage = localStorage.getItem(HERO_IMAGE_STORAGE_KEY);
+  if (savedHeroImage) {
+    heroImagePreview.src = savedHeroImage;
+    heroImagePreview.style.display = 'block';
+    heroImageUploadText.style.display = 'none';
+  }
+  heroImageFile.addEventListener('change', () => {
+    const file = heroImageFile.files[0];
+    if (!file) return;
+    heroImagePreview.src = URL.createObjectURL(file);
+    heroImagePreview.style.display = 'block';
+    heroImageUploadText.style.display = 'none';
+  });
+  heroImageForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const file = heroImageFile.files[0];
+    if (!file) {
+      alert('اختر صورة الهيرو أولًا');
+      return;
+    }
+    const btn = document.getElementById('heroImageSaveBtn');
+    btn.disabled = true;
+    btn.innerText = 'جاري رفع الصورة...';
+    try {
+      const urls = await uploadImages([file]);
+      localStorage.setItem(HERO_IMAGE_STORAGE_KEY, urls[0]);
+      alert('تم حفظ صورة الهيرو بنجاح');
+    } catch (err) {
+      alert('تعذر رفع الصورة: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'حفظ صورة الهيرو';
+    }
   });
 
   // جلب الأقسام
@@ -593,7 +696,7 @@
       .order('created_at', { ascending: false });
 
     if (error) {
-      tbody.innerHTML = `<tr><td colspan="9" style="color:red; text-align:center;">خطأ في جلب الطلبات: ${error.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="color:red; text-align:center;">خطأ في جلب الطلبات: ${error.message}</td></tr>`;
       return;
     }
 
@@ -622,7 +725,7 @@
     document.getElementById('ordersBadgeCount').innerText = orders.length;
 
     if (orders.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 30px; color: var(--muted);">لا توجد أي طلبات واردة حتى الآن.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 30px; color: var(--muted);">لا توجد أي طلبات واردة حتى الآن.</td></tr>`;
       return;
     }
 
@@ -630,6 +733,24 @@
       const dateStr = new Date(ord.created_at).toLocaleString('ar-EG', {
         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
       });
+      let orderItems = Array.isArray(ord.items) ? ord.items : [];
+      if (typeof ord.items === 'string') {
+        try { orderItems = JSON.parse(ord.items); } catch (e) { orderItems = []; }
+      }
+      if (orderItems.length === 0) {
+        try {
+          const localOrders = JSON.parse(localStorage.getItem('openmart_orders') || '[]');
+          const localOrder = localOrders.find(item => String(item.id) === String(ord.id));
+          orderItems = (localOrder?.items || []).map(item => ({
+            name: item.product?.name,
+            quantity: item.qty,
+            price: item.product?.price
+          }));
+        } catch (e) { orderItems = []; }
+      }
+      const itemsText = orderItems.length > 0
+        ? orderItems.map(item => `${item.name || 'صنف'} × ${item.quantity || 1}`).join('<br>')
+        : 'غير متاح للطلبات القديمة';
 
       return `
         <tr>
@@ -642,6 +763,7 @@
             </a>
           </td>
           <td style="max-width:200px; font-size:12.5px;">${ord.address || '—'}</td>
+          <td style="min-width:170px; font-size:12.5px; line-height:1.8;">${itemsText}</td>
           <td style="text-align:center;">${ord.items_count || 1}</td>
           <td><b>${Number(ord.total).toLocaleString('EN-EG')} ج.م</b></td>
           <td>
@@ -659,16 +781,51 @@
       `;
     }).join('');
   }
+window.updateOrderStatus = async function(id, newStatus) {
+  const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', id);
+  if (error) {
+    alert('تعذر تحديث الحالة: ' + error.message);
+  } else {
+    loadOrdersAndStats();
+  }
+};
 
-  window.updateOrderStatus = async function(id, newStatus) {
-    const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', id);
-    if (error) {
-      alert('تعذر تحديث الحالة: ' + error.message);
-    } else {
-      loadOrdersAndStats();
+// 1. تعريف الدالة
+async function checkOrderStatus(orderId) {
+  if (!orderId) return;
+
+  const { data, error } = await supabase
+    .from('orders')
+    .select('status')
+    .eq('id', orderId)
+    .single();
+
+  if (error) {
+    console.error('تعذر جلب حالة الطلب:', error.message);
+    return;
+  }
+
+  if (data) {
+    const statusMap = {
+      'new': '⏳ تم استلام الطلب',
+      'processing': '📦 جاري تجهيز الطلب',
+      'completed': '✅ تم التوصيل',
+      'cancelled': '❌ تم إلغاء الطلب'
+    };
+
+    const statusElem = document.getElementById('orderStatusText');
+    if (statusElem) {
+      statusElem.innerText = statusMap[data.status] || data.status;
     }
-  };
+  }
+}
 
+// 2. متى تستدعيها؟
+// مثلاً عند فتح نافذة تتبع الطلب أو بعد حفظ الطلب بنجاح:
+const savedOrderId = localStorage.getItem('last_order_id'); // إذا كنت تحفظ رقم آخر طلب
+if (savedOrderId) {
+  checkOrderStatus(savedOrderId);
+}
   window.deleteOrder = async function(id) {
     if (!confirm('هل تريد حذف هذا الطلب من السجل؟')) return;
     const { error } = await supabase.from('orders').delete().eq('id', id);
@@ -695,22 +852,131 @@
       return;
     }
 
-    tbody.innerHTML = data.map(p => `
-      <tr>
-        <td><img class="prod-thumb" src="${p.img_url}" onerror="this.src='https://placehold.co/50'"></td>
-        <td>
-          <b>${p.name}</b>
-          ${p.is_best ? '<span class="badge-tag">الأكثر مبيعاً</span>' : ''}
-        </td>
-        <td style="color: var(--muted);">${p.cat}</td>
-        <td><b>${p.price} ج.م</b> ${p.old_price ? `<span style="text-decoration: line-through; color: var(--muted); font-size:12px;">${p.old_price}</span>` : ''}</td>
-        <td>
-          <button class="btn-delete" onclick="deleteProduct(${p.id})">حذف</button>
-        </td>
-      </tr>
-    `).join('');
+ tbody.innerHTML = data.map(p => `
+  <tr>
+    <td><img class="prod-thumb" src="${p.img_url}" onerror="this.src='https://placehold.co/50'"></td>
+    <td>
+      <b>${p.name}</b>
+      ${p.name_en ? `<div style="font-size: 11.5px; color: var(--muted); font-family: sans-serif;">${p.name_en}</div>` : ''}
+      ${p.is_best ? '<span class="badge-tag">الأكثر مبيعاً</span>' : ''}
+    </td>
+    <td style="color: var(--muted);">${p.cat}</td>
+    <td><b>${p.price} ج.م</b> ${p.old_price ? `<span style="text-decoration: line-through; color: var(--muted); font-size:12px;">${p.old_price}</span>` : ''}</td>
+    <td>
+      <div style="display: flex; gap: 6px;">
+        <button style="background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;" onclick="editProduct(${p.id})">تعديل</button>
+        <button class="btn-delete" onclick="deleteProduct(${p.id})">حذف</button>
+      </div>
+    </td>
+  </tr>
+`).join('');
+  }
+// دالة ملء الحقول ببيانات الصنف للتعديل
+window.editProduct = async function(id) {
+  const { data: p, error } = await supabase.from('products').select('*').eq('id', id).single();
+  if (error || !p) {
+    alert('تعذر جلب بيانات الصنف');
+    return;
   }
 
+  document.getElementById('editing_product_id').value = p.id;
+  document.getElementById('name').value = p.name || '';
+  document.getElementById('name_en').value = p.name_en || '';
+  document.getElementById('cat').value = p.cat || '';
+  document.getElementById('price').value = p.price || '';
+  document.getElementById('old_price').value = p.old_price || '';
+  document.getElementById('brand').value = p.brand || '';
+  document.getElementById('desc').value = p.desc || '';
+  document.getElementById('sizes').value = Array.isArray(p.sizes) ? p.sizes.join(', ') : (p.sizes || '');
+  document.getElementById('colors').value = Array.isArray(p.colors) ? p.colors.join(', ') : (p.colors || '');
+  document.getElementById('pack_size').value = p.pack_size || '';
+  document.getElementById('is_best').checked = !!p.is_best;
+  document.getElementById('is_new').checked = !!p.is_new;
+
+  document.getElementById('submitBtn').innerText = 'تحديث الصنف';
+  document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+  // التمرير لأعلى الصفحة
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.resetProductForm = function() {
+  document.getElementById('productForm').reset();
+  document.getElementById('editing_product_id').value = '';
+  document.getElementById('submitBtn').innerText = 'حفظ ونشر الصنف';
+  document.getElementById('cancelEditBtn').classList.add('hidden');
+  selectedFilesQueue = [];
+  updateGalleryPreviews();
+};
+
+// تحديث مستمع إرسال النموذج (Submit)
+document.getElementById('productForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const editId = document.getElementById('editing_product_id').value;
+
+  // إذا كانت إضافة جديدة فيجب اختيار صور
+  if (!editId && selectedFilesQueue.length === 0) {
+    alert('يرجى اختيار صورة واحدة للمنتج على الأقل!');
+    return;
+  }
+
+  btn.disabled = true;
+
+  try {
+    let imageUrls = [];
+    if (selectedFilesQueue.length > 0) {
+      btn.innerText = `جاري رفع (${selectedFilesQueue.length}) صور...`;
+      imageUrls = await uploadImages(selectedFilesQueue);
+    }
+
+    btn.innerText = 'جاري حفظ التعديلات...';
+    const sizesList = cleanListInput(document.getElementById('sizes').value);
+    const colorsList = cleanListInput(document.getElementById('colors').value);
+    const packVal = document.getElementById('pack_size').value.trim();
+    const packSize = (packVal === '' || packVal === '0') ? null : packVal;
+
+    const payload = {
+      name: document.getElementById('name').value.trim(),
+      name_en: document.getElementById('name_en').value.trim() || null,
+      cat: document.getElementById('cat').value,
+      price: Number(document.getElementById('price').value),
+      old_price: document.getElementById('old_price').value ? Number(document.getElementById('old_price').value) : null,
+      brand: document.getElementById('brand').value || 'أوبن مارت',
+      desc: document.getElementById('desc').value,
+      sizes: sizesList.length > 0 ? sizesList : null,
+      colors: colorsList.length > 0 ? colorsList : null,
+      pack_size: packSize,
+      is_best: document.getElementById('is_best').checked,
+      is_new: document.getElementById('is_new').checked,
+      badge: document.getElementById('old_price').value ? 'Sale' : 'New'
+    };
+
+    if (imageUrls.length > 0) {
+      payload.img_url = imageUrls[0];
+      payload.gallery = imageUrls;
+    }
+
+    if (editId) {
+      // تحديث صنف موجود
+      const { error } = await supabase.from('products').update(payload).eq('id', editId);
+      if (error) throw error;
+      alert('تم تحديث الصنف بنجاح!');
+    } else {
+      // صنف جديد
+      const { error } = await supabase.from('products').insert([payload]);
+      if (error) throw error;
+      alert('تم إضافة الصنف بنجاح!');
+    }
+
+    resetProductForm();
+    loadProducts();
+  } catch (err) {
+    alert('حدث خطأ: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
   window.deleteProduct = async function(id) {
     if (!confirm('هل أنت متأكد من حذف هذا الصنف؟')) return;
     const { error } = await supabase.from('products').delete().eq('id', id);
@@ -816,41 +1082,45 @@
     return uploadedUrls;
   }
 
-  function cleanListInput(val) {
+ function cleanListInput(val) {
     if (!val || val.trim() === '' || val.trim() === '0') return [];
     return val.split(/[,،]/)
       .map(item => item.trim())
       .filter(item => item !== '' && item !== '0');
   }
 
+  // مستمع إرسال النموذج (إضافة أو تعديل)
   document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
+    const editId = document.getElementById('editing_product_id').value;
 
-    if (selectedFilesQueue.length === 0) {
+    if (!editId && selectedFilesQueue.length === 0) {
       alert('يرجى اختيار صورة واحدة للمنتج على الأقل!');
       return;
     }
 
     btn.disabled = true;
-    btn.innerText = `جاري ضغط ورفع (${selectedFilesQueue.length}) صور...`;
 
     try {
-      const imageUrls = await uploadImages(selectedFilesQueue);
-      btn.innerText = 'جاري تسجيل بيانات الصنف...';
+      let imageUrls = [];
+      if (selectedFilesQueue.length > 0) {
+        btn.innerText = `جاري رفع (${selectedFilesQueue.length}) صور...`;
+        imageUrls = await uploadImages(selectedFilesQueue);
+      }
 
+      btn.innerText = 'جاري حفظ التعديلات...';
       const sizesList = cleanListInput(document.getElementById('sizes').value);
       const colorsList = cleanListInput(document.getElementById('colors').value);
       const packVal = document.getElementById('pack_size').value.trim();
       const packSize = (packVal === '' || packVal === '0') ? null : packVal;
 
-      const newProduct = {
-        name: document.getElementById('name').value,
+      const payload = {
+        name: document.getElementById('name').value.trim(),
+        name_en: document.getElementById('name_en').value.trim() || null,
         cat: document.getElementById('cat').value,
         price: Number(document.getElementById('price').value),
         old_price: document.getElementById('old_price').value ? Number(document.getElementById('old_price').value) : null,
-        img_url: imageUrls[0],
-        gallery: imageUrls,
         brand: document.getElementById('brand').value || 'أوبن مارت',
         desc: document.getElementById('desc').value,
         sizes: sizesList.length > 0 ? sizesList : null,
@@ -861,19 +1131,27 @@
         badge: document.getElementById('old_price').value ? 'Sale' : 'New'
       };
 
-      const { error } = await supabase.from('products').insert([newProduct]);
-      if (error) throw error;
+      if (imageUrls.length > 0) {
+        payload.img_url = imageUrls[0];
+        payload.gallery = imageUrls;
+      }
 
-      document.getElementById('productForm').reset();
-      selectedFilesQueue = [];
-      updateGalleryPreviews();
+      if (editId) {
+        const { error } = await supabase.from('products').update(payload).eq('id', editId);
+        if (error) throw error;
+        alert('تم تحديث الصنف بنجاح!');
+      } else {
+        const { error } = await supabase.from('products').insert([payload]);
+        if (error) throw error;
+        alert('تم إضافة الصنف بنجاح!');
+      }
+
+      resetProductForm();
       loadProducts();
-      alert('تم رفع الصور ونشر الصنف بنجاح!');
     } catch (err) {
-      alert('حدث خطأ أثناء الرفع: ' + err.message);
+      alert('حدث خطأ: ' + err.message);
     } finally {
       btn.disabled = false;
-      btn.innerText = 'حفظ ونشر الصنف';
     }
   });
 
@@ -881,6 +1159,9 @@
   window.loadCategories = loadCategories;
   window.loadOrdersAndStats = loadOrdersAndStats;
   checkAuth();
+  setInterval(() => {
+    if (!dashboardSection.classList.contains('hidden')) loadOrdersAndStats();
+  }, 5000);
 </script>
 </body>
 </html>
