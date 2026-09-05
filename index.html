@@ -366,6 +366,44 @@ html[lang="ar"] .footer-brand-word {
   .header-inner{gap:14px;}
   .hamburger{display:inline-flex;}
 }
+@media (max-width:520px){
+  .header-inner{
+    gap:6px;
+    padding:10px 12px;
+    width:100%;
+    min-width:0;
+  }
+  .header-actions{
+    gap:1px;
+    min-width:0;
+  }
+  .header-actions > .icon-btn[aria-label="بحث"]{
+    display:none !important;
+  }
+  .header-actions .icon-btn,
+  .hamburger{
+    width:34px;
+    height:34px;
+  }
+  .header-actions .icon-btn svg,
+  .hamburger svg{
+    width:17px;
+    height:17px;
+  }
+  .lang-switch{
+    padding:2px;
+    gap:0;
+    flex-shrink:0;
+  }
+  .lang-btn{
+    padding:4px 5px;
+    font-size:10px;
+    gap:2px;
+  }
+  .lang-btn .flag-icon{
+    font-size:11px;
+  }
+}
 
 /* mobile drawer */
 .drawer-overlay{
@@ -791,7 +829,12 @@ html[lang="ar"] .footer-brand-word {
 .pay-icons{display:flex;gap:8px;}
 .pay-icons span{background:rgba(255,255,255,.08);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;font-family:'DM Mono';}
 @media (max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;}}
-@media (max-width:520px){.footer-grid{grid-template-columns:1fr;}}
+@media (max-width:520px){
+  .footer-grid{grid-template-columns:1fr;}
+  .footer-bottom{
+    padding:22px 24px calc(38px + env(safe-area-inset-bottom));
+  }
+}
 
 /* ============ BREADCRUMB / PAGE HEAD ============ */
 .page-head{background:var(--sand);padding:34px 0;border-bottom:1px solid var(--line-soft);}
