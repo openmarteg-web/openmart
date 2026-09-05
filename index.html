@@ -2984,10 +2984,14 @@ const [topbarText, setTopbarText] = useState("شحن مجاني للطلبات �
       }
     }
     getTopbar();
-  }, []);
     window.fetchSiteSetting?.("topbar_text").then(value => {
       if (value) setTopbarText(value);
     }).catch(() => {});
+    const updateTopbarText = (event) => {
+      if (event.key === "openmart_topbar_text") {
+        setTopbarText(event.newValue?.trim() || "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
+      }
+    };
     window.addEventListener("storage", updateTopbarText);
     return () => window.removeEventListener("storage", updateTopbarText);
   }, []);
