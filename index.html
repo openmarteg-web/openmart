@@ -1,13 +1,70 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet"><meta charset="UTF-8" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>أوبن مارت — نقرة واحدة وتصبح لك</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Baloo+Bhaijaan+2:wght@600;700;800&family=Cairo:wght@500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
+  /* ============ مفتاح تبديل اللغة (Language Switcher) ============ */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  background: var(--sand-deep);
+  padding: 3px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  gap: 2px;
+}
+
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  padding: 5px 9px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.lang-btn .flag-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.lang-btn.active {
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+/* ضبط موقعه في الموبايل والديسكتوب */
+@media (max-width: 1080px) {
+  /* لضمان ظهوره في أقصى يسار الهيدر على الموبايل بوضوح وسهولة وصول */
+  .header-actions {
+    margin-right: auto !important; /* يدفع مجموعة الأيقونات والزر لأقصى الشمال */
+    margin-left: 0 !important;
+    gap: 6px;
+  }
+  
+  .lang-switch {
+    margin-left: 4px;
+  }
+
+  .lang-btn {
+    padding: 4px 7px;
+    font-size: 11px;
+  }
+}
   /* تعديلات RTL للـ Hero Section */
 .hero-price-chip {
   position: absolute;
@@ -23,11 +80,11 @@
 }
   /* ============ تصميم قسم الأقسام (متوافق مع الصور) ============ */
 .categories-section {
-  background-color: #4F6FF5; /* أزرق الشعار */
+  background-color: #4F6FF5;
   padding: 40px 20px;
-  direction: rtl; /* لدعم اللغة العربية */
+  direction: rtl;
   position: relative;
-  font-family: 'Plus Jakarta Sans', 'Tajawal', sans-serif; /* يفضل إضافة خط عربي مثل Tajawal */
+  font-family: 'Cairo', sans-serif;
 }
 
 .categories-container {
@@ -173,17 +230,27 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: 'Tajawal', 'Plus Jakarta Sans', sans-serif; /* دعم الخط العربي */
+  font-family: 'Baloo 2', sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  direction: rtl; /* تحويل الموقع من اليمين لليسار */
+  direction: rtl;
   text-align: right;
+}
+html[lang="ar"] body {
+  font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
 }
 h1,h2,h3,h4,.display{
   font-family:'Baloo 2',sans-serif;
   font-weight:700;
   letter-spacing:-.01em;
   margin:0;
+}
+html[lang="ar"] h1,
+html[lang="ar"] h2,
+html[lang="ar"] h3,
+html[lang="ar"] h4,
+html[lang="ar"] .display {
+  font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
 }
 .mono{font-family:'DM Mono',monospace;}
 a{color:inherit;text-decoration:none;}
@@ -271,6 +338,10 @@ html{scrollbar-width:none;}
 .logo-mark img{width:38px;height:38px;}
 .logo-word{font-family:'Baloo 2';font-weight:700;font-size:23px;color:var(--ink);}
 .logo-word span{color:var(--coral);}
+html[lang="ar"] .logo-word,
+html[lang="ar"] .footer-brand-word {
+  font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+}
 .nav-main{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 .nav-link{
   padding:10px 14px;border-radius:var(--r-pill);font-weight:600;font-size:14.5px;color:var(--ink-soft);
@@ -1210,6 +1281,91 @@ const TwIcon = p => <Icon {...p}><path d="M4 4l16 16M20 4 4 20"/></Icon>;
 const PinIcon = p => <Icon {...p}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></Icon>;
 
 const LOGO = "logo.jpeg";
+let activeLanguage = "ar";
+const headingTranslations = {
+  "قائمة المفضلة فارغة": "Your wishlist is empty",
+  "المنتجات المفضلة": "Wishlist",
+  "لا توجد طلبات سابقة": "No previous orders",
+  "سجل الطلبات": "Order history",
+  "كل المنتجات": "All products",
+  "لم نجد منتجات": "No products found",
+  "تسوق بلأصـنـاف": "Shop by category",
+  "المفضلة لدى العملاء": "Customer favorites",
+  "أحدث المنتجات": "Latest products",
+  "المنتجات الأكثر مبيعاً": "Best sellers",
+  "وصل حديثاً": "New arrivals",
+  "سوق إلكتروني يبدأ بحركة واحدة: النقرة.": "An online store that starts with one click.",
+  "سلة التسوق فارغة": "Your cart is empty",
+  "سلة التسوق": "Shopping cart",
+  "ملخص الطلب": "Order summary"
+};
+const headingText = (arabic, english) => activeLanguage === "en" ? (english || headingTranslations[arabic] || arabic) : arabic;
+const uiText = (arabic, english) => activeLanguage === "en" ? english : arabic;
+const UI_TRANSLATIONS = {
+  "الرئيسية": "Home", "المتجر": "Shop", "من نحن": "About", "الأكثر مبيعاً": "Best sellers",
+  "عربة التسوق": "Shopping cart", "المفضلة": "Wishlist", "طلباتي السابقة": "My orders",
+  "ابحث عن المنتجات...": "Search products...", "ابحث عن المنتجات، الماركات...": "Search products, brands...",
+  "أدوات منزليه": "Home appliances", "مطبخ": "Kitchen", "حمام": "Bathroom", "تخييم ورحلات": "Camping and trips",
+  "أدوات رياضه": "Sports equipment", "اكسسوار للسياره": "Car accessories", "تنظيف": "Cleaning",
+  "عطور": "Perfumes", "صحه وجمال": "Health and beauty",
+  "فتح القائمة": "Open menu", "بحث": "Search", "الحساب": "Account", "طلباتي": "My orders",
+  "السلة": "Cart", "قائمة الأمنيات": "Wishlist", "تسجيل الدخول": "Log in",
+  "إنشاء حساب جديد": "Create an account", "تسجيل الخروج": "Log out", "إلغاء": "Cancel",
+  "شحن مجاني": "Free shipping", "للطلبات فوق 75 ج.م": "For orders over EGP 75",
+  "إرجاع خلال 30 يوم": "30-day returns", "بدون أسئلة": "No questions asked",
+  "دفع آمن": "Secure payment", "إعادة طلب بضغطة": "Reorder in one click",
+  "مشترياتك السابقة محفوظة": "Your previous purchases are saved", "عرض الكل": "View all",
+  "تصفح الأقسام": "Browse categories", "تسوق التشكيلة": "Shop the collection", "اضغط للتسوق": "Click to shop",
+  "القسم": "Category", "السعر": "Price", "العلامة التجارية": "Brand", "التقييم": "Rating",
+  "أي تقييم": "Any rating", "فأعلى": "and up", "مسح الفلاتر": "Clear filters", "الفلاتر": "Filters",
+  "ترتيب:": "Sort:", "مميز": "Featured", "الأحدث": "Newest", "السعر: من الأقل للأعلى": "Price: low to high",
+  "السعر: من الأعلى للأقل": "Price: high to low", "الأعلى تقييمًا": "Top rated", "عرض شبكي": "Grid view", "عرض قائمة": "List view",
+  "أضف إلى السلة": "Add to cart", "إضافة سريعة إلى السلة": "Quick add to cart", "لم نجد منتجات": "No products found",
+  "جرّب تعديل الفلاتر أو كلمات البحث.": "Try adjusting the filters or search terms.",
+  "تصفح المنتجات": "Browse products", "تسوق الآن": "Shop now", "متابعة التسوق": "Continue shopping",
+  "حذف": "Remove", "إتمام الطلب": "Checkout", "ملخص الطلب": "Order summary", "المجموع الفرعي": "Subtotal",
+  "الشحن": "Shipping", "مجاني": "Free", "الإجمالي": "Total", "الإجمالي المطلوب": "Total due",
+  "رمز الخصم": "Discount code", "تطبيق": "Apply", "الدفع عند الاستلام نقداً": "Cash on delivery",
+  "تفاصيل العميل والتوصيل": "Customer and delivery details", "الاسم ثلاثي *": "Full name *",
+  "رقم هاتف الواتساب *": "WhatsApp number *", "عنوان التوصيل بالتفصيل *": "Full delivery address *",
+  "ملاحظات إضافية (اختياري)": "Additional notes (optional)", "اكتب اسمك الكريم": "Enter your name",
+  "تأكيد الطلب والمتابعة عبر واتساب": "Confirm order and continue via WhatsApp",
+  "لا توجد تقييمات لهذا المنتج بعد. كن أول من يقيّمه!": "No reviews yet. Be the first to review it!",
+  "جاري تحميل التقييمات...": "Loading reviews...", "الوصف": "Description", "المواصفات": "Specifications",
+  "اللون:": "Color:", "المقاس:": "Size:", "وفر": "Save", "يُشترى معاً عادةً": "Frequently bought together",
+  "توصيل مجاني": "Free delivery", "إرجاع مجاني خلال 30 يومًا": "Free returns within 30 days",
+  "إذا لم يكن المقاس مناسبًا": "If the size is not right", "مع تشفير البيانات": "With data encryption",
+  "إنشاء حساب": "Create account", "أدخل بيانات بريدك الإلكتروني للمتابعة": "Enter your email details to continue",
+  "البريد الإلكتروني": "Email", "كلمة المرور": "Password", "دخول": "Log in", "إنشاء حساب جديد": "Create account",
+  "ابدأ التسوق": "Start shopping", "سياسة الخصوصية": "Privacy policy", "الاستدامة": "Sustainability",
+  "جميع الحقوق محفوظة": "All rights reserved", "هل أنت متأكد من تسجيل الخروج؟": "Are you sure you want to log out?",
+  "ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.": "You will need to log in again to access your account.",
+  "جاري التحميل...": "Loading...", "جاري تحميل الطلبات...": "Loading orders..."
+  ,"تخفيض": "Sale", "جديد": "New", "تم التوصيل": "Delivered", "تم الإلغاء": "Cancelled",
+  "جاري تجهيز الطلب": "Processing order", "تم استلام الطلب": "Order received", "الكمية:": "Quantity:",
+  "التقييمات": "Reviews", "تمت الإضافة إلى قائمة الأمنيات": "Added to wishlist",
+  "تم تسجيل الخروج بنجاح.": "Logged out successfully.", "جاري تسجيل الطلب...": "Submitting order...",
+  "تم إنشاء الحساب بنجاح!": "Account created successfully!", "تم تسجيل الدخول بنجاح!": "Logged in successfully!",
+  "تعذر تسجيل الدخول، حاول مرة أخرى.": "Unable to log in. Please try again.",
+  "حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.": "There was an error submitting the order. Please try again."
+};
+const translateRenderedUi = () => {
+  const translations = activeLanguage === "en"
+    ? UI_TRANSLATIONS
+    : Object.fromEntries(Object.entries(UI_TRANSLATIONS).map(([arabic, english]) => [english, arabic]));
+  const excluded = ".pcard-name, .pcard-brand, .pd-title, .pd-brand, .pd-desc, .pd-tab-panel, .co-mini-item .n";
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => {
+    if (node.parentElement.closest(`script, style, ${excluded}`)) return;
+    const trimmed = node.nodeValue.trim();
+    if (!trimmed) return;
+    const translated = translations[trimmed];
+    if (translated) node.nodeValue = node.nodeValue.replace(trimmed, translated);
+  });
+  document.title = activeLanguage === "en" ? "Openmart - One click, and it's yours" : "أوبن مارت — نقرة واحدة وتصبح لك";
+};
 /* ============================================================
    DATA
 ============================================================ */
@@ -1310,7 +1466,7 @@ const PRODUCTS = [
   desc:"دنيم سيلفيدج متين يزداد نعومة مع كل غسلة. قصة كلاسيكية بأزرار كوروزو وجيب صدري مصمم ليدوم سنوات."},
 ];
 
-const money = n => n.toLocaleString('EN-EG') + " ج.م";
+const money = n => n.toLocaleString(activeLanguage === "en" ? "en-US" : "EN-EG") + (activeLanguage === "en" ? " EGP" : " ج.م");
 /* ============================================================
    SMALL SHARED COMPONENTS
 ============================================================ */
@@ -1373,92 +1529,120 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd}){
 /* ============================================================
    HEADER
 ============================================================ */
-function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, user, login, requestLogout, topbarText}){
-    const links = [
-    {id:"home", label:"الرئيسية"},
-    {id:"shop", label:"المتجر"},
-    {id:"about", label:"من نحن"},
+function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, user, login, requestLogout, topbarText, lang, setLang}){
+  const links = [
+    {id:"home", label: lang === "ar" ? "الرئيسية" : "Home"},
+    {id:"shop", label: lang === "ar" ? "المتجر" : "Shop"},
+    {id:"about", label: lang === "ar" ? "من نحن" : "About"},
   ];
+
   const openMobileSearch = () => {
     onOpenMenu();
     setTimeout(() => document.querySelector(".drawer.open .drawer-search input")?.focus(), 0);
   };
+
   return (
     <>
-<div className="topbar">{topbarText}</div>    <header className="header">
-      <div className="header-inner">
-        <button className="icon-btn hamburger" onClick={onOpenMenu} aria-label="فتح القائمة"><MenuIcon/></button>
-     <a href="#" className="logo-mark" onClick={(e)=>{e.preventDefault();go("home");}}>
-  <img src={LOGO} alt="شعار أوبن مارت" style={{ height: "42px", width: "auto", objectFit: "contain" }} />
-</a>
-        <nav className="nav-main">
-          {links.map(l=>(
-            <a key={l.id} href="#" className={"nav-link"+((page==="shop"&&l.id.startsWith("shop"))||page===l.id?" active":"")}
-               onClick={(e)=>{e.preventDefault();go(l.target||l.id);}}>{l.label}</a>
-          ))}
-        </nav>
-        <form className="search-form" onSubmit={(e)=>{e.preventDefault();go("shop");}}>
-          <SearchIcon size={17} style={{color:"var(--ink-faint)"}}/>
-<input placeholder="ابحث عن المنتجات، الماركات..." value={search} onChange={e=>setSearch(e.target.value)} />        </form>
-        <div className="header-actions">
-          <button className="icon-btn" aria-label="بحث" onClick={openMobileSearch} style={{display: window.innerWidth<1080?"inline-flex":"none"}}><SearchIcon size={19}/></button>
-{user ? (
-  <div style={{ position: "relative", display: "inline-flex" }}>
-    <button 
-      className="icon-btn" 
-      onClick={requestLogout} 
-      title="حسابك نشط (اضغط لتسجيل الخروج)" 
-      style={{
-        background: "var(--periwinkle)",
-        color: "#ffffff",
-        fontWeight: "800",
-        fontSize: "15px",
-        borderRadius: "50%",
-        width: "38px",
-        height: "38px",
-        border: "2px solid #ffffff",
-        boxShadow: "var(--shadow-sm)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        textTransform: "uppercase"
-      }}
-    >
-      {/* يعرض أول حرف من إيميل العميل */}
-      {(user.email ? user.email.charAt(0) : "U").toUpperCase()}
-    </button>
-    {/* نقطة خضراء صغيرة تثبت أن الحساب نشط ومتصل */}
-    <span style={{
-      position: "absolute",
-      bottom: "1px",
-      right: "1px",
-      width: "10px",
-      height: "10px",
-      backgroundColor: "#10B981",
-      borderRadius: "50%",
-      border: "2px solid #ffffff"
-    }}></span>
-  </div>
-) : (
-  <button className="icon-btn" aria-label="الحساب" onClick={login} title="تسجيل الدخول">
-    <UserIcon size={19}/>
-  </button>
-)}
-<button className="icon-btn" aria-label="طلباتي" onClick={()=>go("orders")} title="طلباتي السابقة">
-  <TruckIcon size={19}/>
-</button>
-        <button className="icon-btn" aria-label="قائمة الأمنيات" onClick={()=>go("wishlist")} title="المفضلة">
-  <HeartIcon size={19}/>
-  {wishCount > 0 && <span className="badge">{wishCount}</span>}
-</button>
-          <button className="icon-btn" aria-label="السلة" onClick={()=>go("cart")}>
-            <BagIcon size={19}/>
-            {cartCount>0 && <span className="badge">{cartCount}</span>}
-          </button>
-        </div>
+      <div className="topbar">{topbarText}</div>
+      <header className="header">
+        <div className="header-inner">
+          <button className="icon-btn hamburger" onClick={onOpenMenu} aria-label="فتح القائمة"><MenuIcon/></button>
+          
+          <a href="#" className="logo-mark" onClick={(e)=>{e.preventDefault();go("home");}}>
+            <img src={LOGO} alt="شعار أوبن مارت" style={{ height: "42px", width: "auto", objectFit: "contain" }} />
+          </a>
 
-      </div>
-    </header>
+          <nav className="nav-main">
+            {links.map(l=>(
+              <a key={l.id} href="#" className={"nav-link"+((page==="shop"&&l.id.startsWith("shop"))||page===l.id?" active":"")}
+                 onClick={(e)=>{e.preventDefault();go(l.target||l.id);}}>{l.label}</a>
+            ))}
+          </nav>
+
+          <form className="search-form" onSubmit={(e)=>{e.preventDefault();go("shop");}}>
+            <SearchIcon size={17} style={{color:"var(--ink-faint)"}}/>
+            <input placeholder={lang === "ar" ? "ابحث عن المنتجات، الماركات..." : "Search products, brands..."} value={search} onChange={e=>setSearch(e.target.value)} />
+          </form>
+
+          <div className="header-actions">
+            {/* زر سويتش اللغة المضاف */}
+            <div className="lang-switch">
+              <button 
+                type="button" 
+                className={"lang-btn " + (lang === "ar" ? "active" : "")} 
+                onClick={() => setLang("ar")}
+                title="العربية"
+              >
+                <span className="flag-icon">🇪🇬</span> AR
+              </button>
+              <button 
+                type="button" 
+                className={"lang-btn " + (lang === "en" ? "active" : "")} 
+                onClick={() => setLang("en")}
+                title="English"
+              >
+                <span className="flag-icon">🇺🇸</span> EN
+              </button>
+            </div>
+
+            <button className="icon-btn" aria-label="بحث" onClick={openMobileSearch} style={{display: window.innerWidth<1080?"inline-flex":"none"}}><SearchIcon size={19}/></button>
+
+            {user ? (
+              <div style={{ position: "relative", display: "inline-flex" }}>
+                <button 
+                  className="icon-btn" 
+                  onClick={requestLogout} 
+                  title="حسابك نشط (اضغط لتسجيل الخروج)" 
+                  style={{
+                    background: "var(--periwinkle)",
+                    color: "#ffffff",
+                    fontWeight: "800",
+                    fontSize: "15px",
+                    borderRadius: "50%",
+                    width: "38px",
+                    height: "38px",
+                    border: "2px solid #ffffff",
+                    boxShadow: "var(--shadow-sm)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textTransform: "uppercase"
+                  }}
+                >
+                  {(user.email ? user.email.charAt(0) : "U").toUpperCase()}
+                </button>
+                <span style={{
+                  position: "absolute",
+                  bottom: "1px",
+                  right: "1px",
+                  width: "10px",
+                  height: "10px",
+                  backgroundColor: "#10B981",
+                  borderRadius: "50%",
+                  border: "2px solid #ffffff"
+                }}></span>
+              </div>
+            ) : (
+              <button className="icon-btn" aria-label="الحساب" onClick={login} title="تسجيل الدخول">
+                <UserIcon size={19}/>
+              </button>
+            )}
+
+            <button className="icon-btn" aria-label="طلباتي" onClick={()=>go("orders")} title="طلباتي السابقة">
+              <TruckIcon size={19}/>
+            </button>
+            <button className="icon-btn" aria-label="قائمة الأمنيات" onClick={()=>go("wishlist")} title="المفضلة">
+              <HeartIcon size={19}/>
+              {wishCount > 0 && <span className="badge">{wishCount}</span>}
+            </button>
+            <button className="icon-btn" aria-label="السلة" onClick={()=>go("cart")}>
+              <BagIcon size={19}/>
+              {cartCount>0 && <span className="badge">{cartCount}</span>}
+            </button>
+          </div>
+
+        </div>
+      </header>
     </>
   );
 }
@@ -1470,7 +1654,7 @@ function WishlistPage({wishlist, toggleWish, quickAdd, go, products}) {
       <div className="wrap">
         <div className="empty-state">
           <div className="icon-circle"><HeartIcon size={38}/></div>
-          <h2 style={{fontSize:24, marginBottom:10}}>قائمة المفضلة فارغة</h2>
+          <h2 style={{fontSize:24, marginBottom:10}}>{headingText("قائمة المفضلة فارغة")}</h2>
           <p style={{color:"var(--ink-soft)", marginBottom:26}}>لم تقم بإضافة أي منتج للمفضلة بعد.</p>
           <button className="btn btn-primary btn-lg" onClick={()=>go("shop")}>تصفح المنتجات</button>
         </div>
@@ -1485,7 +1669,7 @@ function WishlistPage({wishlist, toggleWish, quickAdd, go, products}) {
           <div className="breadcrumb">
             <a href="#" onClick={(e)=>{e.preventDefault(); go("home");}}>الرئيسية</a> / <span>المفضلة</span>
           </div>
-          <h1 className="page-title">المنتجات المفضلة ({wishedProducts.length})</h1>
+          <h1 className="page-title">{headingText("المنتجات المفضلة")} ({wishedProducts.length})</h1>
         </div>
       </div>
       <div className="wrap section">
@@ -1554,7 +1738,7 @@ function OrdersPage({orders, go}) {
       <div className="wrap">
         <div className="empty-state">
           <div className="icon-circle"><TruckIcon size={38}/></div>
-          <h2 style={{fontSize:24, marginBottom:10}}>لا توجد طلبات سابقة</h2>
+          <h2 style={{fontSize:24, marginBottom:10}}>{headingText("لا توجد طلبات سابقة")}</h2>
           <p style={{color:"var(--ink-soft)", marginBottom:26}}>لم تقم بإجراء أي طلبات حتى الآن.</p>
           <button className="btn btn-primary btn-lg" onClick={()=>go("shop")}>تسوق الآن</button>
         </div>
@@ -1570,7 +1754,7 @@ function OrdersPage({orders, go}) {
             <div className="breadcrumb">
               <a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>الرئيسية</a> / <span>طلباتي السابقة</span>
             </div>
-            <h1 className="page-title">سجل الطلبات</h1>
+            <h1 className="page-title">{headingText("سجل الطلبات")}</h1>
           </div>
           <button 
             onClick={()=>go("home")}
@@ -1698,17 +1882,17 @@ function Hero({go}){
     }}
   >
             <div>
-              <span className="hero-eyebrow"><CursorIcon size={13}/> {s.eyebrow}</span>
-              <h1 className="hero-title">{s.title} <span className="accent">{s.accent}</span></h1>
-              <p className="hero-sub">{s.sub}</p>
+              <span className="hero-eyebrow"><CursorIcon size={13}/> {uiText(s.eyebrow, "New season")}</span>
+              <h1 className="hero-title">{headingText(s.title, "One click.")} <span className="accent">{headingText(s.accent, "And it's yours.")}</span></h1>
+              <p className="hero-sub">{uiText(s.sub, "Curated essentials for your everyday life - sneakers, audio, and accessories designed to fit your style.")}</p>
               <div className="hero-cta-row">
-                <button className="btn btn-primary btn-lg" onClick={()=>scrollToSection("products")}>{s.cta}<ChevronLeft size={16}/></button>
-                <button className="btn btn-outline btn-lg" onClick={()=>scrollToSection("categories")}>تصفح الأقسام</button>
+                <button className="btn btn-primary btn-lg" onClick={()=>scrollToSection("products")}>{uiText(s.cta, "Shop the collection")}<ChevronLeft size={16}/></button>
+                <button className="btn btn-outline btn-lg" onClick={()=>scrollToSection("categories")}>{uiText("تصفح الأقسام", "Browse categories")}</button>
               </div>
             </div>
             <div className="hero-visual">
               <img src={heroImage || s.img} alt=""/>
-              <div className="hero-cursor-chip"><CursorIcon size={13}/> اضغط للتسوق</div>
+              <div className="hero-cursor-chip"><CursorIcon size={13}/> {uiText("اضغط للتسوق", "Click to shop")}</div>
              
             </div>
           </div>
@@ -1740,8 +1924,8 @@ function CategoryRow({go, setCatFilter, categories}){
     <section id="categories" className="section wrap">
       <div className="section-head">
         <div>
-          <span className="section-eyebrow">تـصـفـح</span>
-          <h2 className="section-title">تسوق بلأصـنـاف</h2>
+          <span className="section-eyebrow">{uiText("تـصـفـح", "EXPLORE")}</span>
+          <h2 className="section-title">{headingText("تسوق بلأصـنـاف")}</h2>
         </div>
       </div>
       <div className="cat-row">
@@ -1760,10 +1944,10 @@ function ProductGridSection({title, eyebrow, items, go, wishlist, toggleWish, qu
     <section id={sectionId} className="section wrap">
       <div className="section-head">
         <div>
-          <span className="section-eyebrow">{eyebrow}</span>
-          <h2 className="section-title">{title}</h2>
+          <span className="section-eyebrow">{headingText(eyebrow)}</span>
+          <h2 className="section-title">{headingText(title)}</h2>
         </div>
-        <a href="#" className="section-link" onClick={(e)=>{e.preventDefault();viewAllGo?viewAllGo():go("shop");}}>عرض الكل <ChevronRight size={15}/></a>
+        <a href="#" className="section-link" onClick={(e)=>{e.preventDefault();viewAllGo?viewAllGo():go("shop");}}>{uiText("عرض الكل", "View all")} <ChevronRight size={15}/></a>
       </div>
       <div className="grid-4">
         {items.map(p=>(
@@ -1882,7 +2066,7 @@ const catCounts = Object.fromEntries(currentCats.map(c=>[c.id, products.filter(p
       <div className="breadcrumb">
         <a href="#" onClick={(e)=>{e.preventDefault(); go("home");}}>الرئيسية</a> / <span>المتجر</span>
       </div>
-      <h1 className="page-title">كل المنتجات</h1>
+      <h1 className="page-title">{headingText("كل المنتجات")}</h1>
     </div>
 
     {/* زر العودة المخصص للموبايل */}
@@ -1965,7 +2149,7 @@ const catCounts = Object.fromEntries(currentCats.map(c=>[c.id, products.filter(p
           {shown.length === 0 ? (
             <div className="empty-state">
               <div className="icon-circle"><SearchIcon size={34}/></div>
-              <h3 style={{fontSize:20,marginBottom:8}}>لم نجد منتجات</h3>
+              <h3 style={{fontSize:20,marginBottom:8}}>{headingText("لم نجد منتجات")}</h3>
               <p style={{color:"var(--ink-soft)",marginBottom:20}}>جرّب تعديل الفلاتر أو كلمات البحث.</p>
             </div>
           ) : view==="grid" ? (
@@ -2315,7 +2499,7 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
             maxWidth: "680px"
           }}>
             <h3 style={{fontSize: "17px", fontWeight: "800", marginBottom: "18px", color: "var(--ink)"}}>
-              يُشترى معاً عادةً
+              {headingText("يُشترى معاً عادةً", "Frequently bought together")}
             </h3>
 
             {/* صور المنتجين مع علامة الزائد */}
@@ -2369,7 +2553,7 @@ function CartPage({cart, go, updateQty, removeItem}){
       <div className="wrap">
         <div className="empty-state">
           <div className="icon-circle"><BagIcon size={38}/></div>
-          <h2 style={{fontSize:24,marginBottom:10}}>سلة التسوق فارغة</h2>
+          <h2 style={{fontSize:24,marginBottom:10}}>{headingText("سلة التسوق فارغة")}</h2>
           <p style={{color:"var(--ink-soft)",marginBottom:26}}>لم تضف أي منتجات بعد. ابدأ التسوق الآن.</p>
           <button className="btn btn-primary btn-lg" onClick={()=>go("shop")}>ابدأ التسوق</button>
         </div>
@@ -2383,7 +2567,7 @@ function CartPage({cart, go, updateQty, removeItem}){
         <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
           <div>
             <div className="breadcrumb"><a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>الرئيسية</a> / <span>السلة</span></div>
-            <h1 className="page-title">سلة التسوق ({cart.length})</h1>
+            <h1 className="page-title">{headingText("سلة التسوق")} ({cart.length})</h1>
           </div>
           <button 
             onClick={()=>go("home")}
@@ -2421,7 +2605,7 @@ function CartPage({cart, go, updateQty, removeItem}){
         </div>
 
         <div className="summary-card">
-          <h3 style={{fontSize:19,marginBottom:6}}>ملخص الطلب</h3>
+          <h3 style={{fontSize:19,marginBottom:6}}>{headingText("ملخص الطلب")}</h3>
           <div className="summary-row"><span>المجموع الفرعي</span><span className="mono">{money(subtotal)}</span></div>
           <div className="summary-row"><span>الشحن</span><span className="mono">{shipping===0?"مجاني":money(shipping)}</span></div>
           {subtotal<75 && subtotal>0 && <div style={{fontSize:12.5,color:"var(--periwinkle-deep)",background:"var(--periwinkle-pale)",padding:"8px 12px",borderRadius:10,margin:"6px 0"}}>أضف {money(75-subtotal)} للحصول على شحن مجاني</div>}
@@ -2461,7 +2645,7 @@ function CheckoutPage({cart, go, placeOrder}){
       <div className="wrap">
         <div className="empty-state">
           <div className="icon-circle"><BagIcon size={38}/></div>
-          <h2 style={{fontSize: 24, marginBottom: 10}}>السلة فارغة</h2>
+          <h2 style={{fontSize: 24, marginBottom: 10}}>{headingText("السلة فارغة", "Your cart is empty")}</h2>
           <p style={{color: "var(--ink-soft)", marginBottom: 26}}>يرجى اختيار منتجات أولاً قبل إتمام الطلب.</p>
           <button className="btn btn-primary btn-lg" onClick={() => go("shop")}>تصفح المتجر</button>
         </div>
@@ -2477,7 +2661,7 @@ function CheckoutPage({cart, go, placeOrder}){
             <div className="breadcrumb">
               <a href="#" onClick={(e) => { e.preventDefault(); go("home"); }}>الرئيسية</a> / <a href="#" onClick={(e) => { e.preventDefault(); go("cart"); }}>السلة</a> / <span>بيانات التوصيل</span>
             </div>
-            <h1 className="page-title">إتمام الطلب عبر واتساب</h1>
+            <h1 className="page-title">{headingText("إتمام الطلب عبر واتساب", "Checkout via WhatsApp")}</h1>
           </div>
           <button 
             onClick={() => go("home")}
@@ -2523,7 +2707,7 @@ function CheckoutPage({cart, go, placeOrder}){
         </form>
 
         <div className="summary-card" style={{top: 100}}>
-          <h3 style={{fontSize: 18, marginBottom: 14}}>ملخص الطلب</h3>
+          <h3 style={{fontSize: 18, marginBottom: 14}}>{headingText("ملخص الطلب")}</h3>
           {cart.map((item, idx) => (
             <div className="co-mini-item" key={idx}>
               <img src={item.product.img} alt=""/>
@@ -2545,7 +2729,7 @@ function AuthPage({user, isSignUpMode, setIsSignUpMode, emailInput, setEmailInpu
     <div className="wrap" style={{padding: "60px 20px", maxWidth: "460px"}}>
       <div style={{background: "var(--sand)", padding: "32px", borderRadius: "20px", border: "1.5px solid var(--line)", boxShadow: "var(--shadow-md)"}}>
         <h2 style={{fontSize: "22px", marginBottom: "8px", textAlign: "center"}}>
-          {isSignUpMode ? "إنشاء حساب جديد" : "تسجيل الدخول"}
+          {isSignUpMode ? headingText("إنشاء حساب جديد", "Create an account") : headingText("تسجيل الدخول", "Log in")}
         </h2>
         <p style={{fontSize: "13.5px", color: "var(--ink-soft)", textAlign: "center", marginBottom: "24px"}}>
           أدخل بيانات بريدك الإلكتروني للمتابعة
@@ -2595,44 +2779,44 @@ function Footer({go}){
       <div className="wrap footer-grid">
         <div>
           <div className="footer-brand-word">أوبن <span>مارت</span></div>
-          <p className="footer-desc">سوق مختار لاحتياجاتك اليومية من الأحذية والصوتيات والإكسسوارات وغيرها، لمن ينقر ويواصل يومه.</p>
+          <p className="footer-desc">{uiText("سوق مختار لاحتياجاتك اليومية من الأحذية والصوتيات والإكسسوارات وغيرها، لمن ينقر ويواصل يومه.", "A curated store for your daily needs, from footwear and audio to accessories and more, for those who click and keep moving.")}</p>
           <div className="footer-social">
-            <a href="#" aria-label="إنستغرام"><InstaIcon size={17}/></a>
-            <a href="#" aria-label="فيسبوك"><FbIcon size={17}/></a>
-            <a href="#" aria-label="إكس"><TwIcon size={17}/></a>
-            <a href="#" aria-label="بنترست"><PinIcon size={17}/></a>
+            <a href="#" aria-label={uiText("إنستغرام", "Instagram")}><InstaIcon size={17}/></a>
+            <a href="#" aria-label={uiText("فيسبوك", "Facebook")}><FbIcon size={17}/></a>
+            <a href="#" aria-label={uiText("إكس", "X")}><TwIcon size={17}/></a>
+            <a href="#" aria-label={uiText("بنترست", "Pinterest")}><PinIcon size={17}/></a>
           </div>
         </div>
         <div>
-          <div className="footer-h">المتجر</div>
+          <div className="footer-h">{uiText("المتجر", "Shop")}</div>
           <div className="footer-links">
-            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>كل المنتجات</a>
-            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>وصل حديثًا</a>
-            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>الأكثر مبيعًا</a>
-            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>التخفيضات</a>
+            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("كل المنتجات", "All products")}</a>
+            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("وصل حديثًا", "New arrivals")}</a>
+            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("الأكثر مبيعًا", "Best sellers")}</a>
+            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("التخفيضات", "Sale")}</a>
           </div>
         </div>
         <div>
-          <div className="footer-h">الدعم</div>
+          <div className="footer-h">{uiText("الدعم", "Support")}</div>
           <div className="footer-links">
-            <a href="#">تواصل معنا</a>
-            <a href="#">معلومات الشحن</a>
-            <a href="#">الإرجاع والاستبدال</a>
-            <a href="#">الأسئلة الشائعة</a>
+            <a href="#">{uiText("تواصل معنا", "Contact us")}</a>
+            <a href="#">{uiText("معلومات الشحن", "Shipping information")}</a>
+            <a href="#">{uiText("الإرجاع والاستبدال", "Returns and exchanges")}</a>
+            <a href="#">{uiText("الأسئلة الشائعة", "FAQ")}</a>
           </div>
         </div>
         <div>
-          <div className="footer-h">الشركة</div>
+          <div className="footer-h">{uiText("الشركة", "Company")}</div>
           <div className="footer-links">
-            <a href="#">عن أوبن مارت</a>
-            <a href="#">الوظائف</a>
-            <a href="#">الاستدامة</a>
-            <a href="#">سياسة الخصوصية</a>
+            <a href="#">{uiText("عن أوبن مارت", "About Openmart")}</a>
+            <a href="#">{uiText("الوظائف", "Careers")}</a>
+            <a href="#">{uiText("الاستدامة", "Sustainability")}</a>
+            <a href="#">{uiText("سياسة الخصوصية", "Privacy policy")}</a>
           </div>
         </div>
       </div>
       <div className="wrap footer-bottom">
-        <span>© 2026 أوبن مارت. جميع الحقوق محفوظة.</span>
+        <span>{uiText("© 2026 أوبن مارت. جميع الحقوق محفوظة.", "© 2026 Openmart. All rights reserved.")}</span>
         <a className="developer-credit" href="https://joeadvertiseeg.vercel.app/" target="_blank" rel="noopener noreferrer">Developed by Joe Advertise</a>
       </div>
     </footer>
@@ -2640,6 +2824,16 @@ function Footer({go}){
 }
 
 function App(){
+  const [lang, setLang] = useState(() => localStorage.getItem("openmart_lang") || "ar");
+  activeLanguage = lang;
+
+useEffect(() => {
+  localStorage.setItem("openmart_lang", lang);
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.body.dir = lang === "ar" ? "rtl" : "ltr";
+  requestAnimationFrame(translateRenderedUi);
+}, [lang]);
 // استبدل هذا الجزء داخل دالة App
 const [emailInput, setEmailInput] = useState("");
 const [passInput, setPassInput] = useState("");
@@ -2798,7 +2992,7 @@ useEffect(() => {
 
   // 6. إدارة السلة والإشعارات
   const showToast = (msg) => {
-    setToast(msg);
+    setToast(activeLanguage === "en" ? (UI_TRANSLATIONS[msg] || msg) : msg);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(()=>setToast(""), 2400);
   };
@@ -2893,7 +3087,21 @@ useEffect(() => {
   return (
     <>
       {/* تعديل خاصية login لتوجهنا لصفحة auth */}
-      <Header page={page} go={go} cartCount={cartCount} wishCount={wishlist.length} onOpenMenu={()=>setMenuOpen(true)} search={search} setSearch={setSearch} user={user} login={() => go("auth")} requestLogout={requestLogout} topbarText={topbarText} />      
+      <Header 
+  page={page} 
+  go={go} 
+  cartCount={cartCount} 
+  wishCount={wishlist.length} 
+  onOpenMenu={()=>setMenuOpen(true)} 
+  search={search} 
+  setSearch={setSearch} 
+  user={user} 
+  login={() => go("auth")} 
+  requestLogout={requestLogout} 
+  topbarText={topbarText}
+  lang={lang}
+  setLang={setLang}
+/>      
       
       <MobileDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} go={go} search={search} setSearch={setSearch}/>
 
@@ -2927,7 +3135,7 @@ useEffect(() => {
       {page==="about" && (
         <div className="wrap" style={{padding:"80px 0",maxWidth:760}}>
           <span className="pill-badge">من نحن</span>
-          <h1 style={{fontSize:36,margin:"18px 0"}}>سوق إلكتروني يبدأ بحركة واحدة: النقرة.</h1>
+          <h1 style={{fontSize:36,margin:"18px 0"}}>{headingText("سوق إلكتروني يبدأ بحركة واحدة: النقرة.")}</h1>
           <p style={{color:"var(--ink-soft)",lineHeight:1.7,fontSize:16}}>بدأ أوبن مارت بفكرة بسيطة: يجب أن يكون التسوق عبر الإنترنت سهلاً كالنقرة التي بدأته. نتعاون مع استوديوهات مستقلة وعلامات تجارية مختارة لنقدم لك منتجات متينة، بأسعار عادلة، وتوصيل سريع. هذا نموذج تجريبي للواجهة، ولا تتم معالجة الحسابات أو المدفوعات.</p>
           <button className="btn btn-primary btn-lg" style={{marginTop:20}} onClick={()=>go("shop")}>ابدأ التسوق</button>
         </div>
@@ -2942,7 +3150,7 @@ useEffect(() => {
       {showLogoutConfirm && (
         <div className="logout-modal-backdrop" onClick={() => setShowLogoutConfirm(false)}>
           <div className="logout-modal" role="dialog" aria-modal="true" aria-labelledby="logout-title" onClick={e => e.stopPropagation()}>
-            <h2 id="logout-title">هل أنت متأكد من تسجيل الخروج؟</h2>
+            <h2 id="logout-title">{headingText("هل أنت متأكد من تسجيل الخروج؟", "Are you sure you want to log out?")}</h2>
             <p>ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.</p>
             <div className="logout-modal-actions">
               <button className="btn btn-outline" onClick={() => setShowLogoutConfirm(false)}>إلغاء</button>
