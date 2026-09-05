@@ -816,8 +816,24 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .pd-thumb{border-radius:14px;overflow:hidden;border:2px solid transparent;cursor:pointer;aspect-ratio:1/1;background:var(--sand);}
 .pd-thumb.active{border-color:var(--periwinkle);}
 .pd-thumb img{width:100%;height:100%;object-fit:cover;}
-.pd-main-img{border-radius:var(--r-lg);overflow:hidden;background:var(--sand);aspect-ratio:1/1;position:relative;}
-.pd-main-img img{width:100%;height:100%;object-fit:cover;}
+.pd-main-img {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: #ffffff;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-soft);
+}
+.pd-main-img img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain; /* تمنع قص الأطراف وتُظهر كامل أبعاد وتفاصيل المنتج */
+}
 .pd-info{padding-left:6px;}
 .pd-brand{color:var(--periwinkle-deep);font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
 .pd-title{font-size:30px;margin-bottom:10px;}
@@ -856,12 +872,36 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .pd-tab{padding:14px 22px;font-weight:700;font-size:14.5px;color:var(--ink-faint);border-bottom:2.5px solid transparent;margin-bottom:-1.5px;}
 .pd-tab.active{color:var(--ink);border-color:var(--coral);}
 .pd-tab-panel{padding:32px 4px;color:var(--ink-soft);line-height:1.7;font-size:15px;max-width:760px;}
-@media (max-width:900px){
-  .pd-layout{grid-template-columns:1fr;}
-  .pd-thumbs{flex-direction:row;order:2;overflow-x:auto;}
-  .pd-thumb{width:70px;flex-shrink:0;}
-  .pd-main-img{order:1;}
-  .pd-info{padding-left:0;order:3;margin-top:20px;}
+@media (max-width: 900px) {
+  .pd-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px 0;
+  }
+  .pd-main-img {
+    order: 1;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+  }
+  .pd-thumbs {
+    flex-direction: row;
+    order: 2;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .pd-thumb {
+    width: 65px;
+    height: 65px;
+    flex-shrink: 0;
+  }
+  .pd-thumb img {
+    object-fit: contain;
+  }
+  .pd-info {
+    order: 3;
+    padding-left: 0;
+    margin-top: 12px;
+  }
 }
 
 /* ============ CART ============ */
@@ -940,6 +980,39 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .divider{height:1px;background:var(--line-soft);border:none;margin:0;}
 .fade-in{animation:fadeIn .5s var(--ease);}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* زر الإضافة السريعة داخل كارت المنتج */
+.pcard-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.pcard-cart-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--periwinkle);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(79, 111, 245, 0.28);
+  transition: transform 0.25s ease, background 0.2s ease, box-shadow 0.25s ease;
+  flex-shrink: 0;
+}
+
+.pcard-cart-btn:hover {
+  background: var(--periwinkle-deep);
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 6px 14px rgba(79, 111, 245, 0.38);
+}
+
+.pcard-cart-btn:active {
+  transform: scale(0.95);
+}
 </style>
 </head>
 <body>
@@ -1222,17 +1295,33 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd}){
           <HeartIcon size={16} style={{fill: wished ? "currentColor":"none"}}/>
         </button>
         <img src={p.img} alt={p.name} loading="lazy"/>
-        <button className="pcard-quick" onClick={(e)=>{e.stopPropagation();onQuickAdd(p);}}>
-          <CursorIcon size={14}/> إضافة سريعة
-        </button>
       </div>
-      <div onClick={()=>onOpen(p.id)} style={{cursor:"pointer"}}>
-        <div className="pcard-brand">{p.brand}</div>
-        <div className="pcard-name">{p.name}</div>
-        <div className="pcard-rating"><Stars rating={p.rating}/><span className="count">({p.reviews})</span></div>
-        <div className="pcard-price">
-          <span className="price-now">{money(p.price)}</span>
-          {p.was && <span className="price-was">{money(p.was)}</span>}
+      
+      <div style={{display: "flex", flexDirection: "column", flex: 1}}>
+        <div onClick={()=>onOpen(p.id)} style={{cursor:"pointer"}}>
+          <div className="pcard-brand">{p.brand}</div>
+          <div className="pcard-name">{p.name}</div>
+          <div className="pcard-rating"><Stars rating={p.rating}/><span className="count">({p.reviews})</span></div>
+        </div>
+
+        {/* سطر السعر مع زر السلة CTA */}
+        <div className="pcard-bottom-row">
+          <div className="pcard-price" onClick={()=>onOpen(p.id)} style={{cursor: "pointer"}}>
+            <span className="price-now">{money(p.price)}</span>
+            {p.was && <span className="price-was">{money(p.was)}</span>}
+          </div>
+
+          <button 
+            type="button"
+            className="pcard-cart-btn" 
+            title="إضافة سريعة إلى السلة"
+            onClick={(e) => {
+              e.stopPropagation();
+              onQuickAdd(p);
+            }}
+          >
+            <BagIcon size={17} />
+          </button>
         </div>
       </div>
     </div>
@@ -1269,28 +1358,42 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
         <div className="header-actions">
           <button className="icon-btn" aria-label="بحث" onClick={()=>go("shop")} style={{display: window.innerWidth<1080?"inline-flex":"none"}}><SearchIcon size={19}/></button>
 {user ? (
-  <button 
-    className="icon-btn" 
-    onClick={logout} 
-    title={`تسجيل خروج (${user.email || "حسابي"})`} 
-    style={{
-      background: "var(--periwinkle)",
-      color: "#ffffff",
-      fontWeight: "800",
-      fontSize: "15px",
+  <div style={{ position: "relative", display: "inline-flex" }}>
+    <button 
+      className="icon-btn" 
+      onClick={logout} 
+      title="حسابك نشط (اضغط لتسجيل الخروج)" 
+      style={{
+        background: "var(--periwinkle)",
+        color: "#ffffff",
+        fontWeight: "800",
+        fontSize: "15px",
+        borderRadius: "50%",
+        width: "38px",
+        height: "38px",
+        border: "2px solid #ffffff",
+        boxShadow: "var(--shadow-sm)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textTransform: "uppercase"
+      }}
+    >
+      {/* يعرض أول حرف من إيميل العميل */}
+      {(user.email ? user.email.charAt(0) : "U").toUpperCase()}
+    </button>
+    {/* نقطة خضراء صغيرة تثبت أن الحساب نشط ومتصل */}
+    <span style={{
+      position: "absolute",
+      bottom: "1px",
+      right: "1px",
+      width: "10px",
+      height: "10px",
+      backgroundColor: "#10B981",
       borderRadius: "50%",
-      width: "40px",
-      height: "40px",
-      border: "2px solid #ffffff",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      textTransform: "uppercase"
-    }}
-  >
-    {(user.email ? user.email.charAt(0) : "U").toUpperCase()}
-  </button>
+      border: "2px solid #ffffff"
+    }}></span>
+  </div>
 ) : (
   <button className="icon-btn" aria-label="الحساب" onClick={login} title="تسجيل الدخول">
     <UserIcon size={19}/>
@@ -1576,31 +1679,6 @@ function ProductGridSection({title, eyebrow, items, go, wishlist, toggleWish, qu
   );
 }
 
-function PromoBanners({go}){
-  return (
-    <section className="section wrap">
-      <div className="promo-row">
-        <div className="promo-card" onClick={()=>go("shop")}>
-          <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1000&q=80&auto=format&fit=crop" alt=""/>
-          <div className="promo-content">
-            <span className="promo-eyebrow">اختيارات الأحذية</span>
-            <h3 className="promo-title">خصم يصل إلى 30% على أحذية الجري</h3>
-            <button className="btn btn-coral">تسوق الأحذية</button>
-          </div>
-        </div>
-        <div className="promo-card" onClick={()=>go("shop")}>
-          <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1000&q=80&auto=format&fit=crop" alt=""/>
-          <div className="promo-content">
-            <span className="promo-eyebrow">وصل حديثًا</span>
-            <h3 className="promo-title">صوتيات مصممة للاستخدام طوال اليوم</h3>
-            <button className="btn" style={{background:"#fff",color:"var(--ink)"}}>تسوق الصوتيات</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function TrustStrip(){
 const items = [
   {icon:<TruckIcon size={22}/>, t:"شحن مجاني", s:"للطلبات فوق 75 ج.م"},
@@ -1639,7 +1717,6 @@ function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, u
         toggleWish={toggleWish} 
         quickAdd={quickAdd}
       />      
-      <PromoBanners go={go}/>
       <ProductGridSection 
         title="وصل حديثاً" 
         eyebrow="أحدث المنتجات" 
