@@ -1907,7 +1907,7 @@ const SLIDES = [
 
 function Hero({go}){
   const [i, setI] = useState(0);
-  const [heroImage, setHeroImage] = useState("");
+  const [heroImage, setHeroImage] = useState(() => localStorage.getItem("openmart_hero_image") || "");
 
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({behavior:"smooth", block:"start"});
@@ -1923,12 +1923,23 @@ function Hero({go}){
           .eq('key', 'hero_image')
           .maybeSingle();
         if (data?.value) setHeroImage(data.value);
+        if (data?.value) localStorage.setItem("openmart_hero_image", data.value);
       }
     }
     getHero();
 
+    const updateHeroImage = (event) => {
+      if (event.key === "openmart_hero_image") {
+        setHeroImage(event.newValue || "");
+      }
+    };
+    window.addEventListener("storage", updateHeroImage);
+
     const t = setInterval(() => setI(v => (v + 1) % SLIDES.length), 6000);
-    return () => clearInterval(t);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("storage", updateHeroImage);
+    };
   }, []);
 
   return (
@@ -2969,7 +2980,7 @@ const [orders, setOrders] = useState(() => {
   const toastTimer = useRef(null);
   const [user, setUser] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-const [topbarText, setTopbarText] = useState("شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
+const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmart_topbar_text") || "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
   useEffect(() => {
     async function getTopbar() {
       if (window.supabase) {
@@ -2980,6 +2991,7 @@ const [topbarText, setTopbarText] = useState("شحن مجاني للطلبات �
           .maybeSingle();
         if (data?.value) {
           setTopbarText(data.value);
+          localStorage.setItem("openmart_topbar_text", data.value);
         }
       }
     }
