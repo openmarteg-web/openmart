@@ -1186,6 +1186,15 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
   const supabaseUrl = 'https://hxftmpgotsxyqbwayrnv.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZnRtcGdvdHN4eXFid2F5cm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjI2NTgsImV4cCI6MjEwNDAzODY1OH0.3YttRUv4uH-tWVwPtGr6-K0xMCbAVuElOxs_brooANw'; // مفتاح الـ publishable كامل
   const supabase = createClient(supabaseUrl, supabaseKey);
+  window.fetchSiteSetting = async function(key) {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', key)
+      .maybeSingle();
+    if (error) throw error;
+    return data?.value || '';
+  };
 window.fetchCategoriesFromDB = async function() {
     try {
       const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: true });
@@ -1903,6 +1912,9 @@ function Hero({go}){
     document.getElementById(id)?.scrollIntoView({behavior:"smooth", block:"start"});
   };
   useEffect(()=>{
+    window.fetchSiteSetting?.("hero_image").then(value => {
+      if (value) setHeroImage(value);
+    }).catch(() => {});
     const t = setInterval(()=>setI(v=>(v+1)%SLIDES.length), 6000);
     const updateHeroImage = (event) => {
       if (event.key === "openmart_hero_image") setHeroImage(event.newValue || "");
@@ -2965,6 +2977,9 @@ const [orders, setOrders] = useState(() => {
         setTopbarText(event.newValue?.trim() || "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
       }
     };
+    window.fetchSiteSetting?.("topbar_text").then(value => {
+      if (value) setTopbarText(value);
+    }).catch(() => {});
     window.addEventListener("storage", updateTopbarText);
     return () => window.removeEventListener("storage", updateTopbarText);
   }, []);
