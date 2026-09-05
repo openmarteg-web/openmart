@@ -537,15 +537,24 @@
   const topbarForm = document.getElementById('topbarForm');
   const topbarTextInput = document.getElementById('topbarText');
   topbarTextInput.value = localStorage.getItem(TOPBAR_STORAGE_KEY) || 'شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم';
-  topbarForm.addEventListener('submit', (e) => {
+  topbarForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = topbarTextInput.value.trim();
     if (!text) {
       alert('اكتب نصًا للشريط العلوي أولًا');
       return;
     }
-    localStorage.setItem(TOPBAR_STORAGE_KEY, text);
-    alert('تم حفظ نص الشريط العلوي بنجاح');
+    try {
+      const { error } = await supabase.from('site_settings').upsert(
+        { key: 'topbar_text', value: text },
+        { onConflict: 'key' }
+      );
+      if (error) throw error;
+      localStorage.setItem(TOPBAR_STORAGE_KEY, text);
+      alert('تم حفظ نص الشريط العلوي بنجاح');
+    } catch (err) {
+      alert('تعذر حفظ النص على الموقع: ' + err.message);
+    }
   });
 
   const HERO_IMAGE_STORAGE_KEY = 'openmart_hero_image';
@@ -578,6 +587,11 @@
     btn.innerText = 'جاري رفع الصورة...';
     try {
       const urls = await uploadImages([file]);
+      const { error: settingError } = await supabase.from('site_settings').upsert(
+        { key: 'hero_image', value: urls[0] },
+        { onConflict: 'key' }
+      );
+      if (settingError) throw settingError;
       localStorage.setItem(HERO_IMAGE_STORAGE_KEY, urls[0]);
       alert('تم حفظ صورة الهيرو بنجاح');
     } catch (err) {
