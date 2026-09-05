@@ -760,7 +760,17 @@ html[lang="ar"] .footer-brand-word {
 @media (max-width:760px){.grid-4,.grid-3{grid-template-columns:repeat(2,1fr);gap:16px;}}
 @media (max-width:460px){.grid-4,.grid-3{grid-template-columns:repeat(2,1fr);gap:10px;}}
 
-.pcard{position:relative;display:flex;flex-direction:column;}
+.pcard{position:relative;display:flex;flex-direction:column;min-width:0;}
+@media (max-width:760px){
+  .section.wrap{
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .grid-4,.grid-3{
+    width:100%;
+    min-width:0;
+  }
+}
 .pcard-media{
   position:relative;border-radius:var(--r-md);overflow:hidden;background:var(--sand);
   aspect-ratio:1/1.08;margin-bottom:14px;cursor:pointer;
@@ -1338,6 +1348,7 @@ const headingTranslations = {
   "المنتجات الأكثر مبيعاً": "Best sellers",
   "وصل حديثاً": "New arrivals",
   "سوق إلكتروني يبدأ بحركة واحدة: النقرة.": "An online store that starts with one click.",
+  "قد يعجبك أيضاً": "You may also like",
   "سلة التسوق فارغة": "Your cart is empty",
   "سلة التسوق": "Shopping cart",
   "ملخص الطلب": "Order summary"
@@ -2049,7 +2060,6 @@ function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, u
         toggleWish={toggleWish} 
         quickAdd={quickAdd}
       />      
-      <TrustStrip/>
     </>
   );
 }
@@ -2260,13 +2270,13 @@ function ReviewsList({ productId }) {
   }, [productId]);
 
   if (loading) {
-    return <div style={{ fontSize: "14px", color: "var(--ink-faint)", textAlign: "center", padding: "12px" }}>جاري تحميل التقييمات...</div>;
+    return <div style={{ fontSize: "14px", color: "var(--ink-faint)", textAlign: "center", padding: "12px" }}>{uiText("جاري تحميل التقييمات...", "Loading reviews...")}</div>;
   }
 
   if (list.length === 0) {
     return (
       <div style={{ padding: "24px", textAlign: "center", background: "var(--sand)", borderRadius: "12px", border: "1px dashed var(--line)" }}>
-        <p style={{ margin: 0, fontSize: "14.5px", color: "var(--ink-soft)" }}>لا توجد تقييمات لهذا المنتج بعد. كن أول من يقيّمه!</p>
+        <p style={{ margin: 0, fontSize: "14.5px", color: "var(--ink-soft)" }}>{uiText("لا توجد تقييمات لهذا المنتج بعد. كن أول من يقيّمه!", "No reviews yet. Be the first to review it!")}</p>
       </div>
     );
   }
@@ -2357,7 +2367,7 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
         <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
           <div>
             <div className="breadcrumb">
-              <a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>الرئيسية</a> / <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>المتجر</a> / <span>{product.name}</span>
+              <a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>{uiText("الرئيسية", "Home")}</a> / <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("المتجر", "Shop")}</a> / <span>{product.name}</span>
             </div>
             <h1 className="page-title">{product.name}</h1>
           </div>
@@ -2366,7 +2376,7 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
             className="btn btn-outline"
             style={{padding: "8px 14px", fontSize: "13px", gap: "4px"}}
           >
-            <ChevronRight size={16} /> الرئيسية
+            <ChevronRight size={16} /> {uiText("الرئيسية", "Home")}
           </button>
         </div>
       </div>
@@ -2384,19 +2394,19 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
           <h2 className="pd-title">{product.name}</h2>
           <div className="pd-rating-row">
             <Stars rating={product.rating} size={16}/>
-            <a href="#" onClick={(e)=>{e.preventDefault();setTab("reviews");}}>{product.rating || 5} · {product.reviews || 0} تقييم</a>
+            <a href="#" onClick={(e)=>{e.preventDefault();setTab("reviews");}}>{product.rating || 5} · {product.reviews || 0} {uiText("تقييم", "reviews")}</a>
           </div>
           <div className="pd-price-row">
             <span className="price-now">{money(product.price)}</span>
             {product.was && <span className="price-was">{money(product.was)}</span>}
-            {product.was && <span className="pd-save">وفر {Math.round((1-product.price/product.was)*100)}%</span>}
+            {product.was && <span className="pd-save">{uiText("وفر", "Save")} {Math.round((1-product.price/product.was)*100)}%</span>}
           </div>
           <p className="pd-desc">{product.desc}</p>
 {/* إظهار دوائر الألوان بشكل منفصل وملوّن */}
           {colorsList.length > 0 && (
             <>
               <div className="pd-option-label" style={{marginBottom: "10px", fontSize: "14px"}}>
-                اللون: <span className="val" style={{fontWeight: "800", color: "var(--ink)", marginRight: "6px"}}>{colorsList[color] || colorsList[0]}</span>
+                {uiText("اللون:", "Color:")} <span className="val" style={{fontWeight: "800", color: "var(--ink)", marginRight: "6px"}}>{colorsList[color] || colorsList[0]}</span>
               </div>
               <div className="swatches" style={{display: "flex", gap: "10px", marginBottom: "22px"}}>
                 {colorsList.map((c, i) => {
@@ -2416,7 +2426,7 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
                       }} 
                       onClick={() => setColor(i)} 
                       title={c}
-                      aria-label={"اللون " + c}
+                      aria-label={uiText("اللون ", "Color ") + c}
                     ></button>
                   );
                 })}
@@ -2428,7 +2438,7 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
           {product.sizes && product.sizes.length > 0 && (
             <>
               <div className="pd-option-label">
-                المقاس: <span className="val" style={{fontWeight: "700", color: "var(--ink)", marginRight: "6px"}}>{size}</span>
+                {uiText("المقاس:", "Size:")} <span className="val" style={{fontWeight: "700", color: "var(--ink)", marginRight: "6px"}}>{size}</span>
                 {product.pack_size && <span style={{fontSize: "12px", color: "var(--ink-faint)", marginRight: "8px"}}>({product.pack_size})</span>}
               </div>
               <div className="size-row" style={{display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "26px"}}>
@@ -2449,22 +2459,22 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
 
           <div className="qty-add-row">
             <div className="qty-stepper">
-              <button onClick={()=>setQty(q=>Math.max(1,q-1))} aria-label="تقليل الكمية"><MinusIcon size={15}/></button>
+              <button onClick={()=>setQty(q=>Math.max(1,q-1))} aria-label={uiText("تقليل الكمية", "Decrease quantity")}><MinusIcon size={15}/></button>
               <span className="qty-val">{qty}</span>
-              <button onClick={()=>setQty(q=>q+1)} aria-label="زيادة الكمية"><PlusIcon size={15}/></button>
+              <button onClick={()=>setQty(q=>q+1)} aria-label={uiText("زيادة الكمية", "Increase quantity")}><PlusIcon size={15}/></button>
             </div>
             <button className="btn btn-primary btn-lg" style={{flex:1}} onClick={()=>addToCart(product, {color:product.colors[color], size}, qty)}>
-              <BagIcon size={17}/> أضف إلى السلة — {money(product.price*qty)}
+              <BagIcon size={17}/> {uiText("أضف إلى السلة", "Add to cart")} — {money(product.price*qty)}
             </button>
-            <button className={"icon-btn"} style={{width:52,height:52,border:"1.5px solid var(--line)"}} onClick={()=>toggleWish(product.id)} aria-label="قائمة الأمنيات">
+            <button className={"icon-btn"} style={{width:52,height:52,border:"1.5px solid var(--line)"}} onClick={()=>toggleWish(product.id)} aria-label={uiText("قائمة الأمنيات", "Wishlist")}>
               <HeartIcon size={19} style={{color: wishlist.includes(product.id)?"var(--coral)":"var(--ink)", fill: wishlist.includes(product.id) ? "currentColor":"none"}}/>
             </button>
           </div>
 
           <div className="pd-perks">
-            <div className="pd-perk"><TruckIcon size={18}/> <span><b>توصيل مجاني</b> للطلبات فوق 75 ج.م، خلال 3 إلى 5 أيام</span></div>
-            <div className="pd-perk"><RefreshIcon size={18}/> <span><b>إرجاع مجاني خلال 30 يومًا</b> إذا لم يكن المقاس مناسبًا</span></div>
-            <div className="pd-perk"><ShieldIcon size={18}/> <span><b>دفع آمن</b> مع تشفير البيانات</span></div>
+            <div className="pd-perk"><TruckIcon size={18}/> <span><b>{uiText("توصيل مجاني", "Free delivery")}</b> {uiText("للطلبات فوق 75 ج.م، خلال 3 إلى 5 أيام", "for orders over EGP 75, within 3 to 5 days")}</span></div>
+            <div className="pd-perk"><RefreshIcon size={18}/> <span><b>{uiText("إرجاع مجاني خلال 30 يومًا", "Free returns within 30 days")}</b> {uiText("إذا لم يكن المقاس مناسبًا", "if the size is not right")}</span></div>
+            <div className="pd-perk"><ShieldIcon size={18}/> <span><b>{uiText("دفع آمن", "Secure payment")}</b> {uiText("مع تشفير البيانات", "with data encryption")}</span></div>
           </div>
         </div>
       </div>
@@ -2473,7 +2483,7 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
         <div className="pd-tabs">
           {["desc","specs","reviews"].map(t=>(
             <button key={t} className={"pd-tab"+(tab===t?" active":"")} onClick={()=>setTab(t)}>
-              {t==="desc" ? "الوصف" : t==="specs" ? "المواصفات" : `التقييمات (${product.reviews || 0})`}
+              {t==="desc" ? uiText("الوصف", "Description") : t==="specs" ? uiText("المواصفات", "Specifications") : `${uiText("التقييمات", "Reviews")} (${product.reviews || 0})`}
             </button>
           ))}
         </div>
@@ -2510,9 +2520,9 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
                   window.location.reload();
                 }
               }} style={{background: "var(--sand)", padding: "20px", borderRadius: "12px", border: "1px solid var(--line-soft)"}}>
-                <h4 style={{marginBottom: "14px", fontSize: "16px"}}>أضف تقييمك للمنتج</h4>
+                <h4 style={{marginBottom: "14px", fontSize: "16px"}}>{uiText("أضف تقييمك للمنتج", "Add your product review")}</h4>
                 <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px"}}>
-                  <input name="revName" required placeholder="اسمك الكريم" style={{padding: "10px", borderRadius: "8px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit"}} />
+                  <input name="revName" required placeholder={uiText("اسمك الكريم", "Your name")} style={{padding: "10px", borderRadius: "8px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit"}} />
                   <select name="revRating" style={{padding: "10px", borderRadius: "8px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit"}}>
                     <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
                     <option value="4">⭐⭐⭐⭐ (4/5)</option>
@@ -2521,8 +2531,8 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
                     <option value="1">⭐ (1/5)</option>
                   </select>
                 </div>
-                <textarea name="revComment" required rows="3" placeholder="اكتب تعليقك هنا..." style={{width: "100%", padding: "10px", borderRadius: "8px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit", marginBottom: "10px"}}></textarea>
-                <button type="submit" className="btn btn-primary" style={{padding: "10px 20px", fontSize: "14px"}}>إرسال التقييم</button>
+                <textarea name="revComment" required rows="3" placeholder={uiText("اكتب تعليقك هنا...", "Write your review here...")} style={{width: "100%", padding: "10px", borderRadius: "8px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit", marginBottom: "10px"}}></textarea>
+                <button type="submit" className="btn btn-primary" style={{padding: "10px 20px", fontSize: "14px"}}>{uiText("إرسال التقييم", "Submit review")}</button>
               </form>
 
               {/* قائمة التعليقات (جلب ديناميكي) */}
