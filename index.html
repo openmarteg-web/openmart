@@ -1906,67 +1906,67 @@ const SLIDES = [
 ];
 
 function Hero({go}){
-  const [i,setI] = useState(0);
-  const [heroImage, setHeroImage] = useState(() => localStorage.getItem("openmart_hero_image") || "");
+  const [i, setI] = useState(0);
+  const [heroImage, setHeroImage] = useState("");
+
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({behavior:"smooth", block:"start"});
   };
-  useEffect(()=>{
-    window.fetchSiteSetting?.("hero_image").then(value => {
-      if (value) setHeroImage(value);
-    }).catch(() => {});
-    const t = setInterval(()=>setI(v=>(v+1)%SLIDES.length), 6000);
-    const updateHeroImage = (event) => {
-      if (event.key === "openmart_hero_image") setHeroImage(event.newValue || "");
-    };
-    window.addEventListener("storage", updateHeroImage);
-    return ()=>{
-      clearInterval(t);
-      window.removeEventListener("storage", updateHeroImage);
-    };
-  },[]);
+
+  useEffect(() => {
+    // جلب مباشر من Supabase
+    async function getHero() {
+      if (window.supabase) {
+        const { data, error } = await window.supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'hero_image')
+          .maybeSingle();
+        if (data?.value) setHeroImage(data.value);
+      }
+    }
+    getHero();
+
+    const t = setInterval(() => setI(v => (v + 1) % SLIDES.length), 6000);
+    return () => clearInterval(t);
+  }, []);
 
   return (
     <section className="hero">
       <div style={{ position: "relative", width: "100%", overflow: "hidden" }}>
        {SLIDES.map((s, idx) => (
-  <div
-    className="hero-slide"
-    key={idx}
-    style={{
-      position: idx === i ? "relative" : "absolute",
-      inset: idx === i ? "auto" : 0,
-      width: "100%",
-
-      opacity: idx === i ? 1 : 0,
-      visibility: idx === i ? "visible" : "hidden",
-
-      pointerEvents: idx === i ? "auto" : "none",
-      zIndex: idx === i ? 2 : 1,
-
-      transition: "opacity 0.45s ease"
-    }}
-  >
-            <div>
-              <span className="hero-eyebrow"><CursorIcon size={13}/> {uiText(s.eyebrow, "New season")}</span>
-              <h1 className="hero-title">{headingText(s.title, "One click.")} <span className="accent">{headingText(s.accent, "And it's yours.")}</span></h1>
-              <p className="hero-sub">{uiText(s.sub, "Curated essentials for your everyday life - sneakers, audio, and accessories designed to fit your style.")}</p>
-              <div className="hero-cta-row">
-                <button className="btn btn-primary btn-lg" onClick={()=>scrollToSection("products")}>{uiText(s.cta, "Shop the collection")}<ChevronLeft size={16}/></button>
-                <button className="btn btn-outline btn-lg" onClick={()=>scrollToSection("categories")}>{uiText("تصفح الأقسام", "Browse categories")}</button>
-              </div>
-            </div>
-            <div className="hero-visual">
-              <img src={heroImage || s.img} alt=""/>
-              <div className="hero-cursor-chip"><CursorIcon size={13}/> {uiText("اضغط للتسوق", "Click to shop")}</div>
-             
+        <div
+          className="hero-slide"
+          key={idx}
+          style={{
+            position: idx === i ? "relative" : "absolute",
+            inset: idx === i ? "auto" : 0,
+            width: "100%",
+            opacity: idx === i ? 1 : 0,
+            visibility: idx === i ? "visible" : "hidden",
+            pointerEvents: idx === i ? "auto" : "none",
+            zIndex: idx === i ? 2 : 1,
+            transition: "opacity 0.45s ease"
+          }}
+        >
+          <div>
+            <span className="hero-eyebrow"><CursorIcon size={13}/> {uiText(s.eyebrow, "New season")}</span>
+            <h1 className="hero-title">{headingText(s.title, "One click.")} <span className="accent">{headingText(s.accent, "And it's yours.")}</span></h1>
+            <p className="hero-sub">{uiText(s.sub, "Curated essentials for your everyday life - sneakers, audio, and accessories designed to fit your style.")}</p>
+            <div className="hero-cta-row">
+              <button className="btn btn-primary btn-lg" onClick={()=>scrollToSection("products")}>{uiText(s.cta, "Shop the collection")}<ChevronLeft size={16}/></button>
+              <button className="btn btn-outline btn-lg" onClick={()=>scrollToSection("categories")}>{uiText("تصفح الأقسام", "Browse categories")}</button>
             </div>
           </div>
-        ))}
+          <div className="hero-visual">
+            <img src={heroImage || s.img} alt="Hero Banner" />
+            <div className="hero-cursor-chip"><CursorIcon size={13}/> {uiText("اضغط للتسوق", "Click to shop")}</div>
+          </div>
+        </div>
+       ))}
       </div>
-      
       <div className="hero-dots" style={{ position: "relative", zIndex: 10 }}>
-        {SLIDES.map((_,d)=>(<button key={d} className={"hero-dot"+(d===i?" active":"")} onClick={()=>setI(d)} aria-label={"شريحة "+(d+1)}/>))}
+        {SLIDES.map((_, d) => (<button key={d} className={"hero-dot" + (d === i ? " active" : "")} onClick={() => setI(d)} aria-label={"شريحة " + (d + 1)}/>))}
       </div>
     </section>
   );
@@ -2969,14 +2969,22 @@ const [orders, setOrders] = useState(() => {
   const toastTimer = useRef(null);
   const [user, setUser] = useState(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmart_topbar_text") || "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
-
+const [topbarText, setTopbarText] = useState("شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
   useEffect(() => {
-    const updateTopbarText = (event) => {
-      if (event.key === "openmart_topbar_text") {
-        setTopbarText(event.newValue?.trim() || "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
+    async function getTopbar() {
+      if (window.supabase) {
+        const { data, error } = await window.supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'topbar_text')
+          .maybeSingle();
+        if (data?.value) {
+          setTopbarText(data.value);
+        }
       }
-    };
+    }
+    getTopbar();
+  }, []);
     window.fetchSiteSetting?.("topbar_text").then(value => {
       if (value) setTopbarText(value);
     }).catch(() => {});
