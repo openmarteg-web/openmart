@@ -1219,6 +1219,7 @@ window.fetchCategoriesFromDB = async function() {
       return (data || []).map(item => ({
         id: item.id,
         name: item.name,
+        name_en: item.name_en || "",
         price: Number(item.price),
         cat: item.cat,
         brand: item.brand || "عصري",
@@ -1237,6 +1238,20 @@ window.fetchCategoriesFromDB = async function() {
       }));
     } catch (e) {
       console.error("خطأ في جلب المنتجات:", e);
+      return [];
+    }
+  };
+  window.fetchCouponsFromDB = async function() {
+    try {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('active', true)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.error("خطأ في جلب الكوبونات:", e);
       return [];
     }
   };
@@ -1530,6 +1545,7 @@ const PRODUCTS = [
 ];
 
 const money = n => n.toLocaleString(activeLanguage === "en" ? "en-US" : "EN-EG") + (activeLanguage === "en" ? " EGP" : " ج.م");
+const productName = product => activeLanguage === "en" && product?.name_en ? product.name_en : product?.name;
 /* ============================================================
    SMALL SHARED COMPONENTS
 ============================================================ */
@@ -1555,13 +1571,13 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd}){
         <button className={"pcard-wish"+(wished?" active":"")} onClick={(e)=>{e.stopPropagation();onWish(p.id);}} aria-label="قائمة الأمنيات">
           <HeartIcon size={16} style={{fill: wished ? "currentColor":"none"}}/>
         </button>
-        <img src={p.img} alt={p.name} loading="lazy"/>
+        <img src={p.img} alt={productName(p)} loading="lazy"/>
       </div>
       
       <div style={{display: "flex", flexDirection: "column", flex: 1}}>
         <div onClick={()=>onOpen(p.id)} style={{cursor:"pointer"}}>
           <div className="pcard-brand">{p.brand}</div>
-          <div className="pcard-name">{p.name}</div>
+          <div className="pcard-name">{productName(p)}</div>
           <div className="pcard-rating"><Stars rating={p.rating}/><span className="count">({p.reviews})</span></div>
         </div>
 
@@ -1858,7 +1874,7 @@ function OrdersPage({orders, go}) {
                     <div key={i} style={{display: "flex", alignItems: "center", gap: "14px"}}>
                       <img src={item.product.img} alt={item.product.name} style={{width: 50, height: 50, borderRadius: 8, objectFit: "cover"}}/>
                       <div style={{flex: 1}}>
-                        <div style={{fontWeight: 700, fontSize: "14px"}}>{item.product.name}</div>
+                        <div style={{fontWeight: 700, fontSize: "14px"}}>{productName(item.product)}</div>
                         <div style={{fontSize: "12px", color: "var(--ink-faint)"}}>الكمية: {item.qty} × {money(item.product.price)}</div>
                       </div>
                     </div>
@@ -2118,7 +2134,7 @@ let result = products.filter(p => {
       if(selectedBrands.length && !selectedBrands.includes(p.brand)) return false;
       if(p.price > maxPrice) return false;
       if(p.rating < minRating) return false;
-      if(search && search.trim() && !(p.name.toLowerCase().includes(search.toLowerCase()) || p.brand.toLowerCase().includes(search.toLowerCase()))) return false;
+      if(search && search.trim() && !(`${p.name} ${p.name_en || ""} ${p.brand}`.toLowerCase().includes(search.toLowerCase()))) return false;
       return true;
     });
 
@@ -2236,10 +2252,10 @@ const catCounts = Object.fromEntries(currentCats.map(c=>[c.id, products.filter(p
             <div style={{display:"flex",flexDirection:"column",gap:18}}>
               {shown.map(p=>(
                 <div key={p.id} style={{display:"grid",gridTemplateColumns:"140px 1fr auto",gap:20,alignItems:"center",padding:"14px",border:"1px solid var(--line-soft)",borderRadius:16,cursor:"pointer"}} onClick={()=>go("product",p.id)}>
-                  <img src={p.img} style={{width:140,height:120,objectFit:"cover",borderRadius:12}} alt={p.name}/>
+                  <img src={p.img} style={{width:140,height:120,objectFit:"cover",borderRadius:12}} alt={productName(p)}/>
                   <div>
                     <div className="pcard-brand">{p.brand}</div>
-                    <div className="pcard-name" style={{fontSize:16.5}}>{p.name}</div>
+                    <div className="pcard-name" style={{fontSize:16.5}}>{productName(p)}</div>
                     <div className="pcard-rating"><Stars rating={p.rating}/><span className="count">({p.reviews})</span></div>
                     <p style={{fontSize:13.5,color:"var(--ink-soft)",maxWidth:480}}>{p.desc.slice(0,110)}...</p>
                   </div>
@@ -2390,9 +2406,9 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
         <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
           <div>
             <div className="breadcrumb">
-              <a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>{uiText("الرئيسية", "Home")}</a> / <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("المتجر", "Shop")}</a> / <span>{product.name}</span>
+              <a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>{uiText("الرئيسية", "Home")}</a> / <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("المتجر", "Shop")}</a> / <span>{productName(product)}</span>
             </div>
-            <h1 className="page-title">{product.name}</h1>
+            <h1 className="page-title">{productName(product)}</h1>
           </div>
           <button 
             onClick={()=>go("home")}
@@ -2410,11 +2426,11 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
             <div key={i} className={"pd-thumb"+(i===imgIdx?" active":"")} onClick={()=>setImgIdx(i)}><img src={g} alt=""/></div>
           ))}
         </div>
-        <div className="pd-main-img"><img src={product.gallery[imgIdx]} alt={product.name}/></div>
+        <div className="pd-main-img"><img src={product.gallery[imgIdx]} alt={productName(product)}/></div>
 
         <div className="pd-info">
           <div className="pd-brand">{product.brand}</div>
-          <h2 className="pd-title">{product.name}</h2>
+          <h2 className="pd-title">{productName(product)}</h2>
           <div className="pd-rating-row">
             <Stars rating={product.rating} size={16}/>
             <a href="#" onClick={(e)=>{e.preventDefault();setTab("reviews");}}>{product.rating || 5} · {product.reviews || 0} {uiText("تقييم", "reviews")}</a>
@@ -2593,8 +2609,8 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
 
             {/* أسماء المنتجين وسعرهما الإجمالي */}
             <div style={{fontSize: "13.5px", color: "var(--ink-soft)", marginBottom: "16px", lineHeight: "1.6"}}>
-              <div>• <b>هذا المنتج:</b> {product.name} ({money(product.price)})</div>
-              <div>• <b>المنتج المضاف:</b> {bundleItem.name} ({money(bundleItem.price)})</div>
+              <div>• <b>{uiText("هذا المنتج:", "This product:")}</b> {productName(product)} ({money(product.price)})</div>
+              <div>• <b>{uiText("المنتج المضاف:", "Added product:")}</b> {productName(bundleItem)} ({money(bundleItem.price)})</div>
             </div>
 
             {/* زر شراء الاثنين معاً */}
@@ -2619,10 +2635,33 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
 /* ============================================================
    CART PAGE
 ============================================================ */
-function CartPage({cart, go, updateQty, removeItem}){
+function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setAppliedCoupon}){
   const subtotal = cart.reduce((s,i)=>s+i.product.price*i.qty,0);
   const shipping = subtotal>75 || subtotal===0 ? 0 : 8.95;
-  const total = subtotal+shipping;
+  const [couponInput, setCouponInput] = useState(appliedCoupon?.code || "");
+  const [couponMessage, setCouponMessage] = useState("");
+  const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
+  const total = Math.max(0, subtotal + shipping - discount);
+
+  const applyCoupon = () => {
+    const code = couponInput.trim().toUpperCase();
+    const coupon = coupons.find(item => item.code.toUpperCase() === code);
+    if (!coupon) {
+      setAppliedCoupon(null);
+      setCouponMessage(uiText("الكود غير صحيح أو غير فعال", "Invalid or inactive coupon"));
+      return;
+    }
+    if (coupon.min_order > subtotal) {
+      setAppliedCoupon(null);
+      setCouponMessage(uiText(`الحد الأدنى لهذا الكوبون هو ${money(coupon.min_order)}`, `Minimum order for this coupon is ${money(coupon.min_order)}`));
+      return;
+    }
+    const discountValue = coupon.discount_type === "percent"
+      ? subtotal * Number(coupon.discount_value) / 100
+      : Number(coupon.discount_value);
+    setAppliedCoupon({ code: coupon.code, discount: discountValue });
+    setCouponMessage(uiText("تم تطبيق الكوبون بنجاح", "Coupon applied successfully"));
+  };
 
   if(cart.length===0){
     return (
@@ -2658,9 +2697,9 @@ function CartPage({cart, go, updateQty, removeItem}){
         <div>
           {cart.map((item,idx)=>(
             <div className="cart-item" key={idx}>
-              <img src={item.product.img} alt={item.product.name}/>
+              <img src={item.product.img} alt={productName(item.product)}/>
               <div>
-                <div className="cart-item-name">{item.product.name}</div>
+                <div className="cart-item-name">{productName(item.product)}</div>
                 <div className="cart-item-meta">اللون: {item.variant.color === "#FFFFFF" ? "أبيض":"—"} &nbsp;·&nbsp; المقاس: {item.variant.size}</div>
                 <div className="cart-item-actions">
                   <div className="qty-stepper">
@@ -2686,9 +2725,11 @@ function CartPage({cart, go, updateQty, removeItem}){
           <div className="summary-row"><span>الشحن</span><span className="mono">{shipping===0?"مجاني":money(shipping)}</span></div>
           {subtotal<75 && subtotal>0 && <div style={{fontSize:12.5,color:"var(--periwinkle-deep)",background:"var(--periwinkle-pale)",padding:"8px 12px",borderRadius:10,margin:"6px 0"}}>أضف {money(75-subtotal)} للحصول على شحن مجاني</div>}
           <div className="promo-input-row">
-            <input placeholder="رمز الخصم"/>
-            <button className="btn btn-ghost">تطبيق</button>
+            <input value={couponInput} onChange={e=>setCouponInput(e.target.value)} placeholder={uiText("رمز الخصم", "Coupon code")} />
+            <button className="btn btn-ghost" onClick={applyCoupon}>{uiText("تطبيق", "Apply")}</button>
           </div>
+          {couponMessage && <div style={{fontSize:12.5,color:appliedCoupon ? "var(--green)" : "var(--coral-deep)",marginBottom:10}}>{couponMessage}</div>}
+          {appliedCoupon && <div className="summary-row"><span>{uiText("الخصم", "Discount")} ({appliedCoupon.code})</span><span className="mono">-{money(discount)}</span></div>}
           <div className="summary-row total"><span>الإجمالي</span><span className="mono">{money(total)}</span></div>
           <button className="btn btn-coral btn-block btn-lg" style={{marginTop:18}} onClick={()=>go("checkout")}>إتمام الطلب <ChevronRight size={16}/></button>
           <div className="trust-row"><ShieldIcon size={15}/> دفع آمن ومشفّر</div>
@@ -2701,7 +2742,7 @@ function CartPage({cart, go, updateQty, removeItem}){
 /* ============================================================
    CHECKOUT PAGE
 ============================================================ */
-function CheckoutPage({cart, go, placeOrder}){
+function CheckoutPage({cart, go, placeOrder, appliedCoupon}){
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -2709,11 +2750,12 @@ function CheckoutPage({cart, go, placeOrder}){
   
   const subtotal = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
   const shippingCost = subtotal > 75 || subtotal === 0 ? 0 : 8.95;
-  const total = subtotal + shippingCost;
+  const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
+  const total = Math.max(0, subtotal + shippingCost - discount);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    placeOrder({ name, phone, address, notes });
+    placeOrder({ name, phone, address, notes }, appliedCoupon);
   };
 
   if (cart.length === 0) {
@@ -2787,12 +2829,13 @@ function CheckoutPage({cart, go, placeOrder}){
           {cart.map((item, idx) => (
             <div className="co-mini-item" key={idx}>
               <img src={item.product.img} alt=""/>
-              <span className="n">{item.product.name} <span style={{color: "var(--ink-faint)", fontWeight: 600}}>×{item.qty}</span></span>
+              <span className="n">{productName(item.product)} <span style={{color: "var(--ink-faint)", fontWeight: 600}}>×{item.qty}</span></span>
               <span className="p mono">{money(item.product.price * item.qty)}</span>
             </div>
           ))}
           <div className="summary-row" style={{marginTop: 10}}><span>المجموع الفرعي</span><span className="mono">{money(subtotal)}</span></div>
           <div className="summary-row"><span>الشحن</span><span className="mono">{shippingCost === 0 ? "مجاني" : money(shippingCost)}</span></div>
+          {appliedCoupon && <div className="summary-row"><span>{uiText("الخصم", "Discount")} ({appliedCoupon.code})</span><span className="mono">-{money(discount)}</span></div>}
           <div className="summary-row total"><span>الإجمالي المطلوب</span><span className="mono">{money(total)}</span></div>
           <div className="trust-row"><ShieldIcon size={15}/> الدفع عند الاستلام نقداً</div>
         </div>
@@ -2954,6 +2997,8 @@ const handleEmailAuth = async (e) => {
   }, []);
 const [products, setProducts] = useState(PRODUCTS); // يبدأ فوراً بالمنتجات المتاحة
 const [loading, setLoading] = useState(false);     // إلغاء وضع الانتظار
+  const [coupons, setCoupons] = useState([]);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [page, setPage] = useState("home");
   const [productId, setProductId] = useState(1);
   const [cart, setCart] = useState([]);
@@ -3006,6 +3051,9 @@ const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmar
     };
     window.addEventListener("storage", updateTopbarText);
     return () => window.removeEventListener("storage", updateTopbarText);
+  }, []);
+  useEffect(() => {
+    window.fetchCouponsFromDB?.().then(setCoupons).catch(() => setCoupons([]));
   }, []);
 
   // 1. جلب المنتجات من قاعدة البيانات
@@ -3108,7 +3156,7 @@ useEffect(() => {
       }
       return [...c, {product, variant, qty}];
     });
-    showToast(`تمت إضافة "${product.name}" إلى السلة`);
+    showToast(`تمت إضافة "${productName(product)}" إلى السلة`);
 
     // جلب المنتجات المشابهة وإظهار النافذة فوراً
     const related = getRelatedProducts(product);
@@ -3122,10 +3170,11 @@ useEffect(() => {
   const removeItem = (idx) => setCart(c=>c.filter((_,i)=>i!==idx));
   const toggleWish = (id) => setWishlist(w=> w.includes(id) ? w.filter(x=>x!==id) : (showToast("تمت الإضافة إلى قائمة الأمنيات"), [...w,id]));
 
- const placeOrder = async (customer) => {
+ const placeOrder = async (customer, coupon = appliedCoupon) => {
     const subtotal = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
     const shipping = subtotal > 75 || subtotal === 0 ? 0 : 8.95;
-    const totalAmount = subtotal + shipping;
+   const discount = coupon ? Math.min(coupon.discount, subtotal) : 0;
+   const totalAmount = Math.max(0, subtotal + shipping - discount);
 
     showToast("جاري تسجيل الطلب...");
 
@@ -3156,7 +3205,7 @@ useEffect(() => {
       }
       msg += `%0A🛒 *تفاصيل المنتجات:*%0A`;
       cart.forEach((item, idx) => {
-        msg += `${idx + 1}. ${item.product.name}%0A`;
+        msg += `${idx + 1}. ${productName(item.product)}%0A`;
         msg += `   - الكمية: ${item.qty}%0A`;
         if (item.variant && item.variant.color) msg += `   - اللون: ${item.variant.color}%0A`;
         if (item.variant && item.variant.size) msg += `   - المقاس: ${item.variant.size}%0A`;
@@ -3202,8 +3251,8 @@ useEffect(() => {
 
       {page==="home" && <HomePage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} setCatFilter={setCatFilter} products={products} categories={categories}/>}
 {page==="shop" && <ShopPage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} catFilter={catFilter} setCatFilter={setCatFilter} search={search} products={products} categories={categories}/>}      {page==="product" && <ProductPage productId={productId} go={go} wishlist={wishlist} toggleWish={toggleWish} addToCart={addToCart} products={products}/>}
-      {page==="cart" && <CartPage cart={cart} go={go} updateQty={updateQty} removeItem={removeItem}/>}
-      {page==="checkout" && <CheckoutPage cart={cart} go={go} placeOrder={placeOrder}/>}
+      {page==="cart" && <CartPage cart={cart} go={go} updateQty={updateQty} removeItem={removeItem} coupons={coupons} appliedCoupon={appliedCoupon} setAppliedCoupon={setAppliedCoupon}/>}
+      {page==="checkout" && <CheckoutPage cart={cart} go={go} placeOrder={placeOrder} appliedCoupon={appliedCoupon}/>}
 
       {/* صفحة المفضلة */}
       {page === "wishlist" && (

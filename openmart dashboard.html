@@ -190,6 +190,50 @@
   </div>
 
   <div class="card" style="margin-bottom: 28px;">
+    <h2 class="card-title">إدارة كوبونات الخصم</h2>
+    <form id="couponForm">
+      <input type="hidden" id="editing_coupon_id" value="">
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+        <div class="form-group">
+          <label for="couponCode">كود الكوبون</label>
+          <input type="text" id="couponCode" required placeholder="WELCOME10" style="text-transform: uppercase;">
+        </div>
+        <div class="form-group">
+          <label for="couponType">نوع الخصم</label>
+          <select id="couponType">
+            <option value="percent">نسبة مئوية</option>
+            <option value="fixed">مبلغ ثابت</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="couponValue">قيمة الخصم</label>
+          <input type="number" id="couponValue" min="0" step="0.01" required placeholder="10">
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="form-group">
+          <label for="couponMinOrder">الحد الأدنى للطلب (اختياري)</label>
+          <input type="number" id="couponMinOrder" min="0" step="0.01" placeholder="0">
+        </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px; padding-top: 22px;">
+          <input type="checkbox" id="couponActive" checked>
+          <label for="couponActive" style="margin: 0;">الكوبون فعال</label>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn" id="couponSubmitBtn">حفظ الكوبون</button>
+        <button type="button" class="btn hidden" id="cancelCouponBtn" style="background: var(--muted);">إلغاء التعديل</button>
+      </div>
+    </form>
+    <div class="table-container" style="margin-top: 20px;">
+      <table>
+        <thead><tr><th>الكود</th><th>الخصم</th><th>الحد الأدنى</th><th>الحالة</th><th>إجراء</th></tr></thead>
+        <tbody id="couponsTableBody"><tr><td colspan="5" style="text-align:center; color:var(--muted);">جاري تحميل الكوبونات...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom: 28px;">
     <h2 class="card-title">صورة الهيرو الرئيسية</h2>
     <form id="heroImageForm">
       <div class="form-group">
@@ -489,6 +533,7 @@
       document.getElementById('adminUserBadge').innerText = `المشرف: ${dashboardEmail}`;
       loadProducts();
       loadCategories();
+      loadCoupons();
       loadOrdersAndStats();
     } else {
       dashboardLoginCompleted = false;
@@ -555,6 +600,77 @@
     } catch (err) {
       alert('تعذر حفظ النص على الموقع: ' + err.message);
     }
+  });
+
+  const couponForm = document.getElementById('couponForm');
+  const couponsTableBody = document.getElementById('couponsTableBody');
+  const resetCouponForm = () => {
+    couponForm.reset();
+    document.getElementById('editing_coupon_id').value = '';
+    document.getElementById('couponActive').checked = true;
+    document.getElementById('couponSubmitBtn').innerText = 'حفظ الكوبون';
+    document.getElementById('cancelCouponBtn').classList.add('hidden');
+  };
+
+  async function loadCoupons() {
+    const { data, error } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
+    if (error) {
+      couponsTableBody.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">خطأ: ${error.message}</td></tr>`;
+      return;
+    }
+    couponsTableBody.innerHTML = data.length ? data.map(c => `
+      <tr>
+        <td><b>${c.code}</b></td>
+        <td>${c.discount_type === 'percent' ? `${c.discount_value}%` : `${c.discount_value} ج.م`}</td>
+        <td>${c.min_order > 0 ? `${c.min_order} ج.م` : 'بدون حد'}</td>
+        <td><span class="badge-tag" style="background:${c.active ? '#D1FAE5' : '#FEE2E2'}; color:${c.active ? '#047857' : '#B91C1C'};">${c.active ? 'فعال' : 'متوقف'}</span></td>
+        <td>
+          <button class="btn-delete" style="color:var(--primary); border-color:var(--primary);" onclick="editCoupon('${c.id}')">تعديل</button>
+          <button class="btn-delete" onclick="deleteCoupon('${c.id}')">حذف</button>
+        </td>
+      </tr>`).join('') : '<tr><td colspan="5" style="text-align:center; color:var(--muted);">لا توجد كوبونات</td></tr>';
+  }
+
+  window.editCoupon = async function(id) {
+    const { data, error } = await supabase.from('coupons').select('*').eq('id', id).single();
+    if (error || !data) return alert('تعذر جلب بيانات الكوبون');
+    document.getElementById('editing_coupon_id').value = data.id;
+    document.getElementById('couponCode').value = data.code;
+    document.getElementById('couponType').value = data.discount_type;
+    document.getElementById('couponValue').value = data.discount_value;
+    document.getElementById('couponMinOrder').value = data.min_order || '';
+    document.getElementById('couponActive').checked = !!data.active;
+    document.getElementById('couponSubmitBtn').innerText = 'تحديث الكوبون';
+    document.getElementById('cancelCouponBtn').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.deleteCoupon = async function(id) {
+    if (!confirm('هل أنت متأكد من حذف الكوبون؟')) return;
+    const { error } = await supabase.from('coupons').delete().eq('id', id);
+    if (error) alert('تعذر حذف الكوبون: ' + error.message);
+    else loadCoupons();
+  };
+
+  document.getElementById('cancelCouponBtn').addEventListener('click', resetCouponForm);
+  couponForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('editing_coupon_id').value;
+    const payload = {
+      code: document.getElementById('couponCode').value.trim().toUpperCase(),
+      discount_type: document.getElementById('couponType').value,
+      discount_value: Number(document.getElementById('couponValue').value),
+      min_order: Number(document.getElementById('couponMinOrder').value || 0),
+      active: document.getElementById('couponActive').checked
+    };
+    if (payload.discount_value <= 0) return alert('قيمة الخصم يجب أن تكون أكبر من صفر');
+    const { error } = id
+      ? await supabase.from('coupons').update(payload).eq('id', id)
+      : await supabase.from('coupons').insert([payload]);
+    if (error) return alert('تعذر حفظ الكوبون: ' + error.message);
+    alert(id ? 'تم تحديث الكوبون' : 'تم إضافة الكوبون');
+    resetCouponForm();
+    loadCoupons();
   });
 
   const HERO_IMAGE_STORAGE_KEY = 'openmart_hero_image';
@@ -923,74 +1039,6 @@ window.resetProductForm = function() {
   updateGalleryPreviews();
 };
 
-// تحديث مستمع إرسال النموذج (Submit)
-document.getElementById('productForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('submitBtn');
-  const editId = document.getElementById('editing_product_id').value;
-
-  // إذا كانت إضافة جديدة فيجب اختيار صور
-  if (!editId && selectedFilesQueue.length === 0) {
-    alert('يرجى اختيار صورة واحدة للمنتج على الأقل!');
-    return;
-  }
-
-  btn.disabled = true;
-
-  try {
-    let imageUrls = [];
-    if (selectedFilesQueue.length > 0) {
-      btn.innerText = `جاري رفع (${selectedFilesQueue.length}) صور...`;
-      imageUrls = await uploadImages(selectedFilesQueue);
-    }
-
-    btn.innerText = 'جاري حفظ التعديلات...';
-    const sizesList = cleanListInput(document.getElementById('sizes').value);
-    const colorsList = cleanListInput(document.getElementById('colors').value);
-    const packVal = document.getElementById('pack_size').value.trim();
-    const packSize = (packVal === '' || packVal === '0') ? null : packVal;
-
-    const payload = {
-      name: document.getElementById('name').value.trim(),
-      name_en: document.getElementById('name_en').value.trim() || null,
-      cat: document.getElementById('cat').value,
-      price: Number(document.getElementById('price').value),
-      old_price: document.getElementById('old_price').value ? Number(document.getElementById('old_price').value) : null,
-      brand: document.getElementById('brand').value || 'أوبن مارت',
-      desc: document.getElementById('desc').value,
-      sizes: sizesList.length > 0 ? sizesList : null,
-      colors: colorsList.length > 0 ? colorsList : null,
-      pack_size: packSize,
-      is_best: document.getElementById('is_best').checked,
-      is_new: document.getElementById('is_new').checked,
-      badge: document.getElementById('old_price').value ? 'Sale' : 'New'
-    };
-
-    if (imageUrls.length > 0) {
-      payload.img_url = imageUrls[0];
-      payload.gallery = imageUrls;
-    }
-
-    if (editId) {
-      // تحديث صنف موجود
-      const { error } = await supabase.from('products').update(payload).eq('id', editId);
-      if (error) throw error;
-      alert('تم تحديث الصنف بنجاح!');
-    } else {
-      // صنف جديد
-      const { error } = await supabase.from('products').insert([payload]);
-      if (error) throw error;
-      alert('تم إضافة الصنف بنجاح!');
-    }
-
-    resetProductForm();
-    loadProducts();
-  } catch (err) {
-    alert('حدث خطأ: ' + err.message);
-  } finally {
-    btn.disabled = false;
-  }
-});
   window.deleteProduct = async function(id) {
     if (!confirm('هل أنت متأكد من حذف هذا الصنف؟')) return;
     const { error } = await supabase.from('products').delete().eq('id', id);
