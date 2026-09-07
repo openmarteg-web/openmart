@@ -1500,12 +1500,8 @@ const CATEGORIES = [
 
 const BRANDS = ["نوفا","أوربان وشركاه","أطلس","لوم","فيرا ستوديو","كوزي","هالف تون","ميريديان","بلش","آرك"];
 
-const PRODUCTS = [
-  {id:1,name:"حذاء كلاودستيب للجري",cat:"sneakers",brand:"نوفا",price:118,was:150,rating:4.6,reviews:212,badge:"تخفيض",isBest:true,isNew:false,
-   img:"https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1549298916-b41d501d3772?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1560343090-f0409e92791a?w=900&q=80&auto=format&fit=crop"],
-  colors:["#4F6FF5","#F58F88","#111111"], sizes:[39,40,41,42,43,44],
-  desc:"حذاء خفيف للاستخدام اليومي بنعل أوسط إسفنجي مريح. جزء علوي منسوج يسمح بالتهوية، وأربطة معاد تدويرها، ونعل خارجي ثابت للمشي والركض."},
+const PRODUCTS = [];
+/*
   {id:2,name:"ساعة آريا كرونوغراف",cat:"watches",brand:"ميريديان",price:239,was:null,rating:4.8,reviews:98,badge:"جديد",isBest:true,isNew:true,
    img:"https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&q=80&auto=format&fit=crop",
    gallery:["https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=900&q=80&auto=format&fit=crop"],
@@ -1582,6 +1578,7 @@ const PRODUCTS = [
   colors:["#4F6FF5","#111111"], sizes:["صغير","متوسط","كبير","كبير جدًا"],
   desc:"دنيم سيلفيدج متين يزداد نعومة مع كل غسلة. قصة كلاسيكية بأزرار كوروزو وجيب صدري مصمم ليدوم سنوات."},
 ];
+*/
 
 const money = n => n.toLocaleString(activeLanguage === "en" ? "en-US" : "EN-EG") + (activeLanguage === "en" ? " EGP" : " ج.م");
 const productName = product => activeLanguage === "en" && product?.name_en ? product.name_en : product?.name;
@@ -2381,11 +2378,11 @@ function ReviewsList({ productId }) {
   );
 }
 function ProductPage({productId, go, wishlist, toggleWish, addToCart, products}){
-const product = products.find(p=>p.id===productId) || products[0];
+const product = products.find(p=>String(p.id)===String(productId));
 const [imgIdx, setImgIdx] = useState(0);
   const [color, setColor] = useState(0);
 
-const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : "";
+const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes[0] : "";
   const [size, setSize] = useState(defaultSize);
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState("desc");
@@ -2397,6 +2394,15 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
     setQty(1); 
     window.scrollTo(0, 0); 
   }, [productId, product]);
+
+  if (!product) {
+    return (
+      <div className="wrap" style={{padding:"80px 0", textAlign:"center"}}>
+        <h1 className="page-title">{headingText("المنتج غير موجود", "Product not found")}</h1>
+        <button className="btn btn-primary" onClick={()=>go("shop")}>{headingText("تصفح المنتجات", "Browse products")}</button>
+      </div>
+    );
+  }
 
   const related = products.filter(p => p.id !== product.id && productCategories(p).some(category => productHasCategory(product, category))).slice(0, 4);
   const bundleItem = related.length > 0 ? related[0] : null;
@@ -3041,8 +3047,8 @@ const handleEmailAuth = async (e) => {
       });
     }
   }, []);
-const [products, setProducts] = useState(PRODUCTS); // يبدأ فوراً بالمنتجات المتاحة
-const [loading, setLoading] = useState(false);     // إلغاء وضع الانتظار
+const [products, setProducts] = useState([]);
+const [loading, setLoading] = useState(true);
   const [coupons, setCoupons] = useState([]);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [page, setPage] = useState("home");
@@ -3106,15 +3112,15 @@ const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmar
   useEffect(() => {
     if (window.fetchProductsFromDB) {
       window.fetchProductsFromDB().then(data => {
-        setProducts(data && data.length > 0 ? data : PRODUCTS);
+        setProducts(data || []);
         setLoading(false);
       }).catch(err => {
         console.error("خطأ في جلب المنتجات:", err);
-        setProducts(PRODUCTS);
+        setProducts([]);
         setLoading(false);
       });
     } else {
-      setProducts(PRODUCTS);
+      setProducts([]);
       setLoading(false);
     }
   }, []);
