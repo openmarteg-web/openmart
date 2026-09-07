@@ -263,9 +263,41 @@ img{max-width:100%;display:block;}
   *{animation-duration:.001s !important; transition-duration:.001s !important;}
 }
 
-/* scrollbar */
-html{scrollbar-width:none;}
-::-webkit-scrollbar{width:0;height:0;}
+/* شريط تمرير الصفحة يظهر على الكمبيوتر فقط */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--periwinkle) var(--sand-deep);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--sand-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--periwinkle);
+  border: 2px solid var(--sand-deep);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink);
+}
+
+@media (max-width: 767px) {
+  html {
+    scrollbar-width: none;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}
 
 .wrap { 
   max-width: 1280px; 
@@ -1208,39 +1240,41 @@ window.fetchCategoriesFromDB = async function() {
   window.supabase = supabase;
 
   window.fetchProductsFromDB = async function() {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
-      return (data || []).map(item => ({
-        id: item.id,
-        name: item.name,
-        name_en: item.name_en || "",
-        price: Number(item.price),
-        cat: item.cat,
-        brand: item.brand || "عصري",
-        desc: item.desc || "",
-        img: item.img_url,
-        was: item.old_price ? Number(item.old_price) : null,
-        rating: 5,
-        reviews: 0,
-        badge: item.badge || null,
-        isBest: Boolean(item.is_best),
-        isNew: Boolean(item.is_new),
-        gallery: (item.gallery && item.gallery.length > 0) ? item.gallery : [item.img_url],
-        colors: item.colors || [],
-        sizes: item.sizes || [],
-        pack_size: item.pack_size || null
-      }));
-    } catch (e) {
-      console.error("خطأ في جلب المنتجات:", e);
-      return [];
-    }
-  };
+    if (error) throw error;
+    
+    return (data || []).map(item => ({
+      id: item.id,
+      name: item.name,
+      name_en: item.name_en || "",
+      price: Number(item.price),
+      cat: item.cat,
+      categories: Array.isArray(item.categories) ? item.categories : (item.cat ? [item.cat] : []),
+      brand: item.brand || "عصري",
+      desc: item.desc || "",
+      desc_en: item.desc_en || "",
+      img: item.img_url,
+      was: item.old_price ? Number(item.old_price) : null,
+      rating: 5,
+      reviews: 0,
+      badge: item.badge || null,
+      isBest: Boolean(item.is_best),
+      isNew: Boolean(item.is_new),
+      gallery: (item.gallery && item.gallery.length > 0) ? item.gallery : [item.img_url],
+      colors: item.colors || [],
+      sizes: item.sizes || [],
+      pack_size: item.pack_size || null
+    }));
+  } catch (e) {
+    console.error("خطأ في جلب المنتجات:", e);
+    return [];
+  }
+};
   window.fetchCouponsFromDB = async function() {
     try {
       const { data, error } = await supabase
@@ -1447,6 +1481,11 @@ const translateRenderedUi = () => {
 /* ============================================================
    DATA
 ============================================================ */
+const productCategories = product => Array.isArray(product.cat)
+  ? product.cat
+  : (product.cat ? String(product.cat).split(',').map(category => category.trim()).filter(Boolean) : []);
+const productHasCategory = (product, categoryId) => productCategories(product).includes(categoryId);
+
 const CATEGORIES = [
   {id:"home-appliances", name:"أدوات منزليه", img:"https://images.unsplash.com/photo-1556911220-bff31c812dba?w=300&q=80&auto=format&fit=crop"},
   {id:"kitchen", name:"مطبخ", img:"https://images.unsplash.com/photo-1556910103-1c02745a8728?w=300&q=80&auto=format&fit=crop"},
@@ -1546,6 +1585,7 @@ const PRODUCTS = [
 
 const money = n => n.toLocaleString(activeLanguage === "en" ? "en-US" : "EN-EG") + (activeLanguage === "en" ? " EGP" : " ج.م");
 const productName = product => activeLanguage === "en" && product?.name_en ? product.name_en : product?.name;
+const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
 /* ============================================================
    SMALL SHARED COMPONENTS
 ============================================================ */
@@ -2128,29 +2168,35 @@ const highestPrice = useMemo(() => {
   const toggleCat = id => setSelectedCats(s => s.includes(id) ? s.filter(x=>x!==id) : [...s,id]);
   const toggleBrand = b => setSelectedBrands(s => s.includes(b) ? s.filter(x=>x!==b) : [...s,b]);
 
-const filtered = useMemo(() => {
-let result = products.filter(p => {
-        if(selectedCats.length && !selectedCats.includes(p.cat)) return false;
-      if(selectedBrands.length && !selectedBrands.includes(p.brand)) return false;
-      if(p.price > maxPrice) return false;
-      if(p.rating < minRating) return false;
-      if(search && search.trim() && !(`${p.name} ${p.name_en || ""} ${p.brand}`.toLowerCase().includes(search.toLowerCase()))) return false;
+  // حساب عدد المنتجات في كل قسم
+  const catCounts = Object.fromEntries(currentCats.map(c => [
+    c.id, 
+    products.filter(p => (p.categories || [p.cat]).includes(c.id)).length
+  ]));
+
+  // فلترة المنتجات
+  const filtered = useMemo(() => {
+    let result = products.filter(p => {
+      const prodCats = p.categories && p.categories.length > 0 ? p.categories : (p.cat ? [p.cat] : []);
+      if (selectedCats.length && !selectedCats.some(c => prodCats.includes(c))) return false;
+      if (selectedBrands.length && !selectedBrands.includes(p.brand)) return false;
+      if (p.price > maxPrice) return false;
+      if (p.rating < minRating) return false;
+      if (search && search.trim() && !(`${p.name} ${p.name_en || ""} ${p.brand}`.toLowerCase().includes(search.toLowerCase()))) return false;
       return true;
     });
 
-    if(sortBy==="price-asc") result.sort((a,b) => a.price - b.price);
-    else if(sortBy==="price-desc") result.sort((a,b) => b.price - a.price);
-    else if(sortBy==="rating") result.sort((a,b) => b.rating - a.rating);
-    else if(sortBy==="newest") result.sort((a,b) => (b.isNew?1:0) - (a.isNew?1:0));
+    if (sortBy === "price-asc") result.sort((a, b) => a.price - b.price);
+    else if (sortBy === "price-desc") result.sort((a, b) => b.price - a.price);
+    else if (sortBy === "rating") result.sort((a, b) => b.rating - a.rating);
+    else if (sortBy === "newest") result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
 
     return result;
-  }, [selectedCats, selectedBrands, maxPrice, minRating, search, sortBy]);
+  }, [products, selectedCats, selectedBrands, maxPrice, minRating, search, sortBy]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length/perPage));
-  const shown = filtered.slice((page-1)*perPage, page*perPage);
-
-const catCounts = Object.fromEntries(currentCats.map(c=>[c.id, products.filter(p=>p.cat===c.id).length]));
-  return (
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const shown = filtered.slice((page - 1) * perPage, page * perPage);
+return (
     <>
    <div className="page-head">
   <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
@@ -2352,7 +2398,7 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
     window.scrollTo(0, 0); 
   }, [productId, product]);
 
-  const related = products.filter(p => p.cat === product.cat && p.id !== product.id).slice(0, 4);
+  const related = products.filter(p => p.id !== product.id && productCategories(p).some(category => productHasCategory(product, category))).slice(0, 4);
   const bundleItem = related.length > 0 ? related[0] : null;
   const bundleTotal = bundleItem ? (product.price + bundleItem.price) : product.price;
 
@@ -2440,7 +2486,7 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
             {product.was && <span className="price-was">{money(product.was)}</span>}
             {product.was && <span className="pd-save">{uiText("وفر", "Save")} {Math.round((1-product.price/product.was)*100)}%</span>}
           </div>
-          <p className="pd-desc">{product.desc}</p>
+          <p className="pd-desc">{productDesc(product)}</p>
 {/* إظهار دوائر الألوان بشكل منفصل وملوّن */}
           {colorsList.length > 0 && (
             <>
@@ -2527,11 +2573,11 @@ const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[
           ))}
         </div>
         <div className="pd-tab-panel">
-          {tab==="desc" && <p>{product.desc} يتم فحص كل قطعة قبل شحنها، ونضمن لك ملاءمتها لمدة 30 يومًا، مع استرداد كامل عند الإرجاع.</p>}
+          {tab==="desc" && <p>{activeLanguage === "en" && product.desc_en ? product.desc_en : product.desc} يتم فحص كل قطعة قبل شحنها، ونضمن لك ملاءمتها لمدة 30 يومًا، مع استرداد كامل عند الإرجاع.</p>}
           {tab==="specs" && (
             <ul style={{margin:0,paddingLeft:18,display:"flex",flexDirection:"column",gap:8}}>
               <li>العلامة التجارية: {product.brand}</li>
-              <li>القسم: {CATEGORIES.find(c=>c.id===product.cat)?.name}</li>
+              <li>القسم: {productCategories(product).map(category => CATEGORIES.find(c=>c.id===category)?.name).filter(Boolean).join('، ')}</li>
               <li>الألوان المتاحة: {product.colors.length}</li>
               <li>المقاسات المتاحة: {product.sizes.join(", ")}</li>
               <li>وزن الشحن: 0.6 كجم</li>
@@ -3143,7 +3189,7 @@ useEffect(() => {
   // 2. دالة استخراج منتجات من نفس القسم
   const getRelatedProducts = (currentProduct) => {
     return products
-      .filter(p => p.cat === currentProduct.cat && p.id !== currentProduct.id)
+      .filter(p => p.id !== currentProduct.id && productCategories(p).some(category => productHasCategory(currentProduct, category)))
       .slice(0, 3);
   };
 

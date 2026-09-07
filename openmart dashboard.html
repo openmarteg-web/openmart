@@ -260,22 +260,26 @@
     <div class="grid">
       <div class="card">
         <h2 class="card-title">إضافة صنف وتفاصيله</h2>
-        <form id="productForm">
-          <div class="form-group">
-            <label>اسم المنتج بالعربي *</label>
-            <input type="text" id="name" required placeholder="مثال: قفازات نيتريل سوداء">
-          </div>
-          
-          <div class="form-group">
-            <label>اسم المنتج بالإنجليزي (اختياري)</label>
-            <input type="text" id="name_en" dir="ltr" placeholder="Example: Black Nitrile Gloves">
-          </div>
-          <input type="hidden" id="editing_product_id" value="">
-          
-          <div class="form-group">
-            <label>القسم *</label>
-            <select id="cat" required></select>
-          </div>
+<form id="productForm">
+  <!-- معرّف الصنف الخفي عند التعديل -->
+  <input type="hidden" id="editing_product_id" value="">
+
+  <div class="form-group">
+    <label>اسم المنتج بالعربي *</label>
+    <input type="text" id="name" required placeholder="مثال: قفازات نيتريل سوداء">
+  </div>
+  
+  <div class="form-group">
+    <label>اسم المنتج بالإنجليزي (اختياري)</label>
+    <input type="text" id="name_en" dir="ltr" placeholder="Example: Black Nitrile Gloves">
+  </div>
+
+  <div class="form-group">
+    <label>الأقسام (يمكنك اختيار قسم أو أكثر) *</label>
+    <div id="categoriesCheckboxes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; max-height: 140px; overflow-y: auto; padding: 10px; border: 1.5px solid var(--border); border-radius: 10px; background: #fafafa;">
+      <!-- سيتم تعبئة الأقسام تلقائياً عبر الجافاسكريبت -->
+    </div>
+  </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div class="form-group">
@@ -328,8 +332,13 @@
           </div>
 
           <div class="form-group">
-            <label>وصف الصنف</label>
-            <textarea id="desc" rows="3" placeholder="اكتب تفاصيل ومواصفات المنتج..."></textarea>
+            <label>وصف الصنف بالعربي</label>
+            <textarea id="desc" rows="3" placeholder="اكتب تفاصيل ومواصفات المنتج بالعربي..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>وصف الصنف بالإنجليزي (اختياري)</label>
+            <textarea id="desc_en" rows="3" dir="ltr" placeholder="Write product description in English..."></textarea>
           </div>
 
           <div class="checkbox-row">
@@ -718,45 +727,52 @@
     }
   });
 
-  // جلب الأقسام
-  async function loadCategories() {
-    const tbody = document.getElementById('categoriesTableBody');
-    const catSelect = document.getElementById('cat');
+ async function loadCategories() {
+  const tbody = document.getElementById('categoriesTableBody');
+  const catBox = document.getElementById('categoriesCheckboxes');
 
-    const { data: categories, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('created_at', { ascending: true });
+  const { data: categories, error } = await supabase
+    .from('categories')
+    .select('*')
+    .order('created_at', { ascending: true });
 
-    if (error) {
-      tbody.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">خطأ: ${error.message}</td></tr>`;
-      return;
-    }
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">خطأ: ${error.message}</td></tr>`;
+    return;
+  }
 
-    catSelect.innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-
-    if (categories.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 24px; color: var(--muted);">لا توجد أقسام مسجلة.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = categories.map(c => `
-      <tr>
-        <td><img src="${c.img}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border);"></td>
-        <td><b>${c.name}</b></td>
-        <td style="color: var(--muted); font-family: monospace;">${c.id}</td>
-        <td>
-          <label style="color: var(--primary); font-size: 12.5px; font-weight: bold; cursor: pointer;">
-            📷 تغيير الصورة
-            <input type="file" accept="image/*" style="display:none;" onchange="updateCategoryImage('${c.id}', this.files[0])">
-          </label>
-        </td>
-        <td>
-          <button class="btn-delete" onclick="deleteCategory('${c.id}')">حذف</button>
-        </td>
-      </tr>
+  // ملء مربعات الاختيار في فورم المنتج
+  if (catBox) {
+    catBox.innerHTML = categories.map(c => `
+      <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; cursor:pointer;">
+        <input type="checkbox" name="product_cat" value="${c.id}"> ${c.name}
+      </label>
     `).join('');
   }
+
+  // ملء جدول الأقسام
+  if (categories.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 24px; color: var(--muted);">لا توجد أقسام مسجلة.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = categories.map(c => `
+    <tr>
+      <td><img src="${c.img}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border);"></td>
+      <td><b>${c.name}</b></td>
+      <td style="color: var(--muted); font-family: monospace;">${c.id}</td>
+      <td>
+        <label style="color: var(--primary); font-size: 12.5px; font-weight: bold; cursor: pointer;">
+          📷 تغيير الصورة
+          <input type="file" accept="image/*" style="display:none;" onchange="updateCategoryImage('${c.id}', this.files[0])">
+        </label>
+      </td>
+      <td>
+        <button class="btn-delete" onclick="deleteCategory('${c.id}')">حذف</button>
+      </td>
+    </tr>
+  `).join('');
+}
 
   // تغيير صورة قسم
   window.updateCategoryImage = async function(catId, file) {
@@ -1001,7 +1017,6 @@ if (savedOrderId) {
   </tr>
 `).join('');
   }
-// دالة ملء الحقول ببيانات الصنف للتعديل
 window.editProduct = async function(id) {
   const { data: p, error } = await supabase.from('products').select('*').eq('id', id).single();
   if (error || !p) {
@@ -1012,27 +1027,35 @@ window.editProduct = async function(id) {
   document.getElementById('editing_product_id').value = p.id;
   document.getElementById('name').value = p.name || '';
   document.getElementById('name_en').value = p.name_en || '';
-  document.getElementById('cat').value = p.cat || '';
   document.getElementById('price').value = p.price || '';
   document.getElementById('old_price').value = p.old_price || '';
   document.getElementById('brand').value = p.brand || '';
   document.getElementById('desc').value = p.desc || '';
+  document.getElementById('desc_en').value = p.desc_en || ''; // تعبئة الوصف الإنجليزي
   document.getElementById('sizes').value = Array.isArray(p.sizes) ? p.sizes.join(', ') : (p.sizes || '');
   document.getElementById('colors').value = Array.isArray(p.colors) ? p.colors.join(', ') : (p.colors || '');
   document.getElementById('pack_size').value = p.pack_size || '';
   document.getElementById('is_best').checked = !!p.is_best;
   document.getElementById('is_new').checked = !!p.is_new;
 
+  // تحديد الأقسام المختارة
+  const selectedCats = Array.isArray(p.categories) ? p.categories : (p.categories ? [p.categories] : [p.cat]);
+  document.querySelectorAll('input[name="product_cat"]').forEach(chk => {
+    chk.checked = selectedCats.includes(chk.value);
+  });
+
   document.getElementById('submitBtn').innerText = 'تحديث الصنف';
   document.getElementById('cancelEditBtn').classList.remove('hidden');
 
-  // التمرير لأعلى الصفحة
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.resetProductForm = function() {
   document.getElementById('productForm').reset();
   document.getElementById('editing_product_id').value = '';
+  document.getElementById('name_en').value = '';
+  document.getElementById('desc_en').value = '';
+  document.querySelectorAll('input[name="product_cat"]').forEach(chk => chk.checked = false);
   document.getElementById('submitBtn').innerText = 'حفظ ونشر الصنف';
   document.getElementById('cancelEditBtn').classList.add('hidden');
   selectedFilesQueue = [];
@@ -1176,40 +1199,51 @@ window.resetProductForm = function() {
       const colorsList = cleanListInput(document.getElementById('colors').value);
       const packVal = document.getElementById('pack_size').value.trim();
       const packSize = (packVal === '' || packVal === '0') ? null : packVal;
+    // استخراج الأقسام المختارة
+const selectedCategories = Array.from(document.querySelectorAll('input[name="product_cat"]:checked')).map(c => c.value);
 
-      const payload = {
-        name: document.getElementById('name').value.trim(),
-        name_en: document.getElementById('name_en').value.trim() || null,
-        cat: document.getElementById('cat').value,
-        price: Number(document.getElementById('price').value),
-        old_price: document.getElementById('old_price').value ? Number(document.getElementById('old_price').value) : null,
-        brand: document.getElementById('brand').value || 'أوبن مارت',
-        desc: document.getElementById('desc').value,
-        sizes: sizesList.length > 0 ? sizesList : null,
-        colors: colorsList.length > 0 ? colorsList : null,
-        pack_size: packSize,
-        is_best: document.getElementById('is_best').checked,
-        is_new: document.getElementById('is_new').checked,
-        badge: document.getElementById('old_price').value ? 'Sale' : 'New'
-      };
+if (selectedCategories.length === 0) {
+  alert('يرجى اختيار قسم واحد على الأقل للصنف!');
+  return;
+}
 
-      if (imageUrls.length > 0) {
-        payload.img_url = imageUrls[0];
-        payload.gallery = imageUrls;
-      }
+const payload = {
+  name: document.getElementById('name').value.trim(),
+  name_en: document.getElementById('name_en').value.trim() || null,
+  cat: selectedCategories[0], // القسم الرئيسي للتوافق
+  categories: selectedCategories, // مصفوفة الأقسام المتعددة
+  price: Number(document.getElementById('price').value),
+  old_price: document.getElementById('old_price').value ? Number(document.getElementById('old_price').value) : null,
+  brand: document.getElementById('brand').value || 'أوبن مارت',
+  desc: document.getElementById('desc').value,
+  desc_en: document.getElementById('desc_en').value.trim() || null, // حفظ الوصف الإنجليزي
+  sizes: sizesList.length > 0 ? sizesList : null,
+  colors: colorsList.length > 0 ? colorsList : null,
+  pack_size: packSize,
+  is_best: document.getElementById('is_best').checked,
+  is_new: document.getElementById('is_new').checked,
+  badge: document.getElementById('old_price').value ? 'Sale' : 'New'
+};
 
-      if (editId) {
-        const { error } = await supabase.from('products').update(payload).eq('id', editId);
-        if (error) throw error;
-        alert('تم تحديث الصنف بنجاح!');
-      } else {
-        const { error } = await supabase.from('products').insert([payload]);
-        if (error) throw error;
-        alert('تم إضافة الصنف بنجاح!');
-      }
+if (imageUrls.length > 0) {
+  payload.img_url = imageUrls[0];
+  payload.gallery = imageUrls;
+}
 
-      resetProductForm();
-      loadProducts();
+if (editId) {
+  // تحديث الصنف الحالي
+  const { error } = await supabase.from('products').update(payload).eq('id', editId);
+  if (error) throw error;
+  alert('تم تحديث الصنف بنجاح!');
+} else {
+  // إضافة صنف جديد
+  const { error } = await supabase.from('products').insert([payload]);
+  if (error) throw error;
+  alert('تم إضافة الصنف بنجاح!');
+}
+
+resetProductForm();
+loadProducts();
     } catch (err) {
       alert('حدث خطأ: ' + err.message);
     } finally {
