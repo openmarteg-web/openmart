@@ -1269,7 +1269,8 @@ window.fetchCategoriesFromDB = async function() {
       colors: item.colors || [],
      color_prices: item.color_prices || {},
       sizes: item.sizes || [],
-      pack_size: item.pack_size || null
+      pack_size: item.pack_size || null,
+      stock_quantity: item.stock_quantity === null || item.stock_quantity === undefined ? null : Number(item.stock_quantity)
     }));
   } catch (e) {
     console.error("خطأ في جلب المنتجات:", e);
@@ -1638,6 +1639,11 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd}){
             <BagIcon size={17} />
           </button>
         </div>
+        {p.stock_quantity !== null && p.stock_quantity !== undefined && (
+          <div style={{fontSize: "12px", color: p.stock_quantity > 0 ? "var(--ink-faint)" : "#b91c1c", marginTop: "8px"}}>
+            {p.stock_quantity > 0 ? `متبقي ${p.stock_quantity} قطعة` : "غير متوفر حاليًا"}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2457,6 +2463,8 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
   const currentUnitPrice = (product.color_prices && product.color_prices[currentColorName]) 
     ? Number(product.color_prices[currentColorName]) 
     : product.price;
+  const hasStockLimit = product.stock_quantity !== null && product.stock_quantity !== undefined;
+  const isOutOfStock = hasStockLimit && product.stock_quantity <= 0;
   return (
     <>
       <div className="page-head">
@@ -2497,6 +2505,11 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
             {product.was && <span className="price-was">{money(product.was)}</span>}
             {product.was && <span className="pd-save">{uiText("وفر", "Save")} {Math.round((1-product.price/product.was)*100)}%</span>}
           </div>
+          {hasStockLimit && (
+            <div style={{fontSize: "14px", color: isOutOfStock ? "#b91c1c" : "var(--ink-soft)", marginBottom: "18px", fontWeight: "700"}}>
+              {isOutOfStock ? uiText("غير متوفر حاليًا", "Currently out of stock") : uiText(`متبقي ${product.stock_quantity} قطعة`, `${product.stock_quantity} pieces available`)}
+            </div>
+          )}
           <p className="pd-desc">{productDesc(product)}</p>
 {/* إظهار دوائر الألوان بشكل منفصل وملوّن */}
           {colorsList.length > 0 && (
@@ -2557,12 +2570,13 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
             <div className="qty-stepper">
               <button onClick={()=>setQty(q=>Math.max(1,q-1))} aria-label={uiText("تقليل الكمية", "Decrease quantity")}><MinusIcon size={15}/></button>
               <span className="qty-val">{qty}</span>
-              <button onClick={()=>setQty(q=>q+1)} aria-label={uiText("زيادة الكمية", "Increase quantity")}><PlusIcon size={15}/></button>
+              <button onClick={()=>setQty(q=>hasStockLimit ? Math.min(product.stock_quantity, q + 1) : q + 1)} disabled={isOutOfStock || (hasStockLimit && qty >= product.stock_quantity)} aria-label={uiText("زيادة الكمية", "Increase quantity")}><PlusIcon size={15}/></button>
             </div>
            <button 
   className="btn btn-primary btn-lg" 
   style={{flex:1}} 
   onClick={()=>addToCart({ ...product, price: currentUnitPrice }, { color: currentColorName, size }, qty)}
+  disabled={isOutOfStock}
 >
   <BagIcon size={17}/> {uiText("أضف إلى السلة", "Add to cart")} — {money(currentUnitPrice * qty)}
 </button>

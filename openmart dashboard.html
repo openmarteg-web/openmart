@@ -358,6 +358,14 @@
               <input type="text" id="pack_size" placeholder="مثال: Pack of 100 أو 500 مل">
             </div>
 
+            <div class="form-group">
+              <label for="stock_quantity">القطع المتوفرة للعميل (اختياري)</label>
+              <input type="number" id="stock_quantity" min="0" step="1" placeholder="مثال: 25">
+              <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">
+                اتركه فارغًا إذا كنت لا تريد إظهار عدد القطع المتوفرة.
+              </small>
+            </div>
+
             <div class="form-group" style="margin-bottom:0">
               <label>الألوان المتاحة وأسعارها (اكتب اللون مع السعر إذا اختلف، أو افصل بينها بفاصلة)</label>
               <input type="text" id="colors" placeholder="مثال: أحمر: 270, أسود: 250, أزرق">
@@ -407,11 +415,12 @@
                 <th>الاسم</th>
                 <th>القسم</th>
                 <th>السعر</th>
+                <th>المتاح</th>
                 <th>إجراء</th>
               </tr>
             </thead>
             <tbody id="productsTableBody">
-              <tr><td colspan="5" style="text-align: center; color: var(--muted);">جاري التحميل...</td></tr>
+              <tr><td colspan="6" style="text-align: center; color: var(--muted);">جاري التحميل...</td></tr>
             </tbody>
           </table>
         </div>
@@ -729,7 +738,7 @@
 
     const { data: categories, error } = await supabase.from('categories').select('*').order('created_at', { ascending: true });
     if (error) {
-      tbody.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">خطأ: ${error.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">خطأ: ${error.message}</td></tr>`;
       return;
     }
 
@@ -915,7 +924,7 @@
 
     document.getElementById('count').innerText = data.length;
     if (data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 30px; color: var(--muted);">لا توجد أي منتجات حتى الآن.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; color: var(--muted);">لا توجد أي منتجات حتى الآن.</td></tr>`;
       return;
     }
 
@@ -929,6 +938,7 @@
         </td>
         <td style="color: var(--muted);">${p.cat}</td>
         <td><b>${p.price} ج.م</b> ${p.old_price ? `<span style="text-decoration: line-through; color: var(--muted); font-size:12px;">${p.old_price}</span>` : ''}</td>
+        <td>${p.stock_quantity !== null && p.stock_quantity !== undefined ? `${p.stock_quantity} قطعة` : 'غير محدد'}</td>
         <td>
           <div style="display: flex; gap: 6px;">
             <button style="background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700;" onclick="editProduct(${p.id})">تعديل</button>
@@ -962,6 +972,7 @@
     }
 
     document.getElementById('pack_size').value = p.pack_size || '';
+    document.getElementById('stock_quantity').value = p.stock_quantity ?? '';
     document.getElementById('is_best').checked = !!p.is_best;
     document.getElementById('is_new').checked = !!p.is_new;
 
@@ -1212,6 +1223,8 @@
         const sizesList = cleanListInput(document.getElementById('sizes').value);
         const packVal = document.getElementById('pack_size').value.trim();
         const packSize = (packVal === '' || packVal === '0') ? null : packVal;
+        const stockVal = document.getElementById('stock_quantity').value.trim();
+        const stockQuantity = stockVal === '' ? null : Math.max(0, Number(stockVal));
         const basePrice = Number(document.getElementById('price').value);
         const parsedColorData = parseColorsWithPrices(document.getElementById('colors').value, basePrice);
 
@@ -1229,6 +1242,7 @@
           colors: parsedColorData.colors,
           color_prices: parsedColorData.color_prices,
           pack_size: packSize,
+          stock_quantity: stockQuantity,
           is_best: document.getElementById('is_best').checked,
           is_new: document.getElementById('is_new').checked,
           badge: document.getElementById('old_price').value ? 'Sale' : 'New',
