@@ -1583,6 +1583,16 @@ const PRODUCTS = [];
 */
 
 const money = n => n.toLocaleString(activeLanguage === "en" ? "en-US" : "EN-EG") + (activeLanguage === "en" ? " EGP" : " ج.م");
+const SHIPPING_ZONES = [
+  { name: "القاهرة والجيزة", price: 75, time: "خلال 24-48 ساعة" },
+  { name: "المدن الجديدة (التجمعات - الرحاب - مدينتي - الشروق - أكتوبر - زايد - حلوان)", price: 87, time: "24-72 ساعة" },
+  { name: "ضواحي القاهرة والجيزة (العبور - 15 مايو - بدر - المرج - عزبة النخل)", price: 92, time: "24-72 ساعة" },
+  { name: "الإسكندرية", price: 95, time: "24-72 ساعة" },
+  { name: "محافظات القناة", price: 99, time: "1-3 أيام" },
+  { name: "محافظات الدلتا", price: 99, time: "2-4 أيام" },
+  { name: "محافظات الصعيد", price: 110, time: "2-4 أيام" },
+  { name: "المناطق الحدودية (شرم - الغردقة - مطروح - الساحل - السخنة)", price: 180, time: "3-6 أيام" }
+];
 const productName = product => activeLanguage === "en" && product?.name_en ? product.name_en : product?.name;
 const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
 /* ============================================================
@@ -2712,11 +2722,28 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
 ============================================================ */
 function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setAppliedCoupon}){
   const subtotal = cart.reduce((s,i)=>s+i.product.price*i.qty,0);
-  const shipping = subtotal>75 || subtotal===0 ? 0 : 8.95;
+  
+  // حالة لاختيار منطقة الشحن ونافذة الخيارات
+  const [selectedZone, setSelectedZone] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("openmart_shipping_zone")) || null;
+    } catch {
+      return null;
+    }
+  });
+  const [showShippingModal, setShowShippingModal] = useState(false);
+
+  const shipping = selectedZone ? selectedZone.price : 0;
   const [couponInput, setCouponInput] = useState(appliedCoupon?.code || "");
   const [couponMessage, setCouponMessage] = useState("");
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
   const total = Math.max(0, subtotal + shipping - discount);
+
+  const handleSelectZone = (zone) => {
+    setSelectedZone(zone);
+    localStorage.setItem("openmart_shipping_zone", JSON.stringify(zone));
+    setShowShippingModal(false);
+  };
 
   const applyCoupon = () => {
     const code = couponInput.trim().toUpperCase();
@@ -2797,8 +2824,29 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
         <div className="summary-card">
           <h3 style={{fontSize:19,marginBottom:6}}>{headingText("ملخص الطلب")}</h3>
           <div className="summary-row"><span>المجموع الفرعي</span><span className="mono">{money(subtotal)}</span></div>
-          <div className="summary-row"><span>الشحن</span><span className="mono">{shipping===0?"مجاني":money(shipping)}</span></div>
-          {subtotal<75 && subtotal>0 && <div style={{fontSize:12.5,color:"var(--periwinkle-deep)",background:"var(--periwinkle-pale)",padding:"8px 12px",borderRadius:10,margin:"6px 0"}}>أضف {money(75-subtotal)} للحصول على شحن مجاني</div>}
+
+          {/* سطر الشحن التفاعلي يفتح النافذة بالضغط */}
+          <div className="summary-row" style={{alignItems: "center"}}>
+            <span>الشحن</span>
+            <button 
+              type="button" 
+              onClick={() => setShowShippingModal(true)}
+              style={{
+                background: selectedZone ? "#ECFDF5" : "#EEF2FF",
+                border: `1.5px dashed ${selectedZone ? "#10B981" : "#4F6FF5"}`,
+                color: selectedZone ? "#047857" : "#4F6FF5",
+                padding: "6px 12px",
+                borderRadius: "14px",
+                fontSize: "12.5px",
+                fontWeight: "700",
+                cursor: "pointer",
+                fontFamily: "inherit"
+              }}
+            >
+              {selectedZone ? `${money(selectedZone.price)} (${selectedZone.name}) ✎` : "(اضغط لتحديد سعر الشحن لمنطقتك 📍)"}
+            </button>
+          </div>
+
           <div className="promo-input-row">
             <input value={couponInput} onChange={e=>setCouponInput(e.target.value)} placeholder={uiText("رمز الخصم", "Coupon code")} />
             <button className="btn btn-ghost" onClick={applyCoupon}>{uiText("تطبيق", "Apply")}</button>
@@ -2810,6 +2858,47 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
           <div className="trust-row"><ShieldIcon size={15}/>دفع عند الاستلام</div>
         </div>
       </div>
+
+      {/* نافذة اختيار منطقة الشحن المنبثقة */}
+      {showShippingModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 99999,
+          display: "flex", justifyContent: "center", alignItems: "center", padding: "15px"
+        }} onClick={() => setShowShippingModal(false)}>
+          <div style={{
+            background: "#fff", width: "100%", maxWidth: "480px", borderRadius: "20px",
+            padding: "22px", maxHeight: "85vh", display: "flex", flexDirection: "column",
+            boxShadow: "var(--shadow-lg)"
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px"}}>
+              <h3 style={{fontSize: "17px", fontWeight: "800", margin: 0}}>اختر منطقة التوصيل 🚚</h3>
+              <button type="button" onClick={() => setShowShippingModal(false)} style={{border: "none", background: "#f3f4f6", width: "30px", height: "30px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold"}}>✕</button>
+            </div>
+            <div style={{overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingLeft: "4px"}}>
+              {SHIPPING_ZONES.map((zone, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => handleSelectZone(zone)}
+                  style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    padding: "12px 14px", border: "1.5px solid var(--line)", borderRadius: "14px",
+                    cursor: "pointer", background: (selectedZone?.name === zone.name) ? "#EEF2FF" : "#fff",
+                    borderColor: (selectedZone?.name === zone.name) ? "#4F6FF5" : "var(--line)"
+                  }}
+                >
+                  <div style={{textAlign: "right"}}>
+                    <div style={{fontWeight: "700", fontSize: "13.5px", color: "var(--ink)"}}>{zone.name}</div>
+                    <div style={{fontSize: "11.5px", color: "var(--ink-faint)", marginTop: "2px"}}>{zone.time}</div>
+                  </div>
+                  <div style={{fontWeight: "800", color: "#4F6FF5", fontSize: "14.5px", fontFamily: "DM Mono", whiteSpace: "nowrap", marginRight: "10px"}}>
+                    {money(zone.price)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -2823,14 +2912,24 @@ function CheckoutPage({cart, go, placeOrder, appliedCoupon}){
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   
+  // قراءة منطقة الشحن المحفوظة
+  const savedZone = (() => {
+    try { return JSON.parse(localStorage.getItem("openmart_shipping_zone")); } catch { return null; }
+  })();
+
   const subtotal = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
-  const shippingCost = subtotal > 75 || subtotal === 0 ? 0 : 8.95;
+  const shippingCost = savedZone ? savedZone.price : 0;
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
   const total = Math.max(0, subtotal + shippingCost - discount);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    placeOrder({ name, phone, address, notes }, appliedCoupon);
+    placeOrder({ 
+      name, 
+      phone, 
+      address: `${address} (منطقة الشحن: ${savedZone ? savedZone.name : 'غير محدد'})`, 
+      notes 
+    }, appliedCoupon, shippingCost);
   };
 
   if (cart.length === 0) {
