@@ -322,10 +322,12 @@
             </div>
 
             <div class="form-group" style="margin-bottom:0">
-              <label>الألوان المتاحة (أسماء أو أكواد Hex مفصولة بفاصلة)</label>
-              <input type="text" id="colors" placeholder="مثال: أسود, أزرق, أبيض">
-            </div>
-          </div>
+  <label>الألوان المتاحة وأسعارها (اكتب اللون مع السعر إذا اختلف، أو افصل بينها بفاصلة)</label>
+  <input type="text" id="colors" placeholder="مثال: أحمر: 270, أسود: 250, أزرق">
+  <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">
+    * إذا لم تحدد سعراً بجانب اللون (مثال: أزرق)، سيأخذ السعر الافتراضي للمنتج تلقائياً.
+  </small>
+</div>
 
           <div class="form-group">
             <label>الماركة / العلامة التجارية</label>
@@ -864,7 +866,31 @@
         todayOrdersCount++;
       }
     });
+function parseColorsWithPrices(val, defaultPrice) {
+  if (!val || val.trim() === '') return { colors: null, color_prices: null };
+  
+  const rawItems = val.split(/[,،]/).map(s => s.trim()).filter(Boolean);
+  const colors = [];
+  const color_prices = {};
 
+  rawItems.forEach(item => {
+    if (item.includes(':')) {
+      const [cName, cPrice] = item.split(':').map(s => s.trim());
+      if (cName) {
+        colors.push(cName);
+        color_prices[cName] = Number(cPrice) || defaultPrice;
+      }
+    } else {
+      colors.push(item);
+      color_prices[item] = defaultPrice;
+    }
+  });
+
+  return {
+    colors: colors.length > 0 ? colors : null,
+    color_prices: Object.keys(color_prices).length > 0 ? color_prices : null
+  };
+}
     document.getElementById('todaySales').innerText = todaySales.toLocaleString('EN-EG') + ' ج.م';
     document.getElementById('todayOrdersCount').innerText = todayOrdersCount;
     document.getElementById('totalRevenue').innerText = totalRevenue.toLocaleString('EN-EG') + ' ج.م';
@@ -1034,7 +1060,17 @@ window.editProduct = async function(id) {
   document.getElementById('desc').value = p.desc || '';
   document.getElementById('desc_en').value = p.desc_en || '';
   document.getElementById('sizes').value = Array.isArray(p.sizes) ? p.sizes.join(', ') : (p.sizes || '');
-  document.getElementById('colors').value = Array.isArray(p.colors) ? p.colors.join(', ') : (p.colors || '');
+
+  // تعبئة الألوان وأسعارها بالصيغة: لون: سعر
+  if (p.color_prices && Object.keys(p.color_prices).length > 0) {
+    const formatted = Object.entries(p.color_prices)
+      .map(([c, pr]) => `${c}: ${pr}`)
+      .join(', ');
+    document.getElementById('colors').value = formatted;
+  } else {
+    document.getElementById('colors').value = Array.isArray(p.colors) ? p.colors.join(', ') : (p.colors || '');
+  }
+
   document.getElementById('pack_size').value = p.pack_size || '';
   document.getElementById('is_best').checked = !!p.is_best;
   document.getElementById('is_new').checked = !!p.is_new;
@@ -1084,8 +1120,6 @@ window.resetProductForm = function() {
     }
   };
 
-  // مصفوفة موحدة للصور: تضم الصور الحالية للمنتج (روابط) والصور الجديدة (ملفات)
-  // عنصر المصفوفة سيكون: { type: 'url', src: '...' } أو { type: 'file', file: File, src: 'blob:...' }
   let productImages = [];
 
   // دالة رسم ومعاينة الصور مع أزرار الترتيب والحذف
@@ -1315,8 +1349,8 @@ window.resetProductForm = function() {
       const colorsList = cleanListInput(document.getElementById('colors').value);
       const packVal = document.getElementById('pack_size').value.trim();
       const packSize = (packVal === '' || packVal === '0') ? null : packVal;
-
-      const payload = {
+const basePrice = Number(document.getElementById('price').value);
+      const parsedColorData = parseColorsWithPrices(document.getElementById('colors').value, basePrice);      const payload = {
         name: document.getElementById('name').value.trim(),
         name_en: document.getElementById('name_en').value.trim() || null,
         cat: selectedCategories[0],
@@ -1327,7 +1361,8 @@ window.resetProductForm = function() {
         desc: document.getElementById('desc').value,
         desc_en: document.getElementById('desc_en').value.trim() || null,
         sizes: sizesList.length > 0 ? sizesList : null,
-        colors: colorsList.length > 0 ? colorsList : null,
+        colors: parsedColorData.colors,
+        color_prices: parsedColorData.color_prices,
         pack_size: packSize,
         is_best: document.getElementById('is_best').checked,
         is_new: document.getElementById('is_new').checked,

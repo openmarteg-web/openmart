@@ -1267,6 +1267,7 @@ window.fetchCategoriesFromDB = async function() {
       isNew: Boolean(item.is_new),
       gallery: (item.gallery && item.gallery.length > 0) ? item.gallery : [item.img_url],
       colors: item.colors || [],
+     color_prices: item.color_prices || {},
       sizes: item.sizes || [],
       pack_size: item.pack_size || null
     }));
@@ -2452,6 +2453,10 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
     }
     return String(product.colors).split(/[,،]/).map(s => s.trim()).filter(Boolean);
   }, [product.colors]);
+  const currentColorName = colorsList[color] || colorsList[0];
+  const currentUnitPrice = (product.color_prices && product.color_prices[currentColorName]) 
+    ? Number(product.color_prices[currentColorName]) 
+    : product.price;
   return (
     <>
       <div className="page-head">
@@ -2488,7 +2493,7 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
             <a href="#" onClick={(e)=>{e.preventDefault();setTab("reviews");}}>{product.rating || 5} · {product.reviews || 0} {uiText("تقييم", "reviews")}</a>
           </div>
           <div className="pd-price-row">
-            <span className="price-now">{money(product.price)}</span>
+            <span className="price-now">{money(currentUnitPrice)}</span>
             {product.was && <span className="price-was">{money(product.was)}</span>}
             {product.was && <span className="pd-save">{uiText("وفر", "Save")} {Math.round((1-product.price/product.was)*100)}%</span>}
           </div>
@@ -2554,9 +2559,13 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
               <span className="qty-val">{qty}</span>
               <button onClick={()=>setQty(q=>q+1)} aria-label={uiText("زيادة الكمية", "Increase quantity")}><PlusIcon size={15}/></button>
             </div>
-            <button className="btn btn-primary btn-lg" style={{flex:1}} onClick={()=>addToCart(product, {color:product.colors[color], size}, qty)}>
-              <BagIcon size={17}/> {uiText("أضف إلى السلة", "Add to cart")} — {money(product.price*qty)}
-            </button>
+           <button 
+  className="btn btn-primary btn-lg" 
+  style={{flex:1}} 
+  onClick={()=>addToCart({ ...product, price: currentUnitPrice }, { color: currentColorName, size }, qty)}
+>
+  <BagIcon size={17}/> {uiText("أضف إلى السلة", "Add to cart")} — {money(currentUnitPrice * qty)}
+</button>
             <button className={"icon-btn"} style={{width:52,height:52,border:"1.5px solid var(--line)"}} onClick={()=>toggleWish(product.id)} aria-label={uiText("قائمة الأمنيات", "Wishlist")}>
               <HeartIcon size={19} style={{color: wishlist.includes(product.id)?"var(--coral)":"var(--ink)", fill: wishlist.includes(product.id) ? "currentColor":"none"}}/>
             </button>
