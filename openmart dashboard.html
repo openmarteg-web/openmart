@@ -35,6 +35,35 @@
       padding: 0 10px;
       box-sizing: border-box;
     }    
+    .dashboard-layout { display: flex; gap: 24px; align-items: flex-start; }
+    .sidebar {
+      width: 250px; flex: 0 0 250px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 18px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      position: sticky; top: 15px;
+    }
+    .sidebar-title { padding: 4px 12px 16px; font-size: 17px; font-weight: 800; }
+    .sidebar-nav { display: grid; gap: 6px; }
+    .dash-tab-btn {
+      width: 100%; padding: 13px 14px; border-radius: 10px; border: none; text-align: right;
+      font-weight: 800; font-size: 14px; cursor: pointer; background: transparent;
+      color: var(--muted); transition: all 0.2s;
+    }
+    .dash-tab-btn:hover { background: #eef2ff; color: var(--primary); }
+    .dash-tab-btn.active { background: var(--primary); color: #fff; }
+    .dashboard-main { min-width: 0; flex: 1; }
+    .view-heading { margin-bottom: 20px; }
+    .view-heading h2 { font-size: 21px; margin-bottom: 5px; }
+    .view-heading p { color: var(--muted); font-size: 13px; }
+    .overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+    .overview-grid .full-width { grid-column: 1 / -1; }
+    @media (max-width: 850px) {
+      .dashboard-layout { display: block; }
+      .sidebar { width: 100%; position: static; margin-bottom: 20px; }
+      .sidebar-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .overview-grid { grid-template-columns: 1fr; }
+      .overview-grid .full-width { grid-column: auto; }
+    }
+    @media (max-width: 480px) { .sidebar-nav { grid-template-columns: 1fr; } }
     #loginSection {
       max-width: 400px; margin: 80px auto; background: var(--card); border-radius: 16px;
       padding: 32px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center;
@@ -64,29 +93,6 @@
     }
     .stat-card .label { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
     .stat-card .val { font-size: 24px; font-weight: 800; color: var(--text); font-family: monospace; }
-
-    .dashboard-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 24px;
-      border-bottom: 1.5px solid var(--border);
-      padding-bottom: 12px;
-    }
-    .dash-tab-btn {
-      padding: 10px 20px;
-      border-radius: 10px;
-      border: none;
-      font-weight: 800;
-      font-size: 14.5px;
-      cursor: pointer;
-      background: transparent;
-      color: var(--muted);
-      transition: all 0.2s;
-    }
-    .dash-tab-btn.active {
-      background: var(--primary);
-      color: #fff;
-    }
 
   .grid { 
     display: grid; 
@@ -182,8 +188,20 @@
     </div>
   </div>
 
+  <div class="dashboard-layout">
+    <aside class="sidebar" aria-label="أقسام لوحة التحكم">
+      <div class="sidebar-title">أقسام اللوحة</div>
+      <nav class="sidebar-nav">
+        <button class="dash-tab-btn active" id="tabBtnOverview" onclick="window.switchDashboardTab('overview')">📊 نظرة عامة</button>
+        <button class="dash-tab-btn" id="tabBtnOrders" onclick="window.switchDashboardTab('orders')">📦 سجل وإدارة الطلبات (<span id="ordersBadgeCount">0</span>)</button>
+        <button class="dash-tab-btn" id="tabBtnProducts" onclick="window.switchDashboardTab('products')">🛍️ إدارة الأصناف</button>
+        <button class="dash-tab-btn" id="tabBtnCoupons" onclick="window.switchDashboardTab('coupons')">🏷️ الكوبونات</button>
+      </nav>
+    </aside>
+    <main class="dashboard-main">
+
   <!-- نظرة عامة للإحصائيات -->
-  <div class="stats-grid">
+  <div id="overviewStats" class="stats-grid">
     <div class="stat-card">
       <div class="label">💰 مبيعات اليوم</div>
       <div class="val" id="todaySales">0 ج.م</div>
@@ -202,7 +220,7 @@
     </div>
   </div>
 
-  <div class="card" style="margin-bottom: 28px;">
+  <div id="overviewTopbar" class="card" style="margin-bottom: 28px;">
     <h2 class="card-title">نص الشريط العلوي للعملاء</h2>
     <form id="topbarForm">
       <div class="form-group">
@@ -213,7 +231,7 @@
     </form>
   </div>
 
-  <div class="card" style="margin-bottom: 28px;">
+  <div id="couponsView" class="card hidden" style="margin-bottom: 28px;">
     <h2 class="card-title">إدارة كوبونات الخصم</h2>
     <form id="couponForm">
       <input type="hidden" id="editing_coupon_id" value="">
@@ -257,7 +275,7 @@
     </div>
   </div>
 
-  <div class="card" style="margin-bottom: 28px;">
+  <div id="overviewHero" class="card" style="margin-bottom: 28px;">
     <h2 class="card-title">صورة الهيرو الرئيسية</h2>
     <form id="heroImageForm">
       <div class="form-group">
@@ -272,11 +290,9 @@
     </form>
   </div>
 
-  <!-- التبويبات -->
-  <div class="dashboard-tabs">
-    <button class="dash-tab-btn active" id="tabBtnProducts" onclick="window.switchDashboardTab('products')">🛍️ إدارة المنتجات</button>
-    <button class="dash-tab-btn" id="tabBtnCategories" onclick="window.switchDashboardTab('categories')">📂 إدارة الأقسام</button>
-    <button class="dash-tab-btn" id="tabBtnOrders" onclick="window.switchDashboardTab('orders')">📦 سجل وإدارة الطلبات (<span id="ordersBadgeCount">0</span>)</button>
+  <div class="products-subnav" style="display:flex; gap:10px; margin-bottom:20px;">
+    <button class="dash-tab-btn active" id="tabBtnProductsSub" onclick="window.switchDashboardTab('products')">🛍️ الأصناف</button>
+    <button class="dash-tab-btn" id="tabBtnCategories" onclick="window.switchDashboardTab('categories')">📂 الأقسام</button>
   </div>
 
   <!-- 1. واجهة إدارة المنتجات -->
@@ -489,6 +505,8 @@
     </div>
   </div>
 
+    </main>
+  </div>
 </div>
 
 <script type="module">
@@ -510,34 +528,37 @@
   const catImgPreviewText = document.getElementById('catImgPreviewText');
 
   window.switchDashboardTab = function(tab) {
-    const pView = document.getElementById('productsView');
-    const cView = document.getElementById('categoriesView');
-    const oView = document.getElementById('ordersView');
+    const viewIds = ['overviewStats', 'overviewTopbar', 'overviewHero', 'couponsView', 'productsView', 'categoriesView', 'ordersView'];
+    const buttonIds = ['tabBtnOverview', 'tabBtnProducts', 'tabBtnProductsSub', 'tabBtnCategories', 'tabBtnOrders', 'tabBtnCoupons'];
+    const productsSubnav = document.querySelector('.products-subnav');
 
-    const pBtn = document.getElementById('tabBtnProducts');
-    const cBtn = document.getElementById('tabBtnCategories');
-    const oBtn = document.getElementById('tabBtnOrders');
+    viewIds.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+    buttonIds.forEach(id => document.getElementById(id)?.classList.remove('active'));
+    productsSubnav?.classList.add('hidden');
 
-    if (pView) pView.classList.add('hidden');
-    if (cView) cView.classList.add('hidden');
-    if (oView) oView.classList.add('hidden');
-
-    if (pBtn) pBtn.classList.remove('active');
-    if (cBtn) cBtn.classList.remove('active');
-    if (oBtn) oBtn.classList.remove('active');
-
-    if (tab === 'products') {
-      if (pView) pView.classList.remove('hidden');
-      if (pBtn) pBtn.classList.add('active');
+    if (tab === 'overview') {
+      ['overviewStats', 'overviewTopbar', 'overviewHero'].forEach(id => document.getElementById(id)?.classList.remove('hidden'));
+      document.getElementById('tabBtnOverview')?.classList.add('active');
+    } else if (tab === 'products') {
+      document.getElementById('productsView')?.classList.remove('hidden');
+      productsSubnav?.classList.remove('hidden');
+      document.getElementById('tabBtnProducts')?.classList.add('active');
+      document.getElementById('tabBtnProductsSub')?.classList.add('active');
       loadProducts();
     } else if (tab === 'categories') {
-      if (cView) cView.classList.remove('hidden');
-      if (cBtn) cBtn.classList.add('active');
+      document.getElementById('categoriesView')?.classList.remove('hidden');
+      productsSubnav?.classList.remove('hidden');
+      document.getElementById('tabBtnProducts')?.classList.add('active');
+      document.getElementById('tabBtnCategories')?.classList.add('active');
       loadCategories();
     } else if (tab === 'orders') {
-      if (oView) oView.classList.remove('hidden');
-      if (oBtn) oBtn.classList.add('active');
+      document.getElementById('ordersView')?.classList.remove('hidden');
+      document.getElementById('tabBtnOrders')?.classList.add('active');
       loadOrdersAndStats();
+    } else if (tab === 'coupons') {
+      document.getElementById('couponsView')?.classList.remove('hidden');
+      document.getElementById('tabBtnCoupons')?.classList.add('active');
+      loadCoupons();
     }
   };
 
@@ -556,6 +577,7 @@
   function checkAuth() {
     if (loginSection) loginSection.classList.add('hidden');
     if (dashboardSection) dashboardSection.classList.remove('hidden');
+    window.switchDashboardTab('overview');
     loadProducts();
     loadCategories();
     loadCoupons();
