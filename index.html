@@ -1447,7 +1447,7 @@ const UI_TRANSLATIONS = {
   "جاري تحميل التقييمات...": "Loading reviews...", "الوصف": "Description", "المواصفات": "Specifications",
   "اللون:": "Color:", "المقاس:": "Size:", "وفر": "Save", "يُشترى معاً عادةً": "Frequently bought together",
   "توصيل مجاني": "Free delivery", "إرجاع مجاني خلال 30 يومًا": "Free returns within 30 days",
-  "إذا لم يكن المقاس مناسبًا": "If the size is not right", "مع تشفير البيانات": "With data encryption",
+  "إذا لم يكن المقاس مناسبًا": "If the size is not right", "عند الاستلام": "With data encryption",
   "إنشاء حساب": "Create account", "أدخل بيانات بريدك الإلكتروني للمتابعة": "Enter your email details to continue",
   "البريد الإلكتروني": "Email", "كلمة المرور": "Password", "دخول": "Log in", "إنشاء حساب جديد": "Create account",
   "ابدأ التسوق": "Start shopping", "سياسة الخصوصية": "Privacy policy", "الاستدامة": "Sustainability",
@@ -2574,7 +2574,7 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
           <div className="pd-perks">
             <div className="pd-perk"><TruckIcon size={18}/> <span><b>{uiText("توصيل مجاني", "Free delivery")}</b> {uiText("للطلبات فوق 75 ج.م، خلال 3 إلى 5 أيام", "for orders over EGP 75, within 3 to 5 days")}</span></div>
             <div className="pd-perk"><RefreshIcon size={18}/> <span><b>{uiText("إرجاع مجاني خلال 30 يومًا", "Free returns within 30 days")}</b> {uiText("إذا لم يكن المقاس مناسبًا", "if the size is not right")}</span></div>
-            <div className="pd-perk"><ShieldIcon size={18}/> <span><b>{uiText("دفع آمن", "Secure payment")}</b> {uiText("مع تشفير البيانات", "with data encryption")}</span></div>
+            <div className="pd-perk"><ShieldIcon size={18}/> <span><b>{uiText("دفع آمن", "Secure payment")}</b> {uiText("عند الاستلام", "with data encryption")}</span></div>
           </div>
         </div>
       </div>
@@ -2793,7 +2793,7 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
           {appliedCoupon && <div className="summary-row"><span>{uiText("الخصم", "Discount")} ({appliedCoupon.code})</span><span className="mono">-{money(discount)}</span></div>}
           <div className="summary-row total"><span>الإجمالي</span><span className="mono">{money(total)}</span></div>
           <button className="btn btn-coral btn-block btn-lg" style={{marginTop:18}} onClick={()=>go("checkout")}>إتمام الطلب <ChevronRight size={16}/></button>
-          <div className="trust-row"><ShieldIcon size={15}/> دفع آمن ومشفّر</div>
+          <div className="trust-row"><ShieldIcon size={15}/>دفع عند الاستلام</div>
         </div>
       </div>
     </>
