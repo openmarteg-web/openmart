@@ -1035,6 +1035,48 @@
       img.style.borderRadius = '6px';
       card.appendChild(img);
 
+      const orderLabel = document.createElement('div');
+      orderLabel.innerText = `الصورة ${index + 1}`;
+      orderLabel.style.fontSize = '11px';
+      orderLabel.style.fontWeight = '800';
+      orderLabel.style.color = 'var(--muted)';
+      orderLabel.style.margin = '5px 0';
+      card.appendChild(orderLabel);
+
+      const moveControls = document.createElement('div');
+      moveControls.style.display = 'flex';
+      moveControls.style.gap = '4px';
+      moveControls.style.width = '100%';
+
+      const createMoveButton = (label, direction, disabled) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.innerText = label;
+        button.title = direction === -1 ? 'تحريك الصورة للأعلى' : 'تحريك الصورة للأسفل';
+        button.disabled = disabled;
+        button.style.flex = '1';
+        button.style.padding = '4px 2px';
+        button.style.border = '1px solid var(--border)';
+        button.style.borderRadius = '6px';
+        button.style.background = disabled ? '#f3f4f6' : '#fff';
+        button.style.color = disabled ? '#9ca3af' : 'var(--primary)';
+        button.style.cursor = disabled ? 'not-allowed' : 'pointer';
+        button.style.fontSize = '11px';
+        button.style.fontWeight = '800';
+        button.onclick = (e) => {
+          e.stopPropagation();
+          const targetIndex = index + direction;
+          if (targetIndex < 0 || targetIndex >= productImages.length) return;
+          [productImages[index], productImages[targetIndex]] = [productImages[targetIndex], productImages[index]];
+          updateGalleryPreviews();
+        };
+        return button;
+      };
+
+      moveControls.appendChild(createMoveButton('↑ أعلى', -1, index === 0));
+      moveControls.appendChild(createMoveButton('↓ أسفل', 1, index === productImages.length - 1));
+      card.appendChild(moveControls);
+
       previewsGrid.appendChild(card);
     });
   }
