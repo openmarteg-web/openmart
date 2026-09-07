@@ -20,9 +20,21 @@
       --warning: #F59E0B;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 30px 20px; }
-    .container { max-width: 1240px; margin: 0 auto; }
-    
+    body { 
+      background-color: var(--bg); 
+      color: var(--text); 
+      padding: 15px; 
+      margin: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .container { 
+      max-width: 100% !important; 
+      width: 100% !important; 
+      margin: 0; 
+      padding: 0 10px;
+      box-sizing: border-box;
+    }    
     #loginSection {
       max-width: 400px; margin: 80px auto; background: var(--card); border-radius: 16px;
       padding: 32px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center;
@@ -76,11 +88,23 @@
       color: #fff;
     }
 
-    .grid { display: grid; grid-template-columns: 420px 1fr; gap: 30px; }
-    @media (max-width: 990px) { 
-      .grid { grid-template-columns: 1fr; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid { 
+    display: grid; 
+    grid-template-columns: repeat(2, minmax(0, 1fr)); 
+      gap: 24px; 
+      align-items: start;
+      width: 100%;
     }
+@media (max-width: 1100px) { 
+  .grid { grid-template-columns: 1fr; } 
+}
+
+@media (min-width: 1101px) {
+  #productsView .grid > .card,
+  #categoriesView .grid > .card {
+    min-width: 0;
+  }
+}
     
     .card { background: var(--card); border-radius: 16px; padding: 24px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
     .card-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
@@ -250,9 +274,9 @@
 
   <!-- التبويبات -->
   <div class="dashboard-tabs">
-    <button class="dash-tab-btn active" id="tabBtnProducts" onclick="switchDashboardTab('products')">🛍️ إدارة المنتجات</button>
-    <button class="dash-tab-btn" id="tabBtnCategories" onclick="switchDashboardTab('categories')">📂 إدارة الأقسام</button>
-    <button class="dash-tab-btn" id="tabBtnOrders" onclick="switchDashboardTab('orders')">📦 سجل وإدارة الطلبات (<span id="ordersBadgeCount">0</span>)</button>
+    <button class="dash-tab-btn active" id="tabBtnProducts" onclick="window.switchDashboardTab('products')">🛍️ إدارة المنتجات</button>
+    <button class="dash-tab-btn" id="tabBtnCategories" onclick="window.switchDashboardTab('categories')">📂 إدارة الأقسام</button>
+    <button class="dash-tab-btn" id="tabBtnOrders" onclick="window.switchDashboardTab('orders')">📦 سجل وإدارة الطلبات (<span id="ordersBadgeCount">0</span>)</button>
   </div>
 
   <!-- 1. واجهة إدارة المنتجات -->
@@ -490,8 +514,7 @@
   const catImgPreview = document.getElementById('catImgPreview');
   const catImgPreviewText = document.getElementById('catImgPreviewText');
 
-  // دالة التبديل الموحدة والصحيحة بين التبويبات الثلاثة
-  window.switchDashboardTab = function(tab) {
+window.switchDashboardTab = function(tab) {
     const pView = document.getElementById('productsView');
     const cView = document.getElementById('categoriesView');
     const oView = document.getElementById('ordersView');
@@ -500,27 +523,27 @@
     const cBtn = document.getElementById('tabBtnCategories');
     const oBtn = document.getElementById('tabBtnOrders');
 
-    // إخفاء الكل أولاً
-    pView.classList.add('hidden');
-    cView.classList.add('hidden');
-    oView.classList.add('hidden');
+    // إخفاء الكل
+    if (pView) pView.classList.add('hidden');
+    if (cView) cView.classList.add('hidden');
+    if (oView) oView.classList.add('hidden');
 
-    pBtn.classList.remove('active');
-    cBtn.classList.remove('active');
-    oBtn.classList.remove('active');
+    if (pBtn) pBtn.classList.remove('active');
+    if (cBtn) cBtn.classList.remove('active');
+    if (oBtn) oBtn.classList.remove('active');
 
-    // إظهار التبويب المختار
+    // إظهار التبويب المطلوب وتحميل بياناته
     if (tab === 'products') {
-      pView.classList.remove('hidden');
-      pBtn.classList.add('active');
+      if (pView) pView.classList.remove('hidden');
+      if (pBtn) pBtn.classList.add('active');
       loadProducts();
     } else if (tab === 'categories') {
-      cView.classList.remove('hidden');
-      cBtn.classList.add('active');
+      if (cView) cView.classList.remove('hidden');
+      if (cBtn) cBtn.classList.add('active');
       loadCategories();
     } else if (tab === 'orders') {
-      oView.classList.remove('hidden');
-      oBtn.classList.add('active');
+      if (oView) oView.classList.remove('hidden');
+      if (oBtn) oBtn.classList.add('active');
       loadOrdersAndStats();
     }
   };
@@ -535,22 +558,23 @@
     }
   });
 
-  // فحص الجلسة
+  // فحص الجلسة بشكل سليم
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
-    const dashboardEmail = localStorage.getItem(DASHBOARD_EMAIL_KEY);
-    if (session && dashboardLoginCompleted && session.user.email === dashboardEmail) {
+    const isLogged = localStorage.getItem(DASHBOARD_LOGIN_KEY) === 'true';
+    const storedEmail = localStorage.getItem(DASHBOARD_EMAIL_KEY) || (session?.user?.email ?? '');
+
+    // إذا كانت هناك جلسة نشطة ومسجل دخول
+    if (session && isLogged) {
       loginSection.classList.add('hidden');
       dashboardSection.classList.remove('hidden');
-      document.getElementById('adminUserBadge').innerText = `المشرف: ${dashboardEmail}`;
+      document.getElementById('adminUserBadge').innerText = `المشرف: ${storedEmail}`;
       loadProducts();
       loadCategories();
       loadCoupons();
       loadOrdersAndStats();
     } else {
-      dashboardLoginCompleted = false;
-      localStorage.removeItem(DASHBOARD_LOGIN_KEY);
-      localStorage.removeItem(DASHBOARD_EMAIL_KEY);
+      // إظهار واجهة الدخول
       loginSection.classList.remove('hidden');
       dashboardSection.classList.add('hidden');
     }
@@ -577,8 +601,17 @@
       btn.innerText = 'دخول للوحة التحكم';
       dashboardLoginCompleted = true;
       localStorage.setItem(DASHBOARD_LOGIN_KEY, 'true');
-      localStorage.setItem(DASHBOARD_EMAIL_KEY, email);
-      checkAuth();
+      localStorage.setItem(DASHBOARD_EMAIL_KEY, data.user?.email || email);
+      
+      // فتح لوحة التحكم فوراً وإخفاء نموذج تسجيل الدخول
+      loginSection.classList.add('hidden');
+      dashboardSection.classList.remove('hidden');
+      document.getElementById('adminUserBadge').innerText = `المشرف: ${data.user?.email || email}`;
+      
+      loadProducts();
+      loadCategories();
+      loadCoupons();
+      loadOrdersAndStats();
     }
   });
 
@@ -836,9 +869,11 @@
     }
   });
 
-  // جلب الطلبات والإحصائيات
+// جلب الطلبات والإحصائيات
   async function loadOrdersAndStats() {
     const tbody = document.getElementById('ordersTableBody');
+    if (!tbody) return;
+
     const { data: orders, error } = await supabase
       .from('orders')
       .select('*')
@@ -856,7 +891,7 @@
     let todayOrdersCount = 0;
     let totalRevenue = 0;
 
-    orders.forEach(ord => {
+    (orders || []).forEach(ord => {
       const ordTotal = Number(ord.total || 0);
       totalRevenue += ordTotal;
 
@@ -866,38 +901,20 @@
         todayOrdersCount++;
       }
     });
-function parseColorsWithPrices(val, defaultPrice) {
-  if (!val || val.trim() === '') return { colors: null, color_prices: null };
-  
-  const rawItems = val.split(/[,،]/).map(s => s.trim()).filter(Boolean);
-  const colors = [];
-  const color_prices = {};
 
-  rawItems.forEach(item => {
-    if (item.includes(':')) {
-      const [cName, cPrice] = item.split(':').map(s => s.trim());
-      if (cName) {
-        colors.push(cName);
-        color_prices[cName] = Number(cPrice) || defaultPrice;
-      }
-    } else {
-      colors.push(item);
-      color_prices[item] = defaultPrice;
-    }
-  });
+    const elTodaySales = document.getElementById('todaySales');
+    const elTodayOrders = document.getElementById('todayOrdersCount');
+    const elTotalRev = document.getElementById('totalRevenue');
+    const elTotalOrders = document.getElementById('totalOrdersCount');
+    const elBadgeCount = document.getElementById('ordersBadgeCount');
 
-  return {
-    colors: colors.length > 0 ? colors : null,
-    color_prices: Object.keys(color_prices).length > 0 ? color_prices : null
-  };
-}
-    document.getElementById('todaySales').innerText = todaySales.toLocaleString('EN-EG') + ' ج.م';
-    document.getElementById('todayOrdersCount').innerText = todayOrdersCount;
-    document.getElementById('totalRevenue').innerText = totalRevenue.toLocaleString('EN-EG') + ' ج.م';
-    document.getElementById('totalOrdersCount').innerText = orders.length;
-    document.getElementById('ordersBadgeCount').innerText = orders.length;
+    if (elTodaySales) elTodaySales.innerText = todaySales.toLocaleString('EN-EG') + ' ج.م';
+    if (elTodayOrders) elTodayOrders.innerText = todayOrdersCount;
+    if (elTotalRev) elTotalRev.innerText = totalRevenue.toLocaleString('EN-EG') + ' ج.م';
+    if (elTotalOrders) elTotalOrders.innerText = (orders || []).length;
+    if (elBadgeCount) elBadgeCount.innerText = (orders || []).length;
 
-    if (orders.length === 0) {
+    if (!orders || orders.length === 0) {
       tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding: 30px; color: var(--muted);">لا توجد أي طلبات واردة حتى الآن.</td></tr>`;
       return;
     }
@@ -954,6 +971,33 @@ function parseColorsWithPrices(val, defaultPrice) {
       `;
     }).join('');
   }
+
+  // دالة معالجة الألوان وأسعارها
+  function parseColorsWithPrices(val, defaultPrice) {
+    if (!val || val.trim() === '') return { colors: null, color_prices: null };
+    const rawItems = val.split(/[,،]/).map(s => s.trim()).filter(Boolean);
+    const colors = [];
+    const color_prices = {};
+
+    rawItems.forEach(item => {
+      if (item.includes(':')) {
+        const [cName, cPrice] = item.split(':').map(s => s.trim());
+        if (cName) {
+          colors.push(cName);
+          color_prices[cName] = Number(cPrice) || defaultPrice;
+        }
+      } else {
+        colors.push(item);
+        color_prices[item] = defaultPrice;
+      }
+    });
+
+    return {
+      colors: colors.length > 0 ? colors : null,
+      color_prices: Object.keys(color_prices).length > 0 ? color_prices : null
+    };
+  }
+    
 window.updateOrderStatus = async function(id, newStatus) {
   const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', id);
   if (error) {
@@ -1306,7 +1350,31 @@ window.resetProductForm = function() {
       .map(item => item.trim())
       .filter(item => item !== '' && item !== '0');
   }
+// دالة تحويل نص الألوان والأسعار
+  function parseColorsWithPrices(val, defaultPrice) {
+    if (!val || val.trim() === '') return { colors: null, color_prices: null };
+    const rawItems = val.split(/[,،]/).map(s => s.trim()).filter(Boolean);
+    const colors = [];
+    const color_prices = {};
 
+    rawItems.forEach(item => {
+      if (item.includes(':')) {
+        const [cName, cPrice] = item.split(':').map(s => s.trim());
+        if (cName) {
+          colors.push(cName);
+          color_prices[cName] = Number(cPrice) || defaultPrice;
+        }
+      } else {
+        colors.push(item);
+        color_prices[item] = defaultPrice;
+      }
+    });
+
+    return {
+      colors: colors.length > 0 ? colors : null,
+      color_prices: Object.keys(color_prices).length > 0 ? color_prices : null
+    };
+  }
   document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
