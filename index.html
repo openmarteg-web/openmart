@@ -1171,38 +1171,83 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .divider{height:1px;background:var(--line-soft);border:none;margin:0;}
 .fade-in{animation:fadeIn .5s var(--ease);}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-/* زر الإضافة السريعة داخل كارت المنتج */
-.pcard-bottom-row {
+/* سطر السعر منفصل بالأعلى */
+.pcard-price-row {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+/* حاوية أزرار الكارت بعرض الكارت كاملاً */
+.pcard-actions {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 7px;
   margin-top: 6px;
 }
 
-.pcard-cart-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: none;
-  background: var(--periwinkle);
-  color: #ffffff;
-  display: flex;
+/* زر أضف إلى السلة باللون الأزرق */
+.pcard-add-cart-btn {
+  width: 100%;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  background: #2563EB;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(79, 111, 245, 0.28);
-  transition: transform 0.25s ease, background 0.2s ease, box-shadow 0.25s ease;
-  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-.pcard-cart-btn:hover {
-  background: var(--periwinkle-deep);
-  transform: scale(1.08) translateY(-2px);
-  box-shadow: 0 6px 14px rgba(79, 111, 245, 0.38);
+.pcard-add-cart-btn:hover {
+  background: #1D4ED8;
+  transform: translateY(-1px);
 }
 
-.pcard-cart-btn:active {
-  transform: scale(0.95);
+/* زر اشتري الآن يوجه لإتمام الطلب بنفس العرض */
+.pcard-buy-now-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #111111;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.pcard-buy-now-btn:hover {
+  background: var(--coral-deep);
+  transform: translateY(-1px);
+}
+
+/* علامة قابل للضغط فوق يسار الصورة */
+.pcard-view-hint {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(17, 17, 17, 0.75);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--r-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 3;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
 }
 </style>
 </head>
@@ -1612,11 +1657,18 @@ const Stars = ({rating, size=13}) => {
 
 const Badge = ({type}) => type ? <span className={"pcard-tag " + ((type === "Sale" || type === "تخفيض") ? "sale" : "new")}>{type === "Sale" ? "تخفيض" : type === "New" ? "جديد" : type}</span> : null;
 
-function ProductCard({p, onOpen, wished, onWish, onQuickAdd}){
+function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
   return (
     <div className="pcard fade-in">
       <div className="pcard-media" onClick={()=>onOpen(p.id)}>
-        <Badge type={p.badge}/>
+        {/* شارة المنتج إن وجدت، أو يظهر مؤشر الضغط للتفاصيل */}
+        {p.badge ? <Badge type={p.badge}/> : null}
+        
+        {/* زر التنبيه أن الصورة قابلة للضغط للتفاصيل في أقصى اليسار فوق */}
+        <span className="pcard-view-hint">
+          <CursorIcon size={12}/> {uiText("تفاصيل", "Details")}
+        </span>
+
         <button className={"pcard-wish"+(wished?" active":"")} onClick={(e)=>{e.stopPropagation();onWish(p.id);}} aria-label="قائمة الأمنيات">
           <HeartIcon size={16} style={{fill: wished ? "currentColor":"none"}}/>
         </button>
@@ -1630,25 +1682,40 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd}){
           <div className="pcard-rating"><Stars rating={p.rating}/><span className="count">({p.reviews})</span></div>
         </div>
 
-        {/* سطر السعر مع زر السلة CTA */}
-        <div className="pcard-bottom-row">
+        {/* السعر منفصل في سطر لوحده */}
+        <div className="pcard-price-row">
           <div className="pcard-price" onClick={()=>onOpen(p.id)} style={{cursor: "pointer"}}>
             <span className="price-now">{money(p.price)}</span>
             {p.was && <span className="price-was">{money(p.was)}</span>}
           </div>
+        </div>
 
+        {/* الأزرار تحت السعر بكامل العرض */}
+        <div className="pcard-actions">
           <button 
             type="button"
-            className="pcard-cart-btn" 
-            title="إضافة سريعة إلى السلة"
+            className="pcard-add-cart-btn"
             onClick={(e) => {
               e.stopPropagation();
               onQuickAdd(p);
             }}
           >
-            <BagIcon size={17} />
+            <BagIcon size={15} />
+            <span>{uiText("أضف الي السلة", "Add to Cart")}</span>
+          </button>
+
+          <button 
+            type="button"
+            className="pcard-buy-now-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onBuyNow(p);
+            }}
+          >
+            <span>{uiText("اشتري الان", "Buy now")}</span>
           </button>
         </div>
+
         {p.stock_quantity !== null && p.stock_quantity !== undefined && (
           <div style={{fontSize: "12px", color: p.stock_quantity > 0 ? "var(--ink-faint)" : "#b91c1c", marginTop: "8px"}}>
             {p.stock_quantity > 0 ? `متبقي ${p.stock_quantity} قطعة` : "غير متوفر حاليًا"}
@@ -1779,8 +1846,8 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
     </>
   );
 }
-function WishlistPage({wishlist, toggleWish, quickAdd, go, products}) {
-  const wishedProducts = products.filter(p => wishlist.some(id => String(id) === String(p.id)));
+function WishlistPage({wishlist, toggleWish, quickAdd, onBuyNow, go, products}) {
+    const wishedProducts = products.filter(p => wishlist.some(id => String(id) === String(p.id)));
 
   if (wishedProducts.length === 0) {
     return (
@@ -1808,14 +1875,15 @@ function WishlistPage({wishlist, toggleWish, quickAdd, go, products}) {
       <div className="wrap section">
         <div className="grid-4">
           {wishedProducts.map(p => (
-            <ProductCard 
-              key={p.id} 
-              p={p} 
-              onOpen={(id)=>go("product", id)} 
-              wished={true} 
-              onWish={toggleWish} 
-              onQuickAdd={quickAdd}
-            />
+<ProductCard 
+  key={p.id} 
+  p={p} 
+  onOpen={(id)=>go("product", id)} 
+  wished={true} 
+  onWish={toggleWish} 
+  onQuickAdd={quickAdd}
+  onBuyNow={onBuyNow}
+/>
           ))}
         </div>
       </div>
@@ -2086,7 +2154,7 @@ function CategoryRow({go, setCatFilter, categories}){
     </section>
   );
 }
-function ProductGridSection({title, eyebrow, items, go, wishlist, toggleWish, quickAdd, viewAllGo, sectionId}){
+function ProductGridSection({title, eyebrow, items, go, wishlist, toggleWish, quickAdd, onBuyNow, viewAllGo, sectionId}){
   return (
     <section id={sectionId} className="section wrap">
       <div className="section-head">
@@ -2098,7 +2166,15 @@ function ProductGridSection({title, eyebrow, items, go, wishlist, toggleWish, qu
       </div>
       <div className="grid-4">
         {items.map(p=>(
-          <ProductCard key={p.id} p={p} onOpen={(id)=>go("product",id)} wished={wishlist.includes(p.id)} onWish={toggleWish} onQuickAdd={quickAdd}/>
+          <ProductCard 
+            key={p.id} 
+            p={p} 
+            onOpen={(id)=>go("product",id)} 
+            wished={wishlist.includes(p.id)} 
+            onWish={toggleWish} 
+            onQuickAdd={quickAdd}
+            onBuyNow={onBuyNow}
+          />
         ))}
       </div>
     </section>
@@ -2127,13 +2203,13 @@ const items = [
   );
 }
 
-function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, user, categories}){  
+function HomePage({go, wishlist, toggleWish, quickAdd, onBuyNow, setCatFilter, products, user, categories}){  
   const displayItems = products.length > 0 ? products : [];
   
   return (
     <>
       <Hero go={go}/>
-<CategoryRow go={go} setCatFilter={setCatFilter} categories={categories}/>
+      <CategoryRow go={go} setCatFilter={setCatFilter} categories={categories}/>
       <ProductGridSection 
         sectionId="products"
         title="المنتجات الأكثر مبيعاً" 
@@ -2143,6 +2219,7 @@ function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, u
         wishlist={wishlist} 
         toggleWish={toggleWish} 
         quickAdd={quickAdd}
+        onBuyNow={onBuyNow}
       />      
       <ProductGridSection 
         title="وصل حديثاً" 
@@ -2152,6 +2229,7 @@ function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, u
         wishlist={wishlist} 
         toggleWish={toggleWish} 
         quickAdd={quickAdd}
+        onBuyNow={onBuyNow}
       />      
     </>
   );
@@ -2160,7 +2238,8 @@ function HomePage({go, wishlist, toggleWish, quickAdd, setCatFilter, products, u
 /* ============================================================
    SHOP PAGE
 ============================================================ */
-function ShopPage({go, wishlist, toggleWish, quickAdd, catFilter, setCatFilter, search, products, categories}){  const [selectedCats, setSelectedCats] = useState(catFilter? [catFilter] : []);
+function ShopPage({go, wishlist, toggleWish, quickAdd, onBuyNow, catFilter, setCatFilter, search, products, categories}){
+  const [selectedCats, setSelectedCats] = useState(catFilter ? [catFilter] : []);
   const currentCats = (categories && categories.length > 0) ? categories : CATEGORIES;
   const [selectedBrands, setSelectedBrands] = useState([]);
 const highestPrice = useMemo(() => {
@@ -2304,9 +2383,19 @@ return (
               <h3 style={{fontSize:20,marginBottom:8}}>{headingText("لم نجد منتجات")}</h3>
               <p style={{color:"var(--ink-soft)",marginBottom:20}}>جرّب تعديل الفلاتر أو كلمات البحث.</p>
             </div>
-          ) : view==="grid" ? (
+         ) : view==="grid" ? (
             <div className="grid-4">
-              {shown.map(p=>(<ProductCard key={p.id} p={p} onOpen={(id)=>go("product",id)} wished={wishlist.includes(p.id)} onWish={toggleWish} onQuickAdd={quickAdd}/>))}
+              {shown.map(p=>(
+                <ProductCard 
+                  key={p.id} 
+                  p={p} 
+                  onOpen={(id)=>go("product",id)} 
+                  wished={wishlist.includes(p.id)} 
+                  onWish={toggleWish} 
+                  onQuickAdd={quickAdd}
+                  onBuyNow={onBuyNow}
+                />
+              ))}
             </div>
           ) : (
             <div style={{display:"flex",flexDirection:"column",gap:18}}>
@@ -2394,8 +2483,8 @@ function ReviewsList({ productId }) {
     </div>
   );
 }
-function ProductPage({productId, go, wishlist, toggleWish, addToCart, products}){
-const product = products.find(p=>String(p.id)===String(productId));
+function ProductPage({productId, go, wishlist, toggleWish, addToCart, onBuyNow, products}){
+  const product = products.find(p=>String(p.id)===String(productId));
 const [imgIdx, setImgIdx] = useState(0);
   const [color, setColor] = useState(0);
 
@@ -2424,19 +2513,21 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
   const related = products.filter(p => p.id !== product.id && productCategories(p).some(category => productHasCategory(product, category))).slice(0, 4);
   const bundleItem = related.length > 0 ? related[0] : null;
   const bundleTotal = bundleItem ? (product.price + bundleItem.price) : product.price;
-
-  // دالة شراء الاثنين معاً الصحيحة بدون تكرار
+const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:product.sizes[0]}, 1);
   const buyBoth = () => {
-    const pColor = (product.colors && product.colors.length > 0) ? product.colors[0] : "افتراضي";
-    const pSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : "قياسي";
-    addToCart(product, { color: pColor, size: pSize }, 1);
-
-    if (bundleItem) {
-      const bColor = (bundleItem.colors && bundleItem.colors.length > 0) ? bundleItem.colors[0] : "افتراضي";
-      const bSize = (bundleItem.sizes && bundleItem.sizes.length > 0) ? bundleItem.sizes[0] : "قياسي";
-      addToCart(bundleItem, { color: bColor, size: bSize }, 1);
-    }
+    addToCart(product, {
+      color: product.colors?.[0] || "قياسي",
+      size: product.sizes?.[0] || "موحد"
+    }, 1);
+    addToCart(bundleItem, {
+      color: bundleItem.colors?.[0] || "قياسي",
+      size: bundleItem.sizes?.[0] || "موحد"
+    }, 1);
+    go("checkout");
   };
+
+
+
 // قاموس الألوان لترجمة الأسماء العربية لأكواد حقيقية
   const colorMap = {
     'أسود': '#111111', 'اسود': '#111111', 'black': '#111111',
@@ -2710,8 +2801,8 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
           </div>
         </div>
       )}
-   {related.length>0 && (
-  <ProductGridSection title="قد يعجبك أيضاً" eyebrow="منتجات مشابهة ومقترحة" items={related} go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={(p)=>addToCart(p,{color:p.colors[0],size:p.sizes[0]},1)}/>
+{related.length>0 && (
+  <ProductGridSection title="قد يعجبك أيضاً" eyebrow="منتجات مشابهة ومقترحة" items={related} go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={(p)=>addToCart(p,{color:p.colors[0],size:p.sizes[0]},1)} onBuyNow={onBuyNow}/>
 )}
     </>
   );
@@ -2802,7 +2893,9 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
               <img src={item.product.img} alt={productName(item.product)}/>
               <div>
                 <div className="cart-item-name">{productName(item.product)}</div>
-                <div className="cart-item-meta">اللون: {item.variant.color === "#FFFFFF" ? "أبيض":"—"} &nbsp;·&nbsp; المقاس: {item.variant.size}</div>
+                <div className="cart-item-meta">
+  اللون: {item.variant?.color || "—"} &nbsp;·&nbsp; المقاس: {item.variant?.size || "قياسي"}
+</div>
                 <div className="cart-item-actions">
                   <div className="qty-stepper">
                     <button onClick={()=>updateQty(idx,Math.max(1,item.qty-1))}><MinusIcon size={13}/></button>
@@ -2854,7 +2947,7 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
           {couponMessage && <div style={{fontSize:12.5,color:appliedCoupon ? "var(--green)" : "var(--coral-deep)",marginBottom:10}}>{couponMessage}</div>}
           {appliedCoupon && <div className="summary-row"><span>{uiText("الخصم", "Discount")} ({appliedCoupon.code})</span><span className="mono">-{money(discount)}</span></div>}
           <div className="summary-row total"><span>الإجمالي</span><span className="mono">{money(total)}</span></div>
-          <button className="btn btn-coral btn-block btn-lg" style={{marginTop:18}} onClick={()=>go("checkout")}>إتمام الطلب <ChevronRight size={16}/></button>
+          <button className="btn btn-coral btn-block btn-lg" style={{marginTop:18}} onClick={()=>selectedZone ? go("checkout") : setShowShippingModal(true)}>إتمام الطلب <ChevronRight size={16}/></button>
           <div className="trust-row"><ShieldIcon size={15}/>دفع عند الاستلام</div>
         </div>
       </div>
@@ -2911,23 +3004,30 @@ function CheckoutPage({cart, go, placeOrder, appliedCoupon}){
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
-  
-  // قراءة منطقة الشحن المحفوظة
-  const savedZone = (() => {
+
+  const [selectedZone, setSelectedZone] = useState(() => {
     try { return JSON.parse(localStorage.getItem("openmart_shipping_zone")); } catch { return null; }
-  })();
+  });
 
   const subtotal = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
-  const shippingCost = savedZone ? savedZone.price : 0;
+  const shippingCost = selectedZone ? Number(selectedZone.price) : 0;
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
   const total = Math.max(0, subtotal + shippingCost - discount);
 
+  const handleZoneChange = (e) => {
+    const zone = SHIPPING_ZONES.find(item => item.name === e.target.value) || null;
+    setSelectedZone(zone);
+    if (zone) localStorage.setItem("openmart_shipping_zone", JSON.stringify(zone));
+    else localStorage.removeItem("openmart_shipping_zone");
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!selectedZone) return;
     placeOrder({ 
       name, 
       phone, 
-      address: `${address} (منطقة الشحن: ${savedZone ? savedZone.name : 'غير محدد'})`, 
+      address: `${address} (منطقة الشحن: ${selectedZone.name})`, 
       notes 
     }, appliedCoupon, shippingCost);
   };
@@ -2971,6 +3071,16 @@ function CheckoutPage({cart, go, placeOrder, appliedCoupon}){
             <div className="co-section-title">
               <span className="co-num">1</span> تفاصيل العميل والتوصيل
             </div>
+
+            <div className="field">
+              <label>المحافظة / منطقة التوصيل *</label>
+              <select required value={selectedZone?.name || ""} onChange={handleZoneChange}>
+                <option value="">اختر المحافظة أو المنطقة</option>
+                {SHIPPING_ZONES.map(zone => (
+                  <option key={zone.name} value={zone.name}>{zone.name} - {money(zone.price)}</option>
+                ))}
+              </select>
+            </div>
             
             <div className="field">
               <label>الاسم ثلاثي *</label>
@@ -2993,18 +3103,18 @@ function CheckoutPage({cart, go, placeOrder, appliedCoupon}){
             </div>
           </div>
 
-          <button type="submit" className="btn btn-coral btn-block btn-lg" style={{background: "#25D366", borderColor: "#25D366"}}>
+          <button type="submit" disabled={!selectedZone} className="btn btn-coral btn-block btn-lg" style={{background: "#25D366", borderColor: "#25D366", opacity: selectedZone ? 1 : 0.55}}>
             تأكيد الطلب والمتابعة عبر واتساب ← ({money(total)})
           </button>
         </form>
 
         <div className="summary-card" style={{top: 100}}>
           <h3 style={{fontSize: 18, marginBottom: 14}}>{headingText("ملخص الطلب")}</h3>
-          {cart.map((item, idx) => (
+       {cart.map((item, idx) => (
             <div className="co-mini-item" key={idx}>
-              <img src={item.product.img} alt=""/>
+              <img src={item.product?.img || ""} alt=""/>
               <span className="n">{productName(item.product)} <span style={{color: "var(--ink-faint)", fontWeight: 600}}>×{item.qty}</span></span>
-              <span className="p mono">{money(item.product.price * item.qty)}</span>
+              <span className="p mono">{money((item.product?.price || 0) * item.qty)}</span>
             </div>
           ))}
           <div className="summary-row" style={{marginTop: 10}}><span>المجموع الفرعي</span><span className="mono">{money(subtotal)}</span></div>
@@ -3339,14 +3449,34 @@ useEffect(() => {
     }
   };
 
-  const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:product.sizes[0]}, 1);
-  const updateQty = (idx, qty) => setCart(c=>c.map((it,i)=>i===idx?{...it,qty}:it));
+const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:product.sizes[0]}, 1);
+const buyNowDirect = (product) => {
+    const pColor = (product.colors && product.colors.length > 0) ? product.colors[0] : "قياسي";
+    const pSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : "موحد";
+    
+    setCart(c => {
+      const existingIdx = c.findIndex(i => 
+        String(i.product.id) === String(product.id) && 
+        i.variant.size === pSize && 
+        i.variant.color === pColor
+      );
+      if (existingIdx > -1) {
+        const copy = [...c];
+        copy[existingIdx] = { ...copy[existingIdx], qty: copy[existingIdx].qty + 1 };
+        return copy;
+      }
+      return [...c, { product, variant: { color: pColor, size: pSize }, qty: 1 }];
+    });
+    
+    showToast(`تمت إضافة "${productName(product)}" وجاري إتمام الطلب...`);
+    go("checkout");
+  };  const updateQty = (idx, qty) => setCart(c=>c.map((it,i)=>i===idx?{...it,qty}:it));
   const removeItem = (idx) => setCart(c=>c.filter((_,i)=>i!==idx));
   const toggleWish = (id) => setWishlist(w=> w.includes(id) ? w.filter(x=>x!==id) : (showToast("تمت الإضافة إلى قائمة الأمنيات"), [...w,id]));
 
- const placeOrder = async (customer, coupon = appliedCoupon) => {
+ const placeOrder = async (customer, coupon = appliedCoupon, shippingCost = 0) => {
     const subtotal = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
-    const shipping = subtotal > 75 || subtotal === 0 ? 0 : 8.95;
+   const shipping = Number(shippingCost) || 0;
    const discount = coupon ? Math.min(coupon.discount, subtotal) : 0;
    const totalAmount = Math.max(0, subtotal + shipping - discount);
 
@@ -3423,29 +3553,48 @@ useEffect(() => {
       {/* إضافة صفحة تسجيل الدخول هنا */}
       {page==="auth" && <AuthPage user={user} isSignUpMode={isSignUpMode} setIsSignUpMode={setIsSignUpMode} emailInput={emailInput} setEmailInput={setEmailInput} passInput={passInput} setPassInput={setPassInput} handleEmailAuth={handleEmailAuth} go={go}/>}
 
-      {page==="home" && <HomePage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} setCatFilter={setCatFilter} products={products} categories={categories}/>}
-{page==="shop" && <ShopPage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} catFilter={catFilter} setCatFilter={setCatFilter} search={search} products={products} categories={categories}/>}      {page==="product" && <ProductPage productId={productId} go={go} wishlist={wishlist} toggleWish={toggleWish} addToCart={addToCart} products={products}/>}
-      {page==="cart" && <CartPage cart={cart} go={go} updateQty={updateQty} removeItem={removeItem} coupons={coupons} appliedCoupon={appliedCoupon} setAppliedCoupon={setAppliedCoupon}/>}
-      {page==="checkout" && <CheckoutPage cart={cart} go={go} placeOrder={placeOrder} appliedCoupon={appliedCoupon}/>}
+{page==="home" && <HomePage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} onBuyNow={buyNowDirect} setCatFilter={setCatFilter} products={products} categories={categories}/>}
+{page==="shop" && <ShopPage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} onBuyNow={buyNowDirect} catFilter={catFilter} setCatFilter={setCatFilter} search={search} products={products} categories={categories}/>}
 
-      {/* صفحة المفضلة */}
-      {page === "wishlist" && (
-        <WishlistPage 
-          wishlist={wishlist} 
-          toggleWish={toggleWish} 
-          quickAdd={quickAdd} 
-          go={go} 
-          products={products}
-        />
-      )}
+{page==="product" && <ProductPage productId={productId} go={go} wishlist={wishlist} toggleWish={toggleWish} addToCart={addToCart} onBuyNow={buyNowDirect} products={products}/>}
+{page === "wishlist" && (
+  <WishlistPage 
+    wishlist={wishlist} 
+    toggleWish={toggleWish} 
+    quickAdd={quickAdd} 
+    onBuyNow={buyNowDirect}
+    go={go} 
+    products={products}
+  />
+)}
 
-      {/* صفحة الطلبات السابقة */}
       {page === "orders" && (
         <OrdersPage 
           orders={orders} 
           go={go}
         />
       )}
+
+            {page === "cart" && (
+              <CartPage
+                cart={cart}
+                go={go}
+                updateQty={updateQty}
+                removeItem={removeItem}
+                coupons={coupons}
+                appliedCoupon={appliedCoupon}
+                setAppliedCoupon={setAppliedCoupon}
+              />
+            )}
+
+            {page === "checkout" && (
+              <CheckoutPage
+                cart={cart}
+                go={go}
+                placeOrder={placeOrder}
+                appliedCoupon={appliedCoupon}
+              />
+            )}
 
       {page==="about" && (
         <div className="wrap" style={{padding:"80px 0",maxWidth:760}}>
