@@ -1120,6 +1120,107 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .co-mini-item .p{font-family:'DM Mono';font-size:13.5px;font-weight:700;}
 @media (max-width:900px){.checkout-layout{grid-template-columns:1fr;}.field-grid{grid-template-columns:1fr;}}
 
+/* ============ تحسين صفحة إتمام الطلب على الهاتف ============ */
+.checkout-layout,
+.checkout-layout > form,
+.checkout-layout > .summary-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.checkout-layout .field input,
+.checkout-layout .field select,
+.checkout-layout .field textarea {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 600px) {
+  .wrap {
+    width: 100%;
+    padding-inline: 16px;
+  }
+
+  .page-head > .wrap,
+  .checkout-layout {
+    width: calc(100% - 32px);
+    margin-inline: auto;
+    padding-inline: 0;
+  }
+
+  .page-head {
+    padding: 24px 0;
+  }
+
+  .page-head .wrap {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .page-title {
+    font-size: 24px;
+    line-height: 1.35;
+  }
+
+  .breadcrumb {
+    flex-wrap: wrap;
+    line-height: 1.6;
+  }
+
+  .checkout-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: 28px 0 52px;
+  }
+
+  .checkout-layout > form,
+  .checkout-layout > .summary-card {
+    width: 100%;
+  }
+
+  .co-section {
+    margin-bottom: 24px;
+  }
+
+  .co-section-title {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .field textarea {
+    min-height: 96px;
+  }
+
+  .summary-card {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .co-mini-item .n {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .checkout-layout form > .btn {
+    width: 100%;
+    white-space: normal;
+    line-height: 1.5;
+    padding-inline: 16px;
+  }
+}
+
 /* ============ TOAST ============ */
 .toast {
   position: fixed;
