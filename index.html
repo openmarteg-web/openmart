@@ -1233,20 +1233,19 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 
 /* علامة قابل للضغط فوق يسار الصورة */
 .pcard-view-hint {
-  position: absolute;
-  top: 10px;
-  left: 10px;
+  align-self: flex-end;
+  margin: -6px 0 8px;
   background: rgba(17, 17, 17, 0.75);
   color: #ffffff;
   font-size: 11px;
   font-weight: 700;
   padding: 4px 8px;
   border-radius: var(--r-pill);
+  border: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  z-index: 3;
-  pointer-events: none;
+  cursor: pointer;
   backdrop-filter: blur(4px);
 }
 </style>
@@ -1663,17 +1662,17 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
       <div className="pcard-media" onClick={()=>onOpen(p.id)}>
         {/* شارة المنتج إن وجدت، أو يظهر مؤشر الضغط للتفاصيل */}
         {p.badge ? <Badge type={p.badge}/> : null}
-        
-        {/* زر التنبيه أن الصورة قابلة للضغط للتفاصيل في أقصى اليسار فوق */}
-        <span className="pcard-view-hint">
-          <CursorIcon size={12}/> {uiText("تفاصيل", "Details")}
-        </span>
 
         <button className={"pcard-wish"+(wished?" active":"")} onClick={(e)=>{e.stopPropagation();onWish(p.id);}} aria-label="قائمة الأمنيات">
           <HeartIcon size={16} style={{fill: wished ? "currentColor":"none"}}/>
         </button>
         <img src={p.img} alt={productName(p)} loading="lazy"/>
       </div>
+
+      {/* زر فتح تفاصيل المنتج أسفل الصورة */}
+      <button type="button" className="pcard-view-hint" onClick={()=>onOpen(p.id)}>
+        <CursorIcon size={12}/> {uiText("تفاصيل", "Details")}
+      </button>
       
       <div style={{display: "flex", flexDirection: "column", flex: 1}}>
         <div onClick={()=>onOpen(p.id)} style={{cursor:"pointer"}}>
