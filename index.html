@@ -192,7 +192,7 @@
   --ink-faint: #888888;
   
   /* خلفيات نظيفة لزيادة الاحترافية */
-  --paper: #F8F9FA; /* خلفية رمادية فاتحة جداً تريح العين */
+  --paper: #FFFFFF; /* خلفية بيضاء خلف الكروت */
   --sand: #FFFFFF; /* كروت المنتجات باللون الأبيض النقي */
   --sand-deep: #F1F3F5;
   --line: #E5E7EB;
@@ -838,7 +838,21 @@ html[lang="ar"] .footer-brand-word {
 @media (max-width:760px){.grid-4,.grid-3{grid-template-columns:repeat(2,1fr);gap:16px;}}
 @media (max-width:460px){.grid-4,.grid-3{grid-template-columns:repeat(2,1fr);gap:10px;}}
 
-.pcard{position:relative;display:flex;flex-direction:column;min-width:0;}
+.pcard{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  padding:10px;
+  border-radius:var(--r-lg);
+  background:var(--sand);
+  box-shadow:0 8px 24px rgba(17,17,17,.10),0 2px 6px rgba(17,17,17,.05);
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease);
+}
+.pcard:hover{
+  transform:translateY(-4px);
+  box-shadow:0 14px 30px rgba(17,17,17,.14),0 4px 10px rgba(17,17,17,.06);
+}
 @media (max-width:760px){
   .section.wrap{
     padding-left:16px;
@@ -3034,7 +3048,6 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
             return <div className="pd-stock-status">
               <div className={`pd-stock-label ${stockClass}`}>
                 <span>{isOutOfStock ? uiText("غير متوفر حاليًا", "Currently out of stock") : uiText(`متبقي ${stock} قطعة`, `${stock} pieces available`)}</span>
-                {!isOutOfStock && <strong>{stock}%</strong>}
               </div>
               <div className="pd-stock-track" role="progressbar" aria-valuenow={stock} aria-valuemin="0" aria-valuemax="10">
                 <div className={`pd-stock-fill ${stockClass}`} style={{width: `${isOutOfStock ? 100 : stockPercent}%`}} />
