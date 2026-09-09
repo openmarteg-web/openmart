@@ -818,7 +818,7 @@ html[lang="ar"] .footer-brand-word {
 }
 
 /* ============ CATEGORIES ============ */
-.cat-row{display:grid;grid-template-columns:repeat(8,1fr);gap:20px;}
+.cat-row{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:18px;align-items:start;}
 .cat-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;}
 .cat-circle{
   width:100%;aspect-ratio:1/1;border-radius:50%;overflow:hidden;position:relative;
@@ -828,8 +828,9 @@ html[lang="ar"] .footer-brand-word {
 .cat-circle img{width:100%;height:100%;object-fit:cover;transition:transform .5s var(--ease);}
 .cat-card:hover .cat-circle img{transform:scale(1.1);}
 .cat-name{font-size:13.5px;font-weight:700;}
-@media (max-width:1000px){.cat-row{grid-template-columns:repeat(4,1fr);row-gap:28px;}}
-@media (max-width:520px){.cat-row{grid-template-columns:repeat(3,1fr);gap:14px;}}
+@media (max-width:900px){.cat-row{grid-template-columns:repeat(6,minmax(0,1fr));row-gap:28px;}}
+@media (max-width:760px){.cat-row{grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 14px;}}
+@media (max-width:520px){.cat-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 10px;}.cat-card{gap:8px;}.cat-name{font-size:12px;}}
 
 /* ============ PRODUCT CARD ============ */
 .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;}
@@ -970,10 +971,42 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .view-toggle button{width:34px;height:34px;border:none;border-radius:50%;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);}
 .view-toggle button.active{background:var(--ink);color:#fff;}
 .mobile-filter-btn{display:none;}
+.filter-backdrop{display:none;}
+.filter-drawer-head{display:none;}
 @media (max-width:900px){
   .shop-layout{grid-template-columns:1fr;}
-  .filter-sidebar{display:none;}
-  .filter-sidebar.mobile-open{display:block;}
+  .filter-sidebar{
+    display:block;
+    position:fixed;
+    top:0;
+    right:0;
+    bottom:0;
+    z-index:1001;
+    width:min(86vw,360px);
+    max-width:100%;
+    overflow-y:auto;
+    padding:28px 22px 32px;
+    background:var(--white);
+    box-shadow:-18px 0 45px rgba(32,28,50,.18);
+    transform:translateX(105%);
+    transition:transform .25s ease;
+  }
+  .filter-sidebar.mobile-open{transform:translateX(0);}
+  .filter-sidebar .filter-drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+  .filter-sidebar .filter-drawer-title{font-size:18px;font-weight:800;}
+  .filter-sidebar .filter-drawer-close{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;background:var(--white);display:grid;place-items:center;color:var(--ink);cursor:pointer;}
+  .filter-backdrop{
+    display:block;
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    border:0;
+    background:rgba(25,22,38,.42);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .filter-backdrop.mobile-open{opacity:1;pointer-events:auto;}
   .mobile-filter-btn{display:inline-flex;}
 }
 
@@ -1844,7 +1877,39 @@ const UI_TRANSLATIONS = {
   "تم تسجيل الخروج بنجاح.": "Logged out successfully.", "جاري تسجيل الطلب...": "Submitting order...",
   "تم إنشاء الحساب بنجاح!": "Account created successfully!", "تم تسجيل الدخول بنجاح!": "Logged in successfully!",
   "تعذر تسجيل الدخول، حاول مرة أخرى.": "Unable to log in. Please try again.",
-  "حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.": "There was an error submitting the order. Please try again."
+  "حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.": "There was an error submitting the order. Please try again.",
+  "تفاصيل": "Details", "مشاركة المنتج": "Share product", "شعار أوبن مارت": "Openmart logo",
+  "التواصل عبر واتساب": "Contact via WhatsApp", "واتساب": "WhatsApp", "العربية": "Arabic",
+  "الصورة التالية": "Next slide", "الصورة السابقة": "Previous slide", "شريحة": "Slide",
+  "قائمة الأمنيات": "Wishlist", "لم تقم بإضافة أي منتج للمفضلة بعد.": "You have not added any products to your wishlist yet.",
+  "تصفح المنتجات": "Browse products", "سجل الدخول للاطلاع على طلباتك السابقة": "Log in to view your previous orders",
+  "يجب تسجيل الدخول لعرض الطلبات المرتبطة بحسابك.": "You must log in to view orders linked to your account.",
+  "لم تقم بإجراء أي طلبات حتى الآن.": "You have not placed any orders yet.", "طلب رقم": "Order #",
+  "الكمية:": "Quantity:", "سجل الدخول لإتمام الطلب أسرع": "Log in for faster checkout",
+  "موسم جديد": "New season", "نقرة واحدة.": "One click.", "ويصبح لك.": "And it's yours.",
+  "تصفح": "Explore", "إغلاق الفلاتر": "Close filters", "نتيجة": "result", "نتائج": "results",
+  "منتجات مشابهة ومقترحة": "Similar and recommended products", "المنتج غير موجود": "Product not found",
+  "غير متوفر حاليًا": "Currently out of stock", "قطعة": "piece", "قطع": "pieces",
+  "أضف الي السلة": "Add to cart", "اشتري الان": "Buy now", "انسخ رابط المنتج": "Copy product link",
+  "تم نسخ رابط المنتج": "Product link copied", "الألوان المتاحة:": "Available colors:", "المقاسات المتاحة:": "Available sizes:",
+  "اسمك الكريم": "Your name", "اكتب تعليقك هنا...": "Write your review here...",
+  "إرسال التقييم": "Submit review", "أضف تقييمك للمنتج": "Add your product review",
+  "تم إضافة تقييمك بنجاح!": "Your review was added successfully!", "حدث خطأ أثناء إرسال التعليق": "There was an error submitting the review",
+  "لم تضف أي منتجات بعد. ابدأ التسوق الآن.": "You have not added any products yet. Start shopping now.",
+  "الكود غير صحيح أو غير فعال": "Invalid or inactive coupon", "تم تطبيق الكوبون بنجاح": "Coupon applied successfully",
+  "المفضلة": "Wishlist", "المتجر": "Shop", "السلة": "Cart", "طلباتي السابقة": "My orders",
+  "لم نجد منتجات": "No products found", "جرّب تعديل الفلاتر أو كلمات البحث.": "Try adjusting the filters or search terms.",
+  "المجموع الفرعي": "Subtotal", "الشحن": "Shipping", "الإجمالي": "Total", "الإجمالي المطلوب": "Total due",
+  "الخصم": "Discount", "دفع عند الاستلام": "Cash on delivery", "دفع عند الاستلام نقداً": "Cash on delivery",
+  "اختر منطقة التوصيل 🚚": "Choose a delivery area 🚚", "يرجى اختيار منتجات أولاً قبل إتمام الطلب.": "Please choose products before checking out.",
+  "تصفح المتجر": "Browse shop", "بيانات التوصيل": "Delivery details", "إتمام الطلب عبر واتساب": "Checkout via WhatsApp",
+  "المحافظة / منطقة التوصيل *": "Governorate / delivery area *", "اختر المحافظة أو المنطقة": "Choose a governorate or area",
+  "عنوان التوصيل بالتفصيل *": "Full delivery address *", "المحافظة، المدينة، اسم الشارع، رقم العمارة والشقة...": "Governorate, city, street, building and apartment number...",
+  "ملاحظات إضافية (اختياري)": "Additional notes (optional)", "مجاني": "Free", "الاسم ثلاثي *": "Full name *",
+  "رقم هاتف الواتساب *": "WhatsApp number *", "أوبن مارت": "Openmart", "من نحن": "About",
+  "بدأ أوبن مارت بفكرة بسيطة: يجب أن يكون التسوق عبر الإنترنت سهلاً كالنقرة التي بدأته. نتعاون مع استوديوهات مستقلة وعلامات تجارية مختارة لنقدم لك منتجات متينة، بأسعار عادلة، وتوصيل سريع. هذا نموذج تجريبي للواجهة، ولا تتم معالجة الحسابات أو المدفوعات.": "Openmart started with a simple idea: online shopping should be as easy as the click that began it. We work with independent studios and selected brands to offer durable products, fair prices, and fast delivery. This is a UI prototype; accounts and payments are not processed.",
+  "بيانات الدخول غير صحيحة. إذا لم يكن لديك حساب، اضغط بالأسفل على 'إنشاء حساب جديد'": "Invalid login details. If you do not have an account, click 'Create a new account' below.",
+  "تم تجاوز الحد المسموح من المحاولات مؤقتاً. يرجى الانتظار بضع دقائق والمحاولة مرة أخرى.": "The attempt limit has been temporarily exceeded. Please wait a few minutes and try again."
 };
 const translateRenderedUi = () => {
   const translations = activeLanguage === "en"
@@ -1989,7 +2054,7 @@ const Stars = ({rating, size=13}) => {
   );
 };
 
-const Badge = ({type}) => type ? <span className={"pcard-tag " + ((type === "Sale" || type === "تخفيض") ? "sale" : "new")}>{type === "Sale" ? "تخفيض" : type === "New" ? "جديد" : type}</span> : null;
+const Badge = ({type}) => type ? <span className={"pcard-tag " + ((type === "Sale" || type === "تخفيض") ? "sale" : "new")}>{activeLanguage === "en" ? (type === "تخفيض" || type === "Sale" ? "Sale" : type === "جديد" || type === "New" ? "New" : type) : (type === "Sale" ? "تخفيض" : type === "New" ? "جديد" : type)}</span> : null;
 
 function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
   const shareProduct = async (event) => {
@@ -2052,7 +2117,9 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
           <span className="pcard-stock-count">{p.stock_quantity ?? "0"} {p.stock_quantity === 1 ? "item" : "items"}</span>
           <span className="pcard-stock-message">
             {p.stock_quantity > 0 && p.stock_quantity <= 5 && <span aria-hidden="true">▲</span>}
-            <span>{p.stock_quantity > 0 ? `متبقي ${p.stock_quantity} ${p.stock_quantity === 1 ? "قطعة" : "قطع"} فقط` : "غير متوفر حاليًا"}</span>
+            <span>{p.stock_quantity > 0
+              ? (activeLanguage === "en" ? `${p.stock_quantity} ${p.stock_quantity === 1 ? "piece" : "pieces"} available` : `متبقي ${p.stock_quantity} ${p.stock_quantity === 1 ? "قطعة" : "قطع"} فقط`)
+              : uiText("غير متوفر حاليًا", "Currently out of stock")}</span>
           </span>
         </div>
 
@@ -2092,9 +2159,9 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
 ============================================================ */
 function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, user, login, requestLogout, topbarText, lang, setLang}){
   const links = [
-    {id:"home", label: lang === "ar" ? "الرئيسية" : "Home"},
-    {id:"shop", label: lang === "ar" ? "المتجر" : "Shop"},
-    {id:"about", label: lang === "ar" ? "من نحن" : "About"},
+    {id:"home", label: uiText("الرئيسية", "Home")},
+    {id:"shop", label: uiText("المتجر", "Shop")},
+    {id:"about", label: uiText("من نحن", "About")},
   ];
 
   const openMobileSearch = () => {
@@ -2521,15 +2588,15 @@ function Hero({go}){
           <div className="hero-visual">
             <img src={s.img} alt="Hero Banner" />
             {heroSlides.length > 1 && <>
-              <button className="hero-nav-arrow prev" onClick={() => goToSlide(1)} aria-label="الصورة التالية"><ChevronRight size={20}/></button>
-              <button className="hero-nav-arrow next" onClick={() => goToSlide(-1)} aria-label="الصورة السابقة"><ChevronLeft size={20}/></button>
+              <button className="hero-nav-arrow prev" onClick={() => goToSlide(1)} aria-label={uiText("الصورة التالية", "Next slide")}><ChevronRight size={20}/></button>
+              <button className="hero-nav-arrow next" onClick={() => goToSlide(-1)} aria-label={uiText("الصورة السابقة", "Previous slide")}><ChevronLeft size={20}/></button>
             </>}
           </div>
         </div>
        ))}
       </div>
       <div className="hero-dots" style={{ position: "relative", zIndex: 10 }}>
-        {heroSlides.map((_, d) => (<button key={d} className={"hero-dot" + (d === i ? " active" : "")} onClick={() => setI(d)} aria-label={"شريحة " + (d + 1)}/>))}
+        {heroSlides.map((_, d) => (<button key={d} className={"hero-dot" + (d === i ? " active" : "")} onClick={() => setI(d)} aria-label={uiText("شريحة", "Slide") + " " + (d + 1)}/>))}
       </div>
     </section>
   );
@@ -2561,8 +2628,8 @@ function CategoryRow({go, setCatFilter, categories}){
       <div className="cat-row">
         {list.map(c=>(
           <a href="#" className="cat-card" key={c.id} onClick={(e)=>{e.preventDefault();setCatFilter(c.id);go("shop");}}>
-            <div className="cat-circle"><img src={c.img} alt={c.name}/></div>
-            <span className="cat-name">{c.name}</span>
+            <div className="cat-circle"><img src={c.img} alt={localizedOption(c.name)}/></div>
+            <span className="cat-name">{localizedOption(c.name)}</span>
           </a>
         ))}
       </div>
@@ -2725,7 +2792,16 @@ return (
   </div>
 </div>
       <div className="wrap shop-layout">
+        <button
+          className={"filter-backdrop"+(mobileFiltersOpen?" mobile-open":"")}
+          aria-label="إغلاق الفلاتر"
+          onClick={()=>setMobileFiltersOpen(false)}
+        />
         <aside className={"filter-sidebar"+(mobileFiltersOpen?" mobile-open":"")}>
+          <div className="filter-drawer-head">
+            <span className="filter-drawer-title">الفلاتر</span>
+            <button className="filter-drawer-close" aria-label="إغلاق الفلاتر" onClick={()=>setMobileFiltersOpen(false)}>×</button>
+          </div>
           <div className="filter-block">
             <div className="filter-title">القسم</div>
             {currentCats.map(c=>(
@@ -3131,10 +3207,10 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
           {tab==="desc" && <div className="pd-rich-text" dangerouslySetInnerHTML={{__html: safeDescription(activeLanguage === "en" && product.desc_en ? product.desc_en : product.desc)}} />}
           {tab==="specs" && (
             <ul style={{margin:0,paddingLeft:18,display:"flex",flexDirection:"column",gap:8}}>
-              <li>{uiText("العلامة التجارية:", "Brand:")} {localizedOption(product.brand)}</li>
-              <li>{uiText("القسم:", "Category:")} {productCategories(product).map(category => localizedOption(CATEGORIES.find(c=>c.id===category)?.name)).filter(Boolean).join(activeLanguage === "en" ? ", " : "، ")}</li>
-              <li>{uiText("الألوان المتاحة:", "Available colors:")} {product.colors.length}</li>
-              <li>{uiText("المقاسات المتاحة:", "Available sizes:")} {product.sizes.map(optionText).join(", ")}</li>
+              {product.brand?.trim() && <li>{uiText("العلامة التجارية:", "Brand:")} {localizedOption(product.brand)}</li>}
+              {productCategories(product).length > 0 && <li>{uiText("القسم:", "Category:")} {productCategories(product).map(category => localizedOption(CATEGORIES.find(c=>c.id===category)?.name)).filter(Boolean).join(activeLanguage === "en" ? ", " : "، ")}</li>}
+              {Array.isArray(product.colors) && product.colors.length > 0 && <li>{uiText("الألوان المتاحة:", "Available colors:")} {product.colors.length}</li>}
+              {Array.isArray(product.sizes) && product.sizes.length > 0 && <li>{uiText("المقاسات المتاحة:", "Available sizes:")} {product.sizes.map(optionText).join(", ")}</li>}
             </ul>
           )}
       {tab==="reviews" && (
