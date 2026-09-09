@@ -1074,6 +1074,15 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
   display: block;
 }
 
+@keyframes pd-image-dissolve {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pd-main-img img.pd-image-dissolve {
+  animation: pd-image-dissolve 1.4s ease-in-out;
+}
+
 .pd-info {
   padding-left: 6px;
 }
@@ -2982,6 +2991,17 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
     window.scrollTo(0, 0); 
   }, [productId, product]);
 
+  useEffect(() => {
+    const galleryLength = product?.gallery?.length || 0;
+    if (galleryLength < 2) return undefined;
+
+    const intervalId = window.setInterval(() => {
+      setImgIdx(current => (current + 1) % galleryLength);
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [productId, product?.gallery]);
+
   const colorsList = useMemo(() => {
     if (!product?.colors) return [];
     if (Array.isArray(product.colors)) {
@@ -3073,7 +3093,7 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
             <div key={i} className={"pd-thumb"+(i===imgIdx?" active":"")} onClick={()=>setImgIdx(i)}><img src={g} alt=""/></div>
           ))}
         </div>
-        <div className="pd-main-img"><img src={product.gallery[imgIdx]} alt={productName(product)}/></div>
+        <div className="pd-main-img"><img key={imgIdx} className="pd-image-dissolve" src={product.gallery[imgIdx]} alt={productName(product)}/></div>
 
         <div className="pd-info">
           <div className="pd-brand">{product.brand}</div>
