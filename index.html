@@ -463,23 +463,28 @@ html[lang="ar"] .footer-brand-word {
   position: relative;
   overflow: hidden;
   background: var(--sand);
+  --hero-banner-width: 720px;
+  --hero-banner-top-gap: 16px;
 }
 
 /* الحاوية الرئيسية */
 .hero-slide {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  align-items: center;
-
-  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: none;
   margin: 0 auto;
-  padding: 64px 32px;
-
-  min-height: 480px;
-  gap: 40px;
+  padding: 0 0 64px;
+  gap: 32px;
 
   /* مهم جداً */
   box-sizing: border-box;
+}
+
+.hero-slide > div:first-child {
+  width: min(100% - 64px, 1280px);
+  margin: 0 auto;
+  text-align: center;
 }
 
 /* محتوى الهيرو */
@@ -518,20 +523,25 @@ html[lang="ar"] .footer-brand-word {
   margin: 20px 0 30px;
   max-width: 440px;
   line-height: 1.55;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero-cta-row {
   display: flex;
   gap: 14px;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
 }
 
 /* الصورة */
 .hero-visual {
   position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  order: -1;
+  width: min(100%, var(--hero-banner-width));
+  aspect-ratio: 16 / 9;
+  margin: var(--hero-banner-top-gap) auto 0;
   border-radius: var(--r-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
@@ -552,6 +562,31 @@ html[lang="ar"] .footer-brand-word {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+
+.hero-nav-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 50%;
+  background: rgba(17,17,17,.78);
+  color: #fff;
+  transform: translateY(-50%);
+  transition: transform .2s ease, background .2s ease;
+}
+
+.hero-nav-arrow:hover {
+  background: var(--coral);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.hero-nav-arrow.prev { right: 14px; }
+.hero-nav-arrow.next { left: 14px; }
 
 /* Price chip */
 .hero-price-chip {
@@ -633,11 +668,14 @@ html[lang="ar"] .footer-brand-word {
 @media (max-width: 900px) {
 
   .hero-slide {
-    grid-template-columns: 1fr;
     padding: 40px 20px;
     min-height: auto;
     gap: 28px;
     text-align: center;
+  }
+
+  .hero-slide > div:first-child {
+    width: 100%;
   }
 
   .hero-sub {
@@ -650,8 +688,7 @@ html[lang="ar"] .footer-brand-word {
   }
 
   .hero-visual {
-    order: -1;
-    width: min(100%, 340px);
+    width: 100%;
     margin: 0 auto;
   }
 
@@ -661,7 +698,11 @@ html[lang="ar"] .footer-brand-word {
 @media (max-width: 600px) {
 
   .hero-slide {
-    padding: 30px 16px 36px;
+    padding: 0 16px 36px;
+  }
+
+  .hero-visual {
+    width: 100%;
   }
 
   .hero-price-chip {
@@ -674,6 +715,11 @@ html[lang="ar"] .footer-brand-word {
 
   .hero-sub {
     font-size: 15px;
+  }
+
+  .hero-nav-arrow {
+    width: 34px;
+    height: 34px;
   }
 }
 
@@ -807,8 +853,8 @@ html[lang="ar"] .footer-brand-word {
   position:relative;border-radius:var(--r-md);overflow:hidden;background:var(--sand);
   aspect-ratio:1/1.08;margin-bottom:14px;cursor:pointer;
 }
-.pcard-media img{width:100%;height:100%;object-fit:cover;transition:transform .6s var(--ease);}
-.pcard:hover .pcard-media img{transform:scale(1.08);}
+.pcard-media img{width:100%;height:100%;object-fit:cover;transform:scale(1);transform-origin:center;will-change:transform;transition:transform .7s cubic-bezier(.16,1,.3,1);}
+.pcard:hover .pcard-media img{transform:scale(1.04);}
 .pcard-tag{
   position:absolute;top:10px;left:10px;padding:5px 11px;border-radius:var(--r-pill);
   font-size:11px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;z-index:2;
@@ -1479,6 +1525,43 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .pcard-stock.is-empty {
   visibility: hidden;
 }
+
+/* English layout direction */
+html[dir="ltr"] body {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir="ltr"] .header-actions {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+html[dir="ltr"] .drawer {
+  right: auto;
+  left: 0;
+  transform: translateX(-100%);
+}
+
+html[dir="ltr"] .drawer.open {
+  transform: translateX(0);
+}
+
+html[dir="ltr"] .drawer-head,
+html[dir="ltr"] .drawer-search,
+html[dir="ltr"] .drawer-nav,
+html[dir="ltr"] .drawer-foot {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir="ltr"] .pcard-actions-secondary {
+  direction: ltr;
+}
+
+html[dir="ltr"] .pcard-stock-message {
+  direction: ltr;
+}
 </style>
 </head>
 <body>
@@ -1639,6 +1722,7 @@ const Icon = ({children, size=20, ...p}) => (
 const SearchIcon = p => <Icon {...p}><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></Icon>;
 const HeartIcon = p => <Icon {...p}><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></Icon>;
 const BagIcon = p => <Icon {...p}><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></Icon>;
+const CartIcon = p => <Icon {...p}><path fill="currentColor" stroke="none" d="M3 4h2.1c.7 0 1.3.5 1.5 1.2l.4 1.5h14.2c.7 0 1.2.7 1 1.4l-1.7 6.5c-.2.8-.9 1.4-1.8 1.4H9.2c-.9 0-1.6-.5-2-1.3L4.9 6H3V4Zm5.7 8.5.8 1.5h9.2l1.1-4.3H7.4l1.3 2.8Z"/><circle cx="9" cy="19" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="19" r="1.5" fill="currentColor" stroke="none"/></Icon>;
 const UserIcon = p => <Icon {...p}><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></Icon>;
 const MenuIcon = p => <Icon {...p}><path d="M4 7h16M4 12h16M4 17h16"/></Icon>;
 const XIcon = p => <Icon {...p}><path d="M6 6l12 12M18 6 6 18"/></Icon>;
@@ -2119,7 +2203,7 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
               {wishCount > 0 && <span className="badge">{wishCount}</span>}
             </button>
             <button className="icon-btn" aria-label="السلة" onClick={()=>go("cart")}>
-              <BagIcon size={19}/>
+              <CartIcon size={21}/>
               {cartCount>0 && <span className="badge">{cartCount}</span>}
             </button>
           </div>
@@ -2350,7 +2434,13 @@ const SLIDES = [
 
 function Hero({go}){
   const [i, setI] = useState(0);
-  const [heroImage, setHeroImage] = useState(() => localStorage.getItem("openmart_hero_image") || "");
+  const [heroImages, setHeroImages] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("openmart_hero_images") || "[]");
+      return Array.isArray(saved) && saved.length ? saved : (localStorage.getItem("openmart_hero_image") ? [localStorage.getItem("openmart_hero_image")] : []);
+    } catch { return []; }
+  });
+  const heroSlides = heroImages.length ? heroImages.map((img) => ({...SLIDES[0], img})) : SLIDES;
 
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({behavior:"smooth", block:"start"});
@@ -2360,35 +2450,53 @@ function Hero({go}){
     // جلب مباشر من Supabase
     async function getHero() {
       if (window.supabase) {
-        const { data, error } = await window.supabase
+        const { data: settings } = await window.supabase
           .from('site_settings')
-          .select('value')
-          .eq('key', 'hero_image')
-          .maybeSingle();
-        if (data?.value) setHeroImage(data.value);
-        if (data?.value) localStorage.setItem("openmart_hero_image", data.value);
+          .select('key, value')
+          .in('key', ['hero_images', 'hero_image']);
+        const data = settings?.find(setting => setting.key === 'hero_images') || settings?.find(setting => setting.key === 'hero_image');
+        if (data?.value) {
+          try {
+            const images = JSON.parse(data.value);
+            if (Array.isArray(images) && images.length) {
+              setHeroImages(images);
+              localStorage.setItem("openmart_hero_images", JSON.stringify(images));
+              return;
+            }
+          } catch {}
+          setHeroImages([data.value]);
+          localStorage.setItem("openmart_hero_image", data.value);
+        }
       }
     }
     getHero();
 
     const updateHeroImage = (event) => {
-      if (event.key === "openmart_hero_image") {
-        setHeroImage(event.newValue || "");
+      if (event.key === "openmart_hero_images") {
+        try { setHeroImages(JSON.parse(event.newValue || "[]")); } catch { setHeroImages([]); }
+      } else if (event.key === "openmart_hero_image") {
+        setHeroImages(event.newValue ? [event.newValue] : []);
       }
     };
     window.addEventListener("storage", updateHeroImage);
 
-    const t = setInterval(() => setI(v => (v + 1) % SLIDES.length), 6000);
+    const t = setInterval(() => setI(v => (v + 1) % heroSlides.length), 4000);
     return () => {
       clearInterval(t);
       window.removeEventListener("storage", updateHeroImage);
     };
-  }, []);
+  }, [heroSlides.length]);
+
+  useEffect(() => {
+    if (i >= heroSlides.length) setI(0);
+  }, [heroSlides.length, i]);
+
+  const goToSlide = (direction) => setI(current => (current + direction + heroSlides.length) % heroSlides.length);
 
   return (
     <section className="hero">
       <div style={{ position: "relative", width: "100%", overflow: "hidden" }}>
-       {SLIDES.map((s, idx) => (
+      {heroSlides.map((s, idx) => (
         <div
           className="hero-slide"
           key={idx}
@@ -2413,14 +2521,17 @@ function Hero({go}){
             </div>
           </div>
           <div className="hero-visual">
-            <img src={heroImage || s.img} alt="Hero Banner" />
-            <div className="hero-cursor-chip"><CursorIcon size={13}/> {uiText("اضغط للتسوق", "Click to shop")}</div>
+            <img src={s.img} alt="Hero Banner" />
+            {heroSlides.length > 1 && <>
+              <button className="hero-nav-arrow prev" onClick={() => goToSlide(1)} aria-label="الصورة التالية"><ChevronRight size={20}/></button>
+              <button className="hero-nav-arrow next" onClick={() => goToSlide(-1)} aria-label="الصورة السابقة"><ChevronLeft size={20}/></button>
+            </>}
           </div>
         </div>
        ))}
       </div>
       <div className="hero-dots" style={{ position: "relative", zIndex: 10 }}>
-        {SLIDES.map((_, d) => (<button key={d} className={"hero-dot" + (d === i ? " active" : "")} onClick={() => setI(d)} aria-label={"شريحة " + (d + 1)}/>))}
+        {heroSlides.map((_, d) => (<button key={d} className={"hero-dot" + (d === i ? " active" : "")} onClick={() => setI(d)} aria-label={"شريحة " + (d + 1)}/>))}
       </div>
     </section>
   );

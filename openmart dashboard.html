@@ -284,17 +284,17 @@
   </div>
 
   <div id="overviewHero" class="card" style="margin-bottom: 28px;">
-    <h2 class="card-title">صورة الهيرو الرئيسية</h2>
+    <h2 class="card-title">صور بانر الهيرو</h2>
     <form id="heroImageForm">
       <div class="form-group">
-        <label for="heroImageFile">اختر الصورة الرئيسية الظاهرة في الصفحة الرئيسية</label>
+        <label for="heroImageFile">اختر صورة أو أكثر للبانر (يفضل مقاس 16:9)</label>
         <div class="file-upload-box" onclick="document.getElementById('heroImageFile').click()">
-          <input type="file" id="heroImageFile" accept="image/*" style="display: none;">
-          <div id="heroImageUploadText" style="color: var(--muted); font-size: 13.5px;">📁 اضغط لاختيار صورة الهيرو</div>
-          <img id="heroImagePreview" alt="معاينة صورة الهيرو" style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; margin-top: 10px; display: none;">
+          <input type="file" id="heroImageFile" accept="image/*" multiple style="display: none;">
+          <div id="heroImageUploadText" style="color: var(--muted); font-size: 13.5px;">📁 اضغط لاختيار صور البانر</div>
+          <div id="heroImagePreview" class="previews-grid"></div>
         </div>
       </div>
-      <button type="submit" class="btn" id="heroImageSaveBtn">حفظ صورة الهيرو</button>
+      <button type="submit" class="btn" id="heroImageSaveBtn">حفظ صور البانر</button>
     </form>
   </div>
 
@@ -759,44 +759,99 @@
   }
 
   const HERO_IMAGE_STORAGE_KEY = 'openmart_hero_image';
+  const HERO_IMAGES_STORAGE_KEY = 'openmart_hero_images';
   const heroImageForm = document.getElementById('heroImageForm');
   const heroImageFile = document.getElementById('heroImageFile');
   const heroImagePreview = document.getElementById('heroImagePreview');
   const heroImageUploadText = document.getElementById('heroImageUploadText');
-  const savedHeroImage = localStorage.getItem(HERO_IMAGE_STORAGE_KEY);
-  if (savedHeroImage && heroImagePreview) {
-    heroImagePreview.src = savedHeroImage;
-    heroImagePreview.style.display = 'block';
-    heroImageUploadText.style.display = 'none';
+  let selectedHeroFiles = [];
+  let savedHeroImages = [];
+  try {
+    savedHeroImages = JSON.parse(localStorage.getItem(HERO_IMAGES_STORAGE_KEY) || '[]');
+  } catch {}
+  if (!savedHeroImages.length) {
+    const savedHeroImage = localStorage.getItem(HERO_IMAGE_STORAGE_KEY);
+    if (savedHeroImage) savedHeroImages = [savedHeroImage];
   }
+
+  function renderHeroPreviews(items) {
+    if (!heroImagePreview) return;
+    heroImagePreview.innerHTML = '';
+    items.forEach((item, index) => {
+      const preview = document.createElement('div');
+      preview.style.cssText = 'position: relative; min-width: 0;';
+      const image = document.createElement('img');
+      image.src = typeof item === 'string' ? item : URL.createObjectURL(item);
+      image.alt = 'معاينة بانر الهيرو';
+      image.style.cssText = 'width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 10px; background: #eee;';
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.innerText = 'حذف';
+      removeButton.title = 'حذف صورة البانر';
+      removeButton.style.cssText = 'position: absolute; top: 8px; left: 8px; z-index: 1; border: 0; border-radius: 7px; padding: 5px 9px; background: #dc2626; color: #fff; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer;';
+      removeButton.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        const isSavedImage = index < savedHeroImages.length;
+        if (isSavedImage && !confirm('هل تريد حذف صورة البانر؟')) return;
+
+        if (isSavedImage) {
+          savedHeroImages = savedHeroImages.filter((_, savedIndex) => savedIndex !== index);
+          try {
+            const { error: settingError } = await supabase.from('site_settings').upsert({ key: 'hero_images', value: JSON.stringify(savedHeroImages) }, { onConflict: 'key' });
+            if (settingError) throw settingError;
+            if (savedHeroImages.length) {
+              localStorage.setItem(HERO_IMAGE_STORAGE_KEY, savedHeroImages[0]);
+            } else {
+              localStorage.removeItem(HERO_IMAGE_STORAGE_KEY);
+            }
+            localStorage.setItem(HERO_IMAGES_STORAGE_KEY, JSON.stringify(savedHeroImages));
+            alert('تم حذف صورة البانر');
+          } catch (err) {
+            alert('تعذر حذف الصورة: ' + err.message);
+          }
+        } else {
+          selectedHeroFiles = selectedHeroFiles.filter((_, fileIndex) => fileIndex !== index - savedHeroImages.length);
+        }
+        renderHeroPreviews([...savedHeroImages, ...selectedHeroFiles]);
+      });
+      preview.append(image, removeButton);
+      heroImagePreview.appendChild(preview);
+    });
+    heroImageUploadText.style.display = items.length ? 'none' : 'block';
+  }
+  renderHeroPreviews(savedHeroImages);
+
   if (heroImageFile) {
     heroImageFile.addEventListener('change', () => {
-      const file = heroImageFile.files[0];
-      if (!file) return;
-      heroImagePreview.src = URL.createObjectURL(file);
-      heroImagePreview.style.display = 'block';
-      heroImageUploadText.style.display = 'none';
+      const newlySelectedFiles = Array.from(heroImageFile.files || []);
+      selectedHeroFiles = [...selectedHeroFiles, ...newlySelectedFiles];
+      if (selectedHeroFiles.length) renderHeroPreviews([...savedHeroImages, ...selectedHeroFiles]);
+      heroImageFile.value = '';
     });
   }
   if (heroImageForm) {
     heroImageForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const file = heroImageFile.files[0];
-      if (!file) return alert('اختر صورة الهيرو أولًا');
+      if (!selectedHeroFiles.length) return alert('اختر صورة واحدة على الأقل للبانر');
       const btn = document.getElementById('heroImageSaveBtn');
       btn.disabled = true;
-      btn.innerText = 'جاري رفع الصورة...';
+      btn.innerText = 'جاري رفع صور البانر...';
       try {
-        const urls = await uploadImages([file]);
-        const { error: settingError } = await supabase.from('site_settings').upsert({ key: 'hero_image', value: urls[0] }, { onConflict: 'key' });
+        const newUrls = await uploadImages(selectedHeroFiles);
+        const urls = [...savedHeroImages, ...newUrls];
+        const { error: settingError } = await supabase.from('site_settings').upsert({ key: 'hero_images', value: JSON.stringify(urls) }, { onConflict: 'key' });
         if (settingError) throw settingError;
         localStorage.setItem(HERO_IMAGE_STORAGE_KEY, urls[0]);
-        alert('تم حفظ صورة الهيرو بنجاح');
+        localStorage.setItem(HERO_IMAGES_STORAGE_KEY, JSON.stringify(urls));
+        savedHeroImages = urls;
+        selectedHeroFiles = [];
+        renderHeroPreviews(urls);
+        alert('تم حفظ صور البانر بنجاح');
       } catch (err) {
         alert('تعذر رفع الصورة: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerText = 'حفظ صورة الهيرو';
+        btn.innerText = 'حفظ صور البانر';
       }
     });
   }
