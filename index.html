@@ -1051,8 +1051,8 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .swatch.active::after{content:'';position:absolute;inset:-5px;border:1.5px solid var(--ink);border-radius:50%;}
 .size-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px;}
 .size-chip{
-  min-width:48px;height:44px;padding:0 14px;border-radius:12px;border:1.5px solid var(--line);
-  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;
+  min-width:48px;min-height:44px;height:auto;padding:8px 14px;border-radius:12px;border:1.5px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;line-height:1.35;text-align:center;white-space:normal;
   background:#fff;transition:all .2s;
 }
 .size-chip:hover{border-color:var(--ink);}
@@ -1069,6 +1069,10 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .pd-tab{padding:14px 22px;font-weight:700;font-size:14.5px;color:var(--ink-faint);border-bottom:2.5px solid transparent;margin-bottom:-1.5px;}
 .pd-tab.active{color:var(--ink);border-color:var(--coral);}
 .pd-tab-panel{padding:32px 4px;color:var(--ink-soft);line-height:1.7;font-size:15px;max-width:760px;}
+.pd-rich-text h3,.pd-rich-text h4{color:var(--ink);line-height:1.35;margin:0 0 12px;font-weight:800;}
+.pd-rich-text h3{font-size:20px;}.pd-rich-text h4{font-size:17px;}
+.pd-rich-text p{margin:0 0 14px;}.pd-rich-text ul,.pd-rich-text ol{margin:0 0 16px;padding-inline-start:24px;}
+.pd-rich-text li{margin-bottom:6px;}.pd-rich-text a{color:var(--periwinkle);text-decoration:underline;}
 
 
 /* ============ CART ============ */
@@ -1860,6 +1864,21 @@ const SHIPPING_ZONES = [
 ];
 const productName = product => activeLanguage === "en" && product?.name_en ? product.name_en : product?.name;
 const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
+const safeDescription = value => {
+  const text = String(value || "");
+  if (!/<\s*(p|br|h[34]|ul|ol|li|strong|b|em|i|a)\b/i.test(text)) {
+    return text.replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char])).replace(/\r?\n/g, "<br>");
+  }
+  const doc = new DOMParser().parseFromString(text, "text/html");
+  const allowed = new Set(["P", "BR", "H3", "H4", "UL", "OL", "LI", "STRONG", "B", "EM", "I", "A"]);
+  doc.body.querySelectorAll("*").forEach(node => {
+    if (!allowed.has(node.tagName)) { node.replaceWith(...node.childNodes); return; }
+    [...node.attributes].forEach(attr => {
+      if (node.tagName !== "A" || attr.name !== "href" || !/^(https?:|mailto:)/i.test(attr.value)) node.removeAttribute(attr.name);
+    });
+  });
+  return doc.body.innerHTML;
+};
 /* ============================================================
    SMALL SHARED COMPONENTS
 ============================================================ */
@@ -2985,7 +3004,7 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
           ))}
         </div>
         <div className="pd-tab-panel">
-          {tab==="desc" && <p>{activeLanguage === "en" && product.desc_en ? product.desc_en : product.desc} يتم فحص كل قطعة قبل شحنها، ونضمن لك ملاءمتها لمدة 30 يومًا، مع استرداد كامل عند الإرجاع.</p>}
+          {tab==="desc" && <div className="pd-rich-text" dangerouslySetInnerHTML={{__html: safeDescription(activeLanguage === "en" && product.desc_en ? product.desc_en : product.desc)}} />}
           {tab==="specs" && (
             <ul style={{margin:0,paddingLeft:18,display:"flex",flexDirection:"column",gap:8}}>
               <li>العلامة التجارية: {product.brand}</li>
