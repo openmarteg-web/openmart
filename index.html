@@ -1037,6 +1037,14 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .pd-rating-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
 .pd-rating-row .stars{display:flex;gap:2px;color:var(--peach-deep);}
 .pd-rating-row a{font-size:13.5px;color:var(--ink-soft);text-decoration:underline;}
+.pcard-rating,.pd-rating-row{display:none!important;}
+.pd-info > div[style*="fontSize"],.pd-info > div[style*="font-size"]{display:none;}
+.pd-stock-status{margin:14px 0 18px;color:var(--ink);font-size:14px;font-weight:800;}
+.pd-stock-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.pd-stock-label.low{color:#c2410c;}.pd-stock-label.out{color:#b91c1c;}
+.pd-stock-track{height:9px;width:100%;background:#eee8df;border-radius:999px;overflow:hidden;}
+.pd-stock-fill{height:100%;border-radius:inherit;background:#6d8b63;transition:width .3s ease;}
+.pd-stock-fill.low{background:#e07a3f;}.pd-stock-fill.out{background:#b91c1c;}
 .pd-price-row{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
 .pd-price-row .price-now{font-size:28px;}
 .pd-price-row .price-was{font-size:17px;}
@@ -2783,7 +2791,7 @@ const [imgIdx, setImgIdx] = useState(0);
 const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes[0] : "";
   const [size, setSize] = useState(defaultSize);
   const [qty, setQty] = useState(1);
-  const [tab, setTab] = useState("desc");
+   const [tab, setTab] = useState("specs");
 
   useEffect(() => { 
     setImgIdx(0); 
@@ -2903,6 +2911,20 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
               {isOutOfStock ? uiText("غير متوفر حاليًا", "Currently out of stock") : uiText(`متبقي ${product.stock_quantity} قطعة`, `${product.stock_quantity} pieces available`)}
             </div>
           )}
+          {hasStockLimit && (() => {
+            const stock = Math.max(0, Number(product.stock_quantity) || 0);
+            const stockPercent = Math.min(100, Math.max(8, stock * 10));
+            const stockClass = isOutOfStock ? "out" : stock <= 5 ? "low" : "";
+            return <div className="pd-stock-status">
+              <div className={`pd-stock-label ${stockClass}`}>
+                <span>{isOutOfStock ? uiText("غير متوفر حاليًا", "Currently out of stock") : uiText(`متبقي ${stock} قطعة`, `${stock} pieces available`)}</span>
+                {!isOutOfStock && <strong>{stock}%</strong>}
+              </div>
+              <div className="pd-stock-track" role="progressbar" aria-valuenow={stock} aria-valuemin="0" aria-valuemax="10">
+                <div className={`pd-stock-fill ${stockClass}`} style={{width: `${isOutOfStock ? 100 : stockPercent}%`}} />
+              </div>
+            </div>;
+          })()}
           <p className="pd-desc">{productDesc(product)}</p>
 {/* إظهار دوائر الألوان بشكل منفصل وملوّن */}
           {colorsList.length > 0 && (
@@ -2997,7 +3019,7 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
 
       <div className="wrap">
         <div className="pd-tabs">
-          {["desc","specs","reviews"].map(t=>(
+          {["specs"].map(t=>(
             <button key={t} className={"pd-tab"+(tab===t?" active":"")} onClick={()=>setTab(t)}>
               {t==="desc" ? uiText("الوصف", "Description") : t==="specs" ? uiText("المواصفات", "Specifications") : `${uiText("التقييمات", "Reviews")} (${product.reviews || 0})`}
             </button>
