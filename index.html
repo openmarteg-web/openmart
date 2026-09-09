@@ -1118,6 +1118,16 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .co-mini-item img{width:52px;height:52px;border-radius:10px;object-fit:cover;background:#fff;}
 .co-mini-item .n{font-size:13.5px;font-weight:700;flex:1;}
 .co-mini-item .p{font-family:'DM Mono';font-size:13.5px;font-weight:700;}
+.header-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+.header-whatsapp img { width: 23px; height: 23px; }
+.header-whatsapp:hover { transform: scale(1.08); }
 @media (max-width:900px){.checkout-layout{grid-template-columns:1fr;}.field-grid{grid-template-columns:1fr;}}
 
 /* ============ تحسين صفحة إتمام الطلب على الهاتف ============ */
@@ -1343,22 +1353,118 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
   background: var(--coral-deep);
 }
 
-/* علامة قابل للضغط فوق يسار الصورة */
+/* زر واضح لفتح تفاصيل المنتج */
 .pcard-view-hint {
-  align-self: flex-end;
-  margin: -6px 0 8px;
-  background: rgba(17, 17, 17, 0.75);
+  margin: 0;
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background .25s ease, color .25s ease, transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+
+.pcard-view-hint:hover {
+  background: #111827;
+  border-color: #111827;
   color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(17, 24, 39, .18);
+}
+
+.pcard-view-hint:active,
+.pcard-share-btn:active {
+  transform: scale(.95);
+}
+
+.pcard-actions-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  direction: rtl;
+  width: 100%;
+  margin: 10px 0 12px;
+}
+
+.pcard-share-btn {
+  width: 31px;
+  height: 31px;
+  padding: 0;
+  border: 1px solid #D5D9E0;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.pcard-share-btn:hover {
+  background: var(--periwinkle);
+  border-color: var(--periwinkle);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.pcard-stock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  direction: ltr;
+  gap: 8px;
+  min-height: 38px;
+  margin: 2px 0 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #FFF7ED;
+  color: #C2410C;
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 8px;
-  border-radius: var(--r-pill);
-  border: none;
+}
+
+.pcard-stock-count {
+  direction: ltr;
+  color: inherit;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.pcard-stock-message {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
+  direction: rtl;
+  min-width: 0;
+}
+
+.pcard-stock-message span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcard-stock.is-low {
+  background: #FFF1F2;
+  color: #E11D48;
+}
+
+.pcard-stock.is-out {
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+.pcard-stock.is-empty {
+  visibility: hidden;
 }
 </style>
 </head>
@@ -1543,6 +1649,9 @@ const TruckIcon = p => <Icon {...p}><rect x="1" y="6" width="14" height="11" rx=
 const ShieldIcon = p => <Icon {...p}><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/></Icon>;
 const RefreshIcon = p => <Icon {...p}><path d="M3 12a9 9 0 0 1 15.3-6.4L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.3 6.4L3 16m0 5v-5h5"/></Icon>;
 const CursorIcon = p => <Icon strokeWidth="1.6" {...p}><path d="M5 3l14 6.2-6 1.7-1.7 6L5 3Z" strokeLinejoin="round"/></Icon>;
+const ArrowLineIcon = p => <Icon {...p}><path d="M4 12h16"/></Icon>;
+const DetailsArrowIcon = p => <Icon {...p}><path d="M7.5 2.5L4 6l3.5 3.5"/></Icon>;
+const ShareIcon = p => <Icon {...p}><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></Icon>;
 const MailIcon = p => <Icon {...p}><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></Icon>;
 const InstaIcon = p => <Icon {...p}><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1"/></Icon>;
 const FbIcon = p => <Icon {...p}><path d="M15 4h-2a4 4 0 0 0-4 4v3H7v3h2v6h3v-6h2.5l.5-3H12V8a1 1 0 0 1 1-1h2V4Z"/></Icon>;
@@ -1769,6 +1878,25 @@ const Stars = ({rating, size=13}) => {
 const Badge = ({type}) => type ? <span className={"pcard-tag " + ((type === "Sale" || type === "تخفيض") ? "sale" : "new")}>{type === "Sale" ? "تخفيض" : type === "New" ? "جديد" : type}</span> : null;
 
 function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
+  const shareProduct = async (event) => {
+    event.stopPropagation();
+    const shareUrl = `${window.location.origin}${window.location.pathname}?product=${encodeURIComponent(p.id)}`;
+    const shareData = { title: productName(p), text: productName(p), url: shareUrl };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("تم نسخ رابط المنتج");
+      } else {
+        window.prompt("انسخ رابط المنتج", shareUrl);
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") console.error(error);
+    }
+  };
+
   return (
     <div className="pcard fade-in">
       <div className="pcard-media" onClick={()=>onOpen(p.id)}>
@@ -1781,10 +1909,15 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
         <img src={p.img} alt={productName(p)} loading="lazy"/>
       </div>
 
-      {/* زر فتح تفاصيل المنتج أسفل الصورة */}
-      <button type="button" className="pcard-view-hint" onClick={()=>onOpen(p.id)}>
-        <CursorIcon size={12}/> {uiText("تفاصيل", "Details")}
-      </button>
+      <div className="pcard-actions-secondary">
+        <button type="button" className="pcard-view-hint" onClick={()=>onOpen(p.id)}>
+          <span>{uiText("تفاصيل", "Details")}</span>
+          <DetailsArrowIcon size={16} strokeWidth="2.8"/>
+        </button>
+        <button type="button" className="pcard-share-btn" onClick={shareProduct} aria-label={uiText("مشاركة المنتج", "Share product")} title={uiText("مشاركة المنتج", "Share product")}>
+          <ShareIcon size={15}/>
+        </button>
+      </div>
       
       <div style={{display: "flex", flexDirection: "column", flex: 1}}>
         <div onClick={()=>onOpen(p.id)} style={{cursor:"pointer"}}>
@@ -1799,6 +1932,14 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
             <span className="price-now">{money(p.price)}</span>
             {p.was && <span className="price-was">{money(p.was)}</span>}
           </div>
+        </div>
+
+        <div className={`pcard-stock ${p.stock_quantity === null || p.stock_quantity === undefined ? "is-empty" : p.stock_quantity <= 0 ? "is-out" : p.stock_quantity <= 5 ? "is-low" : ""}`} aria-hidden={p.stock_quantity === null || p.stock_quantity === undefined}>
+          <span className="pcard-stock-count">{p.stock_quantity ?? "0"} {p.stock_quantity === 1 ? "item" : "items"}</span>
+          <span className="pcard-stock-message">
+            {p.stock_quantity > 0 && p.stock_quantity <= 5 && <span aria-hidden="true">▲</span>}
+            <span>{p.stock_quantity > 0 ? `متبقي ${p.stock_quantity} ${p.stock_quantity === 1 ? "قطعة" : "قطع"} فقط` : "غير متوفر حاليًا"}</span>
+          </span>
         </div>
 
         {/* الأزرار تحت السعر بكامل العرض */}
@@ -1827,11 +1968,6 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
           </button>
         </div>
 
-        {p.stock_quantity !== null && p.stock_quantity !== undefined && (
-          <div style={{fontSize: "12px", color: p.stock_quantity > 0 ? "var(--ink-faint)" : "#b91c1c", marginTop: "8px"}}>
-            {p.stock_quantity > 0 ? `متبقي ${p.stock_quantity} قطعة` : "غير متوفر حاليًا"}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -1876,6 +2012,10 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
           </form>
 
           <div className="header-actions">
+            <a className="header-whatsapp" href="https://wa.me/201041397168" target="_blank" rel="noreferrer" aria-label="التواصل عبر واتساب" title="التواصل عبر واتساب">
+              <img src="https://cdn.simpleicons.org/whatsapp/25D366" alt="واتساب" />
+            </a>
+
             {/* زر سويتش اللغة المضاف */}
             <div className="lang-switch">
               <button 
@@ -2001,14 +2141,19 @@ function WishlistPage({wishlist, toggleWish, quickAdd, onBuyNow, go, products}) 
     </>
   );
 }
-function OrdersPage({orders, go}) {
-  const [liveOrders, setLiveOrders] = useState(orders);
+function OrdersPage({orders, go, user}) {
+  const accountOrders = useMemo(
+    () => user ? orders.filter(order => String(order.userId) === String(user.id)) : [],
+    [orders, user]
+  );
+  const [liveOrders, setLiveOrders] = useState(accountOrders);
 
   useEffect(() => {
+    setLiveOrders(accountOrders);
     // 1. جلب أحدث الحالات لطلبات العميل من السيرفر
     async function syncOrders() {
-      if (!window.supabase || !orders || orders.length === 0) return;
-      const ids = orders.map(o => o.id).filter(Boolean);
+      if (!window.supabase || accountOrders.length === 0) return;
+      const ids = accountOrders.map(o => o.id).filter(Boolean);
       const { data } = await window.supabase.from('orders').select('id, status').in('id', ids);
       if (data) {
         setLiveOrders(prev => prev.map(ord => {
@@ -2034,7 +2179,7 @@ function OrdersPage({orders, go}) {
       window.clearInterval(syncInterval);
       if (channel && window.supabase) window.supabase.removeChannel(channel);
     };
-  }, [orders]);
+  }, [user, accountOrders]);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -2044,6 +2189,19 @@ function OrdersPage({orders, go}) {
       default: return { text: '⏳ تم استلام الطلب', bg: 'var(--periwinkle-pale)', color: 'var(--periwinkle-deep)' };
     }
   };
+
+  if (!user) {
+    return (
+      <div className="wrap">
+        <div className="empty-state">
+          <div className="icon-circle"><UserIcon size={38}/></div>
+          <h2 style={{fontSize:24, marginBottom:10}}>سجل الدخول للاطلاع على طلباتك السابقة</h2>
+          <p style={{color:"var(--ink-soft)", marginBottom:26}}>يجب تسجيل الدخول لعرض الطلبات المرتبطة بحسابك.</p>
+          <button className="btn btn-primary btn-lg" onClick={()=>go("auth")}>تسجيل الدخول</button>
+        </div>
+      </div>
+    );
+  }
 
   if (!liveOrders || liveOrders.length === 0) {
     return (
@@ -2121,7 +2279,7 @@ function OrdersPage({orders, go}) {
     </>
   );
 }
-function MobileDrawer({open, onClose, go, search, setSearch}){
+function MobileDrawer({open, onClose, go, search, setSearch, login, wishlist} ){
 const links = [["الرئيسية","home"],["المتجر","shop"],["الأكثر مبيعاً","shop"],["عربة التسوق","cart"],["من نحن","about"]];  return (
     <>
       <div className={"drawer-overlay"+(open?" open":"")} onClick={onClose}></div>
@@ -2139,9 +2297,13 @@ const links = [["الرئيسية","home"],["المتجر","shop"],["الأكث�
           ))}
         </nav>
         <div className="drawer-foot">
-          <button className="icon-btn"><UserIcon size={19}/></button>
-          <button className="icon-btn"><HeartIcon size={19}/></button>
-<span style={{fontSize:12.5,color:"var(--ink-faint)",alignSelf:"center"}}>سجل الدخول لإتمام الطلب أسرع</span>        </div>
+          <button className="icon-btn" aria-label="تسجيل الدخول" title="تسجيل الدخول" onClick={()=>{login();onClose();}}><UserIcon size={19}/></button>
+          <button className="icon-btn" aria-label="قائمة الأمنيات" title="المفضلة" onClick={()=>{go("wishlist");onClose();}}>
+            <HeartIcon size={19}/>
+            {wishlist.length > 0 && <span className="badge">{wishlist.length}</span>}
+          </button>
+          <span style={{fontSize:12.5,color:"var(--ink-faint)",alignSelf:"center"}}>سجل الدخول لإتمام الطلب أسرع</span>
+        </div>
       </div>
     </>
   );
@@ -3349,6 +3511,7 @@ function Footer({go}){
 function App(){
   const [lang, setLang] = useState(() => localStorage.getItem("openmart_lang") || "ar");
   activeLanguage = lang;
+  const sharedProductId = new URLSearchParams(window.location.search).get("product");
 
 useEffect(() => {
   localStorage.setItem("openmart_lang", lang);
@@ -3403,8 +3566,8 @@ const [products, setProducts] = useState([]);
 const [loading, setLoading] = useState(true);
   const [coupons, setCoupons] = useState([]);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [page, setPage] = useState(() => window.history.state?.openmart ? (window.history.state.page || "home") : "home");
-  const [productId, setProductId] = useState(() => window.history.state?.openmart ? (window.history.state.id || 1) : 1);
+  const [page, setPage] = useState(() => window.history.state?.openmart ? (window.history.state.page || "home") : (sharedProductId ? "product" : "home"));
+  const [productId, setProductId] = useState(() => window.history.state?.openmart ? (window.history.state.id || 1) : (sharedProductId || 1));
   const [cart, setCart] = useState([]);
 const [wishlist, setWishlist] = useState(() => {
   try {
@@ -3432,7 +3595,11 @@ const [orders, setOrders] = useState(() => {
   useEffect(() => {
     const currentState = window.history.state;
     if (!currentState?.openmart) {
-      window.history.replaceState({ openmart: true, page: "home", id: null }, "", "");
+      window.history.replaceState(
+        { openmart: true, page: sharedProductId ? "product" : "home", id: sharedProductId || null },
+        "",
+        window.location.href
+      );
     }
 
     const handlePopState = (event) => {
@@ -3630,6 +3797,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
 
       const newOrder = {
         id: savedDbOrder ? savedDbOrder.id : Date.now().toString().slice(-6),
+        userId: user?.id || null,
         date: new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
         items: [...cart],
         total: totalAmount,
@@ -3688,7 +3856,15 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
   setLang={setLang}
 />      
       
-      <MobileDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} go={go} search={search} setSearch={setSearch}/>
+      <MobileDrawer
+        open={menuOpen}
+        onClose={()=>setMenuOpen(false)}
+        go={go}
+        search={search}
+        setSearch={setSearch}
+        login={()=>go("auth")}
+        wishlist={wishlist}
+      />
 
       {/* إضافة صفحة تسجيل الدخول هنا */}
       {page==="auth" && <AuthPage user={user} isSignUpMode={isSignUpMode} setIsSignUpMode={setIsSignUpMode} emailInput={emailInput} setEmailInput={setEmailInput} passInput={passInput} setPassInput={setPassInput} handleEmailAuth={handleEmailAuth} go={go}/>}
@@ -3711,6 +3887,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       {page === "orders" && (
         <OrdersPage 
           orders={orders} 
+          user={user}
           go={go}
         />
       )}
