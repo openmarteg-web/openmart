@@ -349,8 +349,11 @@
             <div style="font-weight: 800; font-size: 13.5px; margin-bottom: 10px; color: var(--primary);">خيارات المنتج:</div>
             
             <div class="form-group">
-              <label>المقاسات المتاحة (افصل بينها بفاصلة)</label>
-              <input type="text" id="sizes" placeholder="مثال: S, M, L, XL">
+              <label>المقاسات أو القياسات المتاحة</label>
+              <textarea id="sizes" rows="3" placeholder="مثال:\nS\nM\n30 سم\n2 متر\nارتفاع 120 سم"></textarea>
+              <small style="color: var(--muted); font-size: 11.5px; display: block; margin-top: 4px;">
+                اكتب كل خيار في سطر مستقل أو افصل الخيارات بفاصلة. يمكنك كتابة أي وحدة أو وصف مثل: 50 سم، 2 متر، ارتفاع 120 سم.
+              </small>
             </div>
 
             <div class="form-group">
@@ -1162,7 +1165,7 @@
 
   function cleanListInput(val) {
     if (!val || val.trim() === '' || val.trim() === '0') return [];
-    return val.split(/[,،]/).map(item => item.trim()).filter(item => item !== '' && item !== '0');
+    return val.split(/[\n,،]+/).map(item => item.trim()).filter(item => item !== '' && item !== '0');
   }
 
   function parseColorsWithPrices(val, defaultPrice) {
