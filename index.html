@@ -1332,6 +1332,17 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
   transform: translateY(-1px);
 }
 
+.pd-buy-now-btn {
+  width: 100%;
+  margin: -10px 0 22px;
+  background: #111111;
+  color: #ffffff;
+}
+
+.pd-buy-now-btn:hover {
+  background: var(--coral-deep);
+}
+
 /* علامة قابل للضغط فوق يسار الصورة */
 .pcard-view-hint {
   align-self: flex-end;
@@ -2601,6 +2612,14 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
     window.scrollTo(0, 0); 
   }, [productId, product]);
 
+  const colorsList = useMemo(() => {
+    if (!product?.colors) return [];
+    if (Array.isArray(product.colors)) {
+      return product.colors.flatMap(c => String(c).split(/[,،]/)).map(s => s.trim()).filter(Boolean);
+    }
+    return String(product.colors).split(/[,،]/).map(s => s.trim()).filter(Boolean);
+  }, [product?.colors]);
+
   if (!product) {
     return (
       <div className="wrap" style={{padding:"80px 0", textAlign:"center"}}>
@@ -2652,14 +2671,6 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
     return colorMap[trimmed] || c;
   };
 
-  // تفكيك الألوان والتأكد من أنها مصفوفة منفصلة حتى لو كُتبت بفاصلة عادية أو عربية
-  const colorsList = useMemo(() => {
-    if (!product.colors) return [];
-    if (Array.isArray(product.colors)) {
-      return product.colors.flatMap(c => String(c).split(/[,،]/)).map(s => s.trim()).filter(Boolean);
-    }
-    return String(product.colors).split(/[,،]/).map(s => s.trim()).filter(Boolean);
-  }, [product.colors]);
   const currentColorName = colorsList[color] || colorsList[0];
   const currentUnitPrice = (product.color_prices && product.color_prices[currentColorName]) 
     ? Number(product.color_prices[currentColorName]) 
@@ -2785,6 +2796,15 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
               <HeartIcon size={19} style={{color: wishlist.includes(product.id)?"var(--coral)":"var(--ink)", fill: wishlist.includes(product.id) ? "currentColor":"none"}}/>
             </button>
           </div>
+
+          <button
+            type="button"
+            className="btn btn-lg pd-buy-now-btn"
+            onClick={()=>onBuyNow({ ...product, price: currentUnitPrice }, { color: currentColorName, size }, qty)}
+            disabled={isOutOfStock}
+          >
+            {uiText("اشتري الآن", "Buy now")} — {money(currentUnitPrice * qty)}
+          </button>
 
           <div className="pd-perks">
             <div className="pd-perk"><TruckIcon size={18}/> <span><b>{uiText("توصيل مجاني", "Free delivery")}</b> {uiText("للطلبات فوق 75 ج.م، خلال 3 إلى 5 أيام", "for orders over EGP 75, within 3 to 5 days")}</span></div>
@@ -3570,9 +3590,9 @@ useEffect(() => {
   };
 
 const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:product.sizes[0]}, 1);
-const buyNowDirect = (product) => {
-    const pColor = (product.colors && product.colors.length > 0) ? product.colors[0] : "قياسي";
-    const pSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : "موحد";
+const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
+  const pColor = selectedVariant?.color || ((product.colors && product.colors.length > 0) ? product.colors[0] : "قياسي");
+  const pSize = selectedVariant?.size || ((product.sizes && product.sizes.length > 0) ? product.sizes[0] : "موحد");
     
     setCart(c => {
       const existingIdx = c.findIndex(i => 
@@ -3582,10 +3602,10 @@ const buyNowDirect = (product) => {
       );
       if (existingIdx > -1) {
         const copy = [...c];
-        copy[existingIdx] = { ...copy[existingIdx], qty: copy[existingIdx].qty + 1 };
+        copy[existingIdx] = { ...copy[existingIdx], qty: copy[existingIdx].qty + selectedQty };
         return copy;
       }
-      return [...c, { product, variant: { color: pColor, size: pSize }, qty: 1 }];
+      return [...c, { product, variant: { color: pColor, size: pSize }, qty: selectedQty }];
     });
     
     showToast(`تمت إضافة "${productName(product)}" وجاري إتمام الطلب...`);
