@@ -1609,6 +1609,12 @@ window.fetchCategoriesFromDB = async function() {
       return [];
     }
   };
+  window.normalizeBrand = value => {
+    const brand = String(value || "").trim().replace(/\s+/g, " ");
+    const normalized = brand.toLowerCase();
+    if (["openmart", "open mart", "اوبن مارت", "أوبن مارت"].includes(normalized)) return "openmart";
+    return brand;
+  };
   window.supabase = supabase;
 
   window.fetchProductsFromDB = async function() {
@@ -1627,7 +1633,7 @@ window.fetchCategoriesFromDB = async function() {
       price: Number(item.price),
       cat: item.cat,
       categories: Array.isArray(item.categories) ? item.categories : (item.cat ? [item.cat] : []),
-      brand: item.brand || "عصري",
+      brand: window.normalizeBrand(item.brand),
       desc: item.desc || "",
       desc_en: item.desc_en || "",
       img: item.img_url,
@@ -1823,6 +1829,7 @@ const UI_TRANSLATIONS = {
   "لا توجد تقييمات لهذا المنتج بعد. كن أول من يقيّمه!": "No reviews yet. Be the first to review it!",
   "جاري تحميل التقييمات...": "Loading reviews...", "الوصف": "Description", "المواصفات": "Specifications",
   "اللون:": "Color:", "المقاس:": "Size:", "وفر": "Save", "يُشترى معاً عادةً": "Frequently bought together",
+  "هذا المنتج:": "This product:", "المنتج المضاف:": "Added product:", "شراء الاثنين معاً": "Buy both together",
   "توصيل مجاني": "Free delivery", "إرجاع مجاني خلال 30 يومًا": "Free returns within 30 days",
   "إذا لم يكن المقاس مناسبًا": "If the size is not right", "عند الاستلام": "With data encryption",
   "إنشاء حساب": "Create account", "أدخل بيانات بريدك الإلكتروني للمتابعة": "Enter your email details to continue",
@@ -1849,10 +1856,23 @@ const translateRenderedUi = () => {
   while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(node => {
     if (node.parentElement.closest(`script, style, ${excluded}`)) return;
-    const trimmed = node.nodeValue.trim();
+    const original = node.__translationOriginal || node.nodeValue;
+    node.__translationOriginal = original;
+    const trimmed = original.trim();
     if (!trimmed) return;
     const translated = translations[trimmed];
-    if (translated) node.nodeValue = node.nodeValue.replace(trimmed, translated);
+    if (translated) node.nodeValue = original.replace(trimmed, translated);
+  });
+
+  document.querySelectorAll("input, textarea, [title], [aria-label], img[alt]").forEach(element => {
+    ["placeholder", "title", "aria-label", "alt"].forEach(attribute => {
+      if (!element.hasAttribute(attribute)) return;
+      const key = `translation${attribute.replace(/-/g, "_")}`;
+      const original = element.dataset[key] || element.getAttribute(attribute);
+      element.dataset[key] = original;
+      const translated = translations[original.trim()];
+      if (translated) element.setAttribute(attribute, translated);
+    });
   });
   document.title = activeLanguage === "en" ? "Openmart - One click, and it's yours" : "أوبن مارت — نقرة واحدة وتصبح لك";
 };
@@ -1876,87 +1896,16 @@ const CATEGORIES = [
   {id:"health-beauty", name:"صحه وجمال", img:"https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&q=80&auto=format&fit=crop"},
 ];
 
-const BRANDS = ["نوفا","أوربان وشركاه","أطلس","لوم","فيرا ستوديو","كوزي","هالف تون","ميريديان","بلش","آرك"];
-
 const PRODUCTS = [];
-/*
-  {id:2,name:"ساعة آريا كرونوغراف",cat:"watches",brand:"ميريديان",price:239,was:null,rating:4.8,reviews:98,badge:"جديد",isBest:true,isNew:true,
-   img:"https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=900&q=80&auto=format&fit=crop"],
-  colors:["#111111","#4F6FF5"], sizes:["38mm","42mm"],
-  desc:"آلية كوارتز دقيقة داخل هيكل من الفولاذ المصقول. زجاج مطلي بالسافير، ومقاومة للماء حتى 100 متر، ونظام أحزمة قابل للتبديل."},
-  {id:3,name:"حقيبة كانفاس للرحلات",cat:"bags",brand:"أطلس",price:64,was:82,rating:4.4,reviews:156,badge:"تخفيض",isBest:true,isNew:false,
-   img:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1491637639811-60e2756cc1c7?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1553545204-4f7d339aa06a?w=900&q=80&auto=format&fit=crop"],
-  colors:["#F58F88","#111111","#F58F88"], sizes:["مقاس موحد"],
-  desc:"كانفاس عضوي متين مع حواف من جلد مدبوغ طبيعيًا. جيب داخلي للحاسوب، وإغلاق مغناطيسي، وقاعدة تتحمل استخدامك اليومي."},
-  {id:4,name:"سماعات نبض اللاسلكية",cat:"audio",brand:"هالف تون",price:129,was:null,rating:4.7,reviews:341,badge:"جديد",isBest:true,isNew:true,
-   img:"https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=900&q=80&auto=format&fit=crop"],
-  colors:["#111111","#FFFFFF","#4F6FF5"], sizes:["مقاس موحد"],
-  desc:"عزل ضوضاء متكيف داخل هيكل خفيف للغاية. بطارية تدوم 32 ساعة مع علبة الشحن، وشحن لاسلكي، وراحة محسنة بناءً على أكثر من 4000 قياس للأذن."},
-  {id:5,name:"سترة موشن بسحاب",cat:"outerwear",brand:"كوزي",price:98,was:130,rating:4.3,reviews:87,badge:"تخفيض",isBest:false,isNew:false,
-   img:"https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=900&q=80&auto=format&fit=crop"],
-  colors:["#111111","#4F6FF5"], sizes:["صغير","متوسط","كبير","كبير جدًا"],
-  desc:"نسيج مقاوم للماء مع درزات محكمة وغطاء رأس قابل للطي. جيب صدري بسحاب وأساور مرنة لتناسب الطقس المتغير."},
-  {id:6,name:"نظارة هورايزن الطيار",cat:"eyewear",brand:"فيرا ستوديو",price:78,was:null,rating:4.5,reviews:64,badge:null,isBest:false,isNew:true,
-   img:"https://images.unsplash.com/photo-1572635148818-ef6fd45eb394?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1572635148818-ef6fd45eb394?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1509941943102-10c232535736?w=900&q=80&auto=format&fit=crop"],
-  colors:["#F58F88","#111111"], sizes:["مقاس موحد"],
-  desc:"عدسات مستقطبة داخل إطار تيتانيوم خفيف. حماية UV400 مع تدرج يخفف الوهج دون التأثير على الألوان."},
-  {id:7,name:"حذاء المستكشف الصغير",cat:"kids",brand:"بلش",price:44,was:56,rating:4.6,reviews:120,badge:"تخفيض",isBest:true,isNew:false,
-   img:"https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=900&q=80&auto=format&fit=crop"],
-  colors:["#F58F88","#4F6FF5","#F58F88"], sizes:[28,29,30,31,32],
-  desc:"إغلاق لاصق للارتداء والخلع السريع، وجزء علوي قابل للغسل، ونعل مرن مناسب للركض واللعب."},
-  {id:8,name:"طقم كورباند للمقاومة",cat:"fitness",brand:"آرك",price:36,was:null,rating:4.2,reviews:73,badge:"جديد",isBest:false,isNew:true,
-   img:"https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1518611012118-696072aa579a?w=900&q=80&auto=format&fit=crop"],
-  colors:["#111111","#F58F88"], sizes:["خفيف","متوسط","ثقيل"],
-  desc:"خمسة أشرطة مقاومة بدرجات مختلفة مع حقيبة كانفاس ودليل تمارين مطبوع. خالية من اللاتكس ولطيفة على البشرة والمفاصل."},
-  {id:9,name:"حذاء تريلهيد للمشي",cat:"sneakers",brand:"نوفا",price:132,was:null,rating:4.5,reviews:58,badge:"جديد",isBest:false,isNew:true,
-   img:"https://images.unsplash.com/photo-1560243563-062bfc001d68?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1560243563-062bfc001d68?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=900&q=80&auto=format&fit=crop"],
-  colors:["#4F6FF5","#111111"], sizes:[39,40,41,42,43,44],
-  desc:"نعل خارجي متين مع جزء علوي مسامي للرحلات الطويلة. مقدمة معززة ولسان محكم يساعدان على منع دخول الأتربة."},
-  {id:10,name:"ساعة سلات بحزام جلدي",cat:"watches",brand:"ميريديان",price:184,was:220,rating:4.4,reviews:41,badge:"تخفيض",isBest:false,isNew:false,
-   img:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=900&q=80&auto=format&fit=crop"],
-  colors:["#111111","#F58F88"], sizes:["40 مم"],
-  desc:"حزام من الجلد الطبيعي الكامل على هيكل فولاذي بسيط ومصقول. ساعة أنيقة ومتعددة الاستخدامات تناسب العمل والخروج."},
-  {id:11,name:"حقيبة كروس بودي يومية",cat:"bags",brand:"أطلس",price:72,was:null,rating:4.6,reviews:132,badge:null,isBest:true,isNew:false,
-   img:"https://images.unsplash.com/photo-1491637639811-60e2756cc1c7?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1491637639811-60e2756cc1c7?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1553545204-4f7d339aa06a?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&q=80&auto=format&fit=crop"],
-  colors:["#F58F88","#111111","#4F6FF5"], sizes:["مقاس موحد"],
-  desc:"تصميم صغير بثلاثة جيوب داخلية وحزام قابل للتعديل. طبقة مقاومة للماء تحميها من الانسكابات اليومية."},
-  {id:12,name:"سماعات ستوديو فوق الأذن",cat:"audio",brand:"هالف تون",price:159,was:199,rating:4.7,reviews:203,badge:"تخفيض",isBest:true,isNew:false,
-   img:"https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=900&q=80&auto=format&fit=crop"],
-  colors:["#111111","#4F6FF5"], sizes:["مقاس موحد"],
-  desc:"مشغلات صوتية مضبوطة للاستوديو مع وسائد أذن من إسفنج الذاكرة. تصميم قابل للطي، وبطارية 40 ساعة، وكابل قابل للفصل للاستخدام السلكي."},
-  {id:13,name:"نظارة آريا للقراءة بدون إطار",cat:"eyewear",brand:"فيرا ستوديو",price:52,was:null,rating:4.1,reviews:29,badge:"جديد",isBest:false,isNew:true,
-   img:"https://images.unsplash.com/photo-1509941943102-10c232535736?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1509941943102-10c232535736?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1572635148818-ef6fd45eb394?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=900&q=80&auto=format&fit=crop"],
-  colors:["#111111","#F58F88"], sizes:["مقاس موحد"],
-  desc:"إطار تيتانيوم خفيف للغاية مع مفصلات مرنة. عدسات بطبقة مضادة للانعكاس تقلل وهج الشاشة أثناء القراءة الطويلة."},
-  {id:14,name:"حذاء بادل جامبر المطري",cat:"kids",brand:"بلش",price:32,was:null,rating:4.8,reviews:96,badge:"جديد",isBest:false,isNew:true,
-   img:"https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=900&q=80&auto=format&fit=crop"],
-  colors:["#4F6FF5","#F58F88"], sizes:[24,25,26,27,28],
-  desc:"مطاط طبيعي مقاوم للماء بنسبة 100% مع نعل داخلي مبطن ولسان سهل السحب. ألوان مشرقة للأيام الغائمة ونعل ثابت للخطوات المبتلة."},
-  {id:15,name:"حصيرة يوغا فليكس 5 مم",cat:"fitness",brand:"آرك",price:48,was:60,rating:4.5,reviews:167,badge:"تخفيض",isBest:false,isNew:false,
-   img:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1518611012118-696072aa579a?w=900&q=80&auto=format&fit=crop"],
-  colors:["#4F6FF5","#F58F88","#111111"], sizes:["قياسي","كبير جدًا"],
-  desc:"سطح ثابت من الجهتين مصنوع من المطاط الطبيعي وخالٍ من PVC. طبقة مغلقة الخلايا تقاوم امتصاص العرق وسهلة التنظيف."},
-  {id:16,name:"سترة شورلاين من الدنيم",cat:"outerwear",brand:"كوزي",price:112,was:null,rating:4.4,reviews:52,badge:null,isBest:false,isNew:false,
-   img:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80&auto=format&fit=crop",
-   gallery:["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=900&q=80&auto=format&fit=crop","https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=900&q=80&auto=format&fit=crop"],
-  colors:["#4F6FF5","#111111"], sizes:["صغير","متوسط","كبير","كبير جدًا"],
-  desc:"دنيم سيلفيدج متين يزداد نعومة مع كل غسلة. قصة كلاسيكية بأزرار كوروزو وجيب صدري مصمم ليدوم سنوات."},
-];
-*/
+const getCachedProducts = () => {
+  try {
+    const cached = JSON.parse(localStorage.getItem("openmart_products") || "[]");
+    return Array.isArray(cached) ? cached.map(product => ({...product, brand: window.normalizeBrand(product.brand)})) : [];
+  } catch {
+    return [];
+  }
+};
+
 
 const money = n => n.toLocaleString(activeLanguage === "en" ? "en-US" : "EN-EG") + (activeLanguage === "en" ? " EGP" : " ج.م");
 const SHIPPING_ZONES = [
@@ -1971,14 +1920,44 @@ const SHIPPING_ZONES = [
 ];
 const productName = product => activeLanguage === "en" && product?.name_en ? product.name_en : product?.name;
 const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
+const optionText = value => {
+  if (activeLanguage !== "en" || value === null || value === undefined) return value;
+  const translations = {
+    "مقاس موحد": "One size", "موحد": "Standard", "قياسي": "Standard", "صغير": "Small",
+    "متوسط": "Medium", "كبير": "Large", "كبير جدًا": "Extra large", "خفيف": "Light",
+    "ثقيل": "Heavy"
+  };
+  let text = String(value);
+  if (translations[text]) return translations[text];
+  text = text.replace(/(\d+(?:\.\d+)?)\s*سم\s*عرض\s*(\d+(?:\.\d+)?)\s*سم/g, "$1 cm x $2 cm");
+  text = text.replace(/(\d+(?:\.\d+)?)\s*سم\s*عرض\s*(\d+(?:\.\d+)?)/g, "$1 cm x $2 cm");
+  text = text.replace(/ارتفاع\s*(\d+(?:\.\d+)?)\s*سم/g, "Height $1 cm");
+  text = text.replace(/ارتفاع/g, "Height");
+  text = text.replace(/عرض\s*(\d+(?:\.\d+)?)\s*سم/g, "Width $1 cm");
+  text = text.replace(/طول\s*(\d+(?:\.\d+)?)\s*سم/g, "Length $1 cm");
+  text = text.replace(/(\d+(?:\.\d+)?)\s*سم/g, "$1 cm");
+  text = text.replace(/(\d+(?:\.\d+)?)\s*مم/g, "$1 mm");
+  return text;
+};
+const localizedOption = value => {
+  if (activeLanguage !== "en" || value === null || value === undefined) return value;
+  return UI_TRANSLATIONS[value] || optionText(value);
+};
 const safeDescription = value => {
   let text = String(value || "");
-  if (/&lt;\/?(p|div|br|h[34]|ul|ol|li|strong|b|em|i|a)\b/i.test(text)) {
-    const decoded = new DOMParser().parseFromString(text, "text/html").body.textContent || "";
-    if (/<\/?(p|div|br|h[34]|ul|ol|li|strong|b|em|i|a)\b/i.test(decoded)) text = decoded;
+  // Decode descriptions that were saved as HTML entities before sanitizing them.
+  for (let pass = 0; pass < 2 && /&(?:lt|gt|amp|quot|#39|#x27);/i.test(text); pass++) {
+    text = new DOMParser().parseFromString(text, "text/html").body.textContent || "";
   }
   if (!/<\s*(p|div|br|h[34]|ul|ol|li|strong|b|em|i|a)\b/i.test(text)) {
-    return text.replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char])).replace(/\r?\n/g, "<br>");
+    const plainText = text
+      .replace(/^\s*#{1,4}\s+/gm, "")
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/__(.*?)__/g, "$1")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/\*([^*\n]+)\*/g, "$1")
+      .replace(/_([^_\n]+)_/g, "$1");
+    return plainText.replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char])).replace(/\r?\n/g, "<br>");
   }
   const doc = new DOMParser().parseFromString(text, "text/html");
   const allowed = new Set(["P", "DIV", "BR", "H3", "H4", "UL", "OL", "LI", "STRONG", "B", "EM", "I", "A"]);
@@ -1989,6 +1968,11 @@ const safeDescription = value => {
     });
   });
   return doc.body.innerHTML;
+};
+const descriptionPreview = value => {
+  const html = safeDescription(value);
+  const text = new DOMParser().parseFromString(html, "text/html").body.textContent || "";
+  return text.replace(/\s+/g, " ").trim();
 };
 /* ============================================================
    SMALL SHARED COMPONENTS
@@ -2531,7 +2515,7 @@ function Hero({go}){
             <p className="hero-sub">{uiText(s.sub, "Curated essentials for your everyday life - sneakers, audio, and accessories designed to fit your style.")}</p>
             <div className="hero-cta-row">
               <button className="btn btn-primary btn-lg" onClick={()=>scrollToSection("products")}>{uiText(s.cta, "Shop the collection")}<ChevronLeft size={16}/></button>
-              <button className="btn btn-outline btn-lg" onClick={()=>scrollToSection("categories")}>{uiText("تصفح الأقسام", "Browse categories")}</button>
+              <button className="btn btn-outline btn-lg" onClick={()=>go("shop")}>{uiText("تصفح الأقسام", "Browse categories")}</button>
             </div>
           </div>
           <div className="hero-visual">
@@ -2551,8 +2535,9 @@ function Hero({go}){
   );
 }
 
-function BrandStrip(){
-  const doubled = [...BRANDS, ...BRANDS];
+function BrandStrip({products = []}){
+  const brands = [...new Set(products.map(product => String(product.brand || "").trim()).filter(Boolean))];
+  const doubled = [...brands, ...brands];
   return (
     <div className="brand-strip">
       <div className="brand-track">
@@ -2671,6 +2656,7 @@ function HomePage({go, wishlist, toggleWish, quickAdd, onBuyNow, setCatFilter, p
 function ShopPage({go, wishlist, toggleWish, quickAdd, onBuyNow, catFilter, setCatFilter, search, products, categories}){
   const [selectedCats, setSelectedCats] = useState(catFilter ? [catFilter] : []);
   const currentCats = (categories && categories.length > 0) ? categories : CATEGORIES;
+  const availableBrands = [...new Set(products.map(product => window.normalizeBrand(product.brand)).filter(Boolean))];
   const [selectedBrands, setSelectedBrands] = useState([]);
 const highestPrice = useMemo(() => {
     if (!products || products.length === 0) return 5000;
@@ -2679,7 +2665,6 @@ const highestPrice = useMemo(() => {
   }, [products]);
 
   const [maxPrice, setMaxPrice] = useState(50000); // قيمة أولية تسمح بعرض كل المنتجات مهما كان سعرها
-  const [minRating, setMinRating] = useState(0);
   const [sortBy, setSortBy] = useState("featured");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [view, setView] = useState("grid");
@@ -2702,9 +2687,8 @@ const highestPrice = useMemo(() => {
     let result = products.filter(p => {
       const prodCats = p.categories && p.categories.length > 0 ? p.categories : (p.cat ? [p.cat] : []);
       if (selectedCats.length && !selectedCats.some(c => prodCats.includes(c))) return false;
-      if (selectedBrands.length && !selectedBrands.includes(p.brand)) return false;
+      if (selectedBrands.length && !selectedBrands.includes(window.normalizeBrand(p.brand))) return false;
       if (p.price > maxPrice) return false;
-      if (p.rating < minRating) return false;
       if (search && search.trim() && !(`${p.name} ${p.name_en || ""} ${p.brand}`.toLowerCase().includes(search.toLowerCase()))) return false;
       return true;
     });
@@ -2715,7 +2699,7 @@ const highestPrice = useMemo(() => {
     else if (sortBy === "newest") result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
 
     return result;
-  }, [products, selectedCats, selectedBrands, maxPrice, minRating, search, sortBy]);
+  }, [products, selectedCats, selectedBrands, maxPrice, search, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const shown = filtered.slice((page - 1) * perPage, page * perPage);
@@ -2766,22 +2750,13 @@ return (
           </div>
           <div className="filter-block">
             <div className="filter-title">العلامة التجارية</div>
-            {BRANDS.slice(0,7).map(b=>(
+            {availableBrands.map(b=>(
               <label key={b} className={"filter-opt"+(selectedBrands.includes(b)?" checked":"")} onClick={()=>{toggleBrand(b);setPage(1);}}>
                 <span className="chk">{selectedBrands.includes(b) && <CheckIcon size={12}/>}</span>{b}
               </label>
             ))}
           </div>
-          <div className="filter-block" style={{border:"none"}}>
-            <div className="filter-title">التقييم</div>
-            {[4,3,0].map(r=>(
-              <label key={r} className={"filter-opt"+(minRating===r?" checked":"")} onClick={()=>{setMinRating(r);setPage(1);}}>
-                <span className="chk">{minRating===r && <CheckIcon size={12}/>}</span>
-                {r>0 ? <span className="stars-filter"><Stars rating={r} size={13}/></span> : "أي تقييم"} {r>0 && "فأعلى"}
-              </label>
-            ))}
-          </div>
-          <button className="btn btn-ghost btn-block" onClick={()=>{setSelectedCats([]);setSelectedBrands([]);setMaxPrice(highestPrice);setMinRating(0);setPage(1);}}>مسح الفلاتر</button>
+          <button className="btn btn-ghost btn-block" onClick={()=>{setSelectedCats([]);setSelectedBrands([]);setMaxPrice(highestPrice);setPage(1);}}>مسح الفلاتر</button>
         </aside>
 
         <div>
@@ -2836,7 +2811,7 @@ return (
                     <div className="pcard-brand">{p.brand}</div>
                     <div className="pcard-name" style={{fontSize:16.5}}>{productName(p)}</div>
                     <div className="pcard-rating"><Stars rating={p.rating}/><span className="count">({p.reviews})</span></div>
-                    <p style={{fontSize:13.5,color:"var(--ink-soft)",maxWidth:480}}>{p.desc.slice(0,110)}...</p>
+                    <p style={{fontSize:13.5,color:"var(--ink-soft)",maxWidth:480}}>{descriptionPreview(productDesc(p)).slice(0,110)}...</p>
                   </div>
                   <div style={{textAlign:"right"}}>
                     <div className="pcard-price" style={{justifyContent:"flex-end",marginBottom:10}}><span className="price-now">{money(p.price)}</span>{p.was && <span className="price-was">{money(p.was)}</span>}</div>
@@ -3038,7 +3013,7 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
           </div>
           {hasStockLimit && (
             <div style={{fontSize: "14px", color: isOutOfStock ? "#b91c1c" : "var(--ink-soft)", marginBottom: "18px", fontWeight: "700"}}>
-              {isOutOfStock ? uiText("غير متوفر حاليًا", "Currently out of stock") : uiText(`متبقي ${product.stock_quantity} قطعة`, `${product.stock_quantity} pieces available`)}
+              {isOutOfStock ? uiText("غير متوفر حاليًا", "Currently out of stock") : uiText(`متبقي ${product.stock_quantity} ${Number(product.stock_quantity) === 1 ? "قطعة" : "قطع"}`, `${product.stock_quantity} pieces available`)}
             </div>
           )}
           {hasStockLimit && (() => {
@@ -3047,7 +3022,7 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
             const stockClass = isOutOfStock ? "out" : stock <= 5 ? "low" : "";
             return <div className="pd-stock-status">
               <div className={`pd-stock-label ${stockClass}`}>
-                <span>{isOutOfStock ? uiText("غير متوفر حاليًا", "Currently out of stock") : uiText(`متبقي ${stock} قطعة`, `${stock} pieces available`)}</span>
+                <span>{isOutOfStock ? uiText("غير متوفر حاليًا", "Currently out of stock") : uiText(`متبقي ${stock} ${stock === 1 ? "قطعة" : "قطع"}`, `${stock} pieces available`)}</span>
               </div>
               <div className="pd-stock-track" role="progressbar" aria-valuenow={stock} aria-valuemin="0" aria-valuemax="10">
                 <div className={`pd-stock-fill ${stockClass}`} style={{width: `${isOutOfStock ? 100 : stockPercent}%`}} />
@@ -3094,8 +3069,8 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
           {product.sizes && product.sizes.length > 0 && (
             <>
               <div className="pd-option-label">
-                {uiText("المقاس:", "Size:")} <span className="val" style={{fontWeight: "700", color: "var(--ink)", marginRight: "6px"}}>{size}</span>
-                {product.pack_size && <span style={{fontSize: "12px", color: "var(--ink-faint)", marginRight: "8px"}}>({product.pack_size})</span>}
+                {uiText("المقاس:", "Size:")} <span className="val" style={{fontWeight: "700", color: "var(--ink)", marginRight: "6px"}}>{optionText(size)}</span>
+                {product.pack_size && <span style={{fontSize: "12px", color: "var(--ink-faint)", marginRight: "8px"}}>({optionText(product.pack_size)})</span>}
               </div>
               <div className="size-row" style={{display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "26px"}}>
                 {product.sizes.map(s => (
@@ -3105,8 +3080,8 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
                     onClick={() => setSize(s)}
                     style={{minWidth: "60px", padding: "8px 16px"}}
                   >
-                    {s}
-                    {product.pack_size && <span style={{fontSize: "11px", display: "block", color: s === size ? "#fff" : "var(--ink-faint)", fontWeight: "normal"}}>{product.pack_size}</span>}
+                    {optionText(s)}
+                    {product.pack_size && <span style={{fontSize: "11px", display: "block", color: s === size ? "#fff" : "var(--ink-faint)", fontWeight: "normal"}}>{optionText(product.pack_size)}</span>}
                   </button>
                 ))}
               </div>
@@ -3141,11 +3116,6 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
             {uiText("اشتري الآن", "Buy now")} — {money(currentUnitPrice * qty)}
           </button>
 
-          <div className="pd-perks">
-            <div className="pd-perk"><TruckIcon size={18}/> <span><b>{uiText("توصيل مجاني", "Free delivery")}</b> {uiText("للطلبات فوق 75 ج.م، خلال 3 إلى 5 أيام", "for orders over EGP 75, within 3 to 5 days")}</span></div>
-            <div className="pd-perk"><RefreshIcon size={18}/> <span><b>{uiText("إرجاع مجاني خلال 30 يومًا", "Free returns within 30 days")}</b> {uiText("إذا لم يكن المقاس مناسبًا", "if the size is not right")}</span></div>
-            <div className="pd-perk"><ShieldIcon size={18}/> <span><b>{uiText("دفع آمن", "Secure payment")}</b> {uiText("عند الاستلام", "with data encryption")}</span></div>
-          </div>
         </div>
       </div>
 
@@ -3161,11 +3131,10 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
           {tab==="desc" && <div className="pd-rich-text" dangerouslySetInnerHTML={{__html: safeDescription(activeLanguage === "en" && product.desc_en ? product.desc_en : product.desc)}} />}
           {tab==="specs" && (
             <ul style={{margin:0,paddingLeft:18,display:"flex",flexDirection:"column",gap:8}}>
-              <li>العلامة التجارية: {product.brand}</li>
-              <li>القسم: {productCategories(product).map(category => CATEGORIES.find(c=>c.id===category)?.name).filter(Boolean).join('، ')}</li>
-              <li>الألوان المتاحة: {product.colors.length}</li>
-              <li>المقاسات المتاحة: {product.sizes.join(", ")}</li>
-              <li>وزن الشحن: 0.6 كجم</li>
+              <li>{uiText("العلامة التجارية:", "Brand:")} {localizedOption(product.brand)}</li>
+              <li>{uiText("القسم:", "Category:")} {productCategories(product).map(category => localizedOption(CATEGORIES.find(c=>c.id===category)?.name)).filter(Boolean).join(activeLanguage === "en" ? ", " : "، ")}</li>
+              <li>{uiText("الألوان المتاحة:", "Available colors:")} {product.colors.length}</li>
+              <li>{uiText("المقاسات المتاحة:", "Available sizes:")} {product.sizes.map(optionText).join(", ")}</li>
             </ul>
           )}
       {tab==="reviews" && (
@@ -3250,7 +3219,7 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
               onClick={buyBoth}
               style={{display: "flex", justifyContent: "space-between", padding: "14px 24px"}}
             >
-              <span>شراء الاثنين معاً</span>
+              <span>{uiText("شراء الاثنين معاً", "Buy both together")}</span>
               <span className="mono" style={{fontWeight: "800"}}>{money(bundleTotal)}</span>
             </button>
           </div>
@@ -3735,8 +3704,8 @@ const handleEmailAuth = async (e) => {
       });
     }
   }, []);
-const [products, setProducts] = useState([]);
-const [loading, setLoading] = useState(true);
+const [products, setProducts] = useState(getCachedProducts);
+const [loading, setLoading] = useState(() => getCachedProducts().length === 0);
   const [coupons, setCoupons] = useState([]);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [page, setPage] = useState(() => window.history.state?.openmart ? (window.history.state.page || "home") : (sharedProductId ? "product" : "home"));
@@ -3789,28 +3758,42 @@ const [orders, setOrders] = useState(() => {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmart_topbar_text") || "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
+  const defaultTopbarText = "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم";
+  const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmart_topbar_text") || defaultTopbarText);
+  const [topbarTextEn, setTopbarTextEn] = useState(() => localStorage.getItem("openmart_topbar_text_en") || "");
   useEffect(() => {
     async function getTopbar() {
       if (window.supabase) {
-        const { data, error } = await window.supabase
+        const { data } = await window.supabase
           .from('site_settings')
           .select('value')
-          .eq('key', 'topbar_text')
-          .maybeSingle();
-        if (data?.value) {
-          setTopbarText(data.value);
-          localStorage.setItem("openmart_topbar_text", data.value);
-        }
+          .in('key', ['topbar_text', 'topbar_text_en']);
+        data?.forEach(setting => {
+          if (setting.key === 'topbar_text' && setting.value) {
+            setTopbarText(setting.value);
+            localStorage.setItem("openmart_topbar_text", setting.value);
+          }
+          if (setting.key === 'topbar_text_en') {
+            setTopbarTextEn(setting.value || "");
+            localStorage.setItem("openmart_topbar_text_en", setting.value || "");
+          }
+        });
       }
     }
     getTopbar();
-    window.fetchSiteSetting?.("topbar_text").then(value => {
-      if (value) setTopbarText(value);
+    Promise.all([
+      window.fetchSiteSetting?.("topbar_text"),
+      window.fetchSiteSetting?.("topbar_text_en")
+    ]).then(([arabicValue, englishValue]) => {
+      if (arabicValue) setTopbarText(arabicValue);
+      if (englishValue !== undefined && englishValue !== null) setTopbarTextEn(englishValue);
     }).catch(() => {});
     const updateTopbarText = (event) => {
       if (event.key === "openmart_topbar_text") {
-        setTopbarText(event.newValue?.trim() || "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
+        setTopbarText(event.newValue?.trim() || defaultTopbarText);
+      }
+      if (event.key === "openmart_topbar_text_en") {
+        setTopbarTextEn(event.newValue?.trim() || "");
       }
     };
     window.addEventListener("storage", updateTopbarText);
@@ -3824,15 +3807,16 @@ const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmar
   useEffect(() => {
     if (window.fetchProductsFromDB) {
       window.fetchProductsFromDB().then(data => {
-        setProducts(data || []);
+        if (data && data.length > 0) {
+          setProducts(data);
+          localStorage.setItem("openmart_products", JSON.stringify(data));
+        }
         setLoading(false);
       }).catch(err => {
         console.error("خطأ في جلب المنتجات:", err);
-        setProducts([]);
         setLoading(false);
       });
     } else {
-      setProducts([]);
       setLoading(false);
     }
   }, []);
@@ -4009,6 +3993,13 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
   };
   const cartCount = cart.reduce((s,i)=>s+i.qty,0);
 
+  if (loading) {
+    return (
+      <div className="wrap" style={{minHeight: "100vh", display: "grid", placeItems: "center", color: "var(--ink-faint)", fontSize: "14px"}}>
+        {uiText("جاري التحميل...", "Loading...")}
+      </div>
+    );
+  }
   
   return (
     <>
@@ -4024,7 +4015,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
   user={user} 
   login={() => go("auth")} 
   requestLogout={requestLogout} 
-  topbarText={topbarText}
+  topbarText={lang === "en" ? (topbarTextEn || topbarText) : topbarText}
   lang={lang}
   setLang={setLang}
 />      

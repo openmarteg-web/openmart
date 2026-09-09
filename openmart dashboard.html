@@ -235,6 +235,10 @@
         <label for="topbarText">النص الظاهر أعلى الموقع</label>
         <input type="text" id="topbarText" maxlength="180" placeholder="شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة">
       </div>
+      <div class="form-group">
+        <label for="topbarTextEn">النص الإنجليزي عند اختيار English</label>
+        <input type="text" id="topbarTextEn" maxlength="180" dir="ltr" placeholder="Free shipping over EGP 75 • New products every Friday">
+      </div>
       <button type="submit" class="btn" id="topbarSaveBtn">حفظ النص</button>
     </form>
   </div>
@@ -595,6 +599,7 @@
     richEditors.forEach(({ editor, input }) => { if (editor && input) input.value = editor.innerHTML; });
   }
   const TOPBAR_STORAGE_KEY = 'openmart_topbar_text';
+  const TOPBAR_EN_STORAGE_KEY = 'openmart_topbar_text_en';
 
   const dashboardSection = document.getElementById('dashboardSection');
   const loginSection = document.getElementById('loginSection');
@@ -665,18 +670,26 @@
 
   const topbarForm = document.getElementById('topbarForm');
   const topbarTextInput = document.getElementById('topbarText');
+  const topbarTextEnInput = document.getElementById('topbarTextEn');
   if (topbarTextInput) {
     topbarTextInput.value = localStorage.getItem(TOPBAR_STORAGE_KEY) || 'شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة';
+  }
+  if (topbarTextEnInput) {
+    topbarTextEnInput.value = localStorage.getItem(TOPBAR_EN_STORAGE_KEY) || '';
   }
   if (topbarForm) {
     topbarForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const text = topbarTextInput.value.trim();
+      const textEn = topbarTextEnInput.value.trim();
       if (!text) return alert('اكتب نصًا للشريط العلوي أولًا');
       try {
-        const { error } = await supabase.from('site_settings').upsert({ key: 'topbar_text', value: text }, { onConflict: 'key' });
-        if (error) throw error;
+        const { error: arabicError } = await supabase.from('site_settings').upsert({ key: 'topbar_text', value: text }, { onConflict: 'key' });
+        if (arabicError) throw arabicError;
+        const { error: englishError } = await supabase.from('site_settings').upsert({ key: 'topbar_text_en', value: textEn }, { onConflict: 'key' });
+        if (englishError) throw englishError;
         localStorage.setItem(TOPBAR_STORAGE_KEY, text);
+        localStorage.setItem(TOPBAR_EN_STORAGE_KEY, textEn);
         alert('تم حفظ نص الشريط العلوي بنجاح');
       } catch (err) {
         alert('تعذر حفظ النص على الموقع: ' + err.message);
