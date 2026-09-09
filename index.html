@@ -3283,8 +3283,8 @@ const [products, setProducts] = useState([]);
 const [loading, setLoading] = useState(true);
   const [coupons, setCoupons] = useState([]);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [page, setPage] = useState("home");
-  const [productId, setProductId] = useState(1);
+  const [page, setPage] = useState(() => window.history.state?.openmart ? (window.history.state.page || "home") : "home");
+  const [productId, setProductId] = useState(() => window.history.state?.openmart ? (window.history.state.id || 1) : 1);
   const [cart, setCart] = useState([]);
 const [wishlist, setWishlist] = useState(() => {
   try {
@@ -3308,6 +3308,26 @@ const [orders, setOrders] = useState(() => {
   const [toast, setToast] = useState("");
   const toastTimer = useRef(null);
   const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const currentState = window.history.state;
+    if (!currentState?.openmart) {
+      window.history.replaceState({ openmart: true, page: "home", id: null }, "", "");
+    }
+
+    const handlePopState = (event) => {
+      const state = event.state;
+      if (!state?.openmart) return;
+
+      setPage(state.page || "home");
+      setProductId(state.id || 1);
+      setMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmart_topbar_text") || "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم");
   useEffect(() => {
@@ -3386,7 +3406,7 @@ useEffect(() => {
   const go = (p, id) => {
     if(id) setProductId(id);
     setPage(p);
-    window.history.pushState({ page: p, id: id }, "", "");
+    window.history.pushState({ openmart: true, page: p, id: id || null }, "", "");
     window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
   };
 
