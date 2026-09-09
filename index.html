@@ -1079,7 +1079,7 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .pd-tab-panel{padding:32px 4px;color:var(--ink-soft);line-height:1.7;font-size:15px;max-width:760px;}
 .pd-rich-text h3,.pd-rich-text h4{color:var(--ink);line-height:1.35;margin:0 0 12px;font-weight:800;}
 .pd-rich-text h3{font-size:20px;}.pd-rich-text h4{font-size:17px;}
-.pd-rich-text p{margin:0 0 14px;}.pd-rich-text ul,.pd-rich-text ol{margin:0 0 16px;padding-inline-start:24px;}
+.pd-rich-text p,.pd-rich-text div{margin:0 0 14px;}.pd-rich-text ul,.pd-rich-text ol{margin:0 0 16px;padding-inline-start:24px;}
 .pd-rich-text li{margin-bottom:6px;}.pd-rich-text a{color:var(--periwinkle);text-decoration:underline;}
 
 
@@ -1874,11 +1874,11 @@ const productName = product => activeLanguage === "en" && product?.name_en ? pro
 const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
 const safeDescription = value => {
   const text = String(value || "");
-  if (!/<\s*(p|br|h[34]|ul|ol|li|strong|b|em|i|a)\b/i.test(text)) {
+  if (!/<\s*(p|div|br|h[34]|ul|ol|li|strong|b|em|i|a)\b/i.test(text)) {
     return text.replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char])).replace(/\r?\n/g, "<br>");
   }
   const doc = new DOMParser().parseFromString(text, "text/html");
-  const allowed = new Set(["P", "BR", "H3", "H4", "UL", "OL", "LI", "STRONG", "B", "EM", "I", "A"]);
+  const allowed = new Set(["P", "DIV", "BR", "H3", "H4", "UL", "OL", "LI", "STRONG", "B", "EM", "I", "A"]);
   doc.body.querySelectorAll("*").forEach(node => {
     if (!allowed.has(node.tagName)) { node.replaceWith(...node.childNodes); return; }
     [...node.attributes].forEach(attr => {
