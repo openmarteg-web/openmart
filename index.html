@@ -712,6 +712,10 @@ html[lang="ar"] .footer-brand-word {
 /* Mobile - وقف الحركة تماماً */
 @media (max-width: 600px) {
 
+  .hero {
+    padding-top: 10px;
+  }
+
   .hero-slide {
     padding: 0 16px 36px;
   }
@@ -935,8 +939,12 @@ html[lang="ar"] .footer-brand-word {
 .footer-brand-word span{color:var(--coral);}
 .footer-desc{font-size:14px;color:#B4AEC6;line-height:1.6;margin:14px 0 20px;max-width:280px;}
 .footer-social{display:flex;gap:10px;}
-.footer-social a{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;transition:background .2s;}
-.footer-social a:hover{background:var(--coral);}
+.footer-social a{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s;}
+.footer-social a:hover{color:#fff;}
+.footer-social a:nth-child(1):hover{background:#E1306C;}
+.footer-social a:nth-child(2):hover{background:#1877F2;}
+.footer-social a:nth-child(3):hover{background:#000;}
+.footer-social a:nth-child(4):hover{background:#FF0000;}
 .footer-h{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:18px;}
 .footer-links{display:flex;flex-direction:column;gap:12px;}
 .footer-links a{font-size:14.5px;color:#B4AEC6;transition:color .2s;}
@@ -1512,7 +1520,8 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
   display: flex;
   flex-direction: column;
   gap: 7px;
-  margin-top: 6px;
+  margin-top: auto;
+  padding-top: 6px;
 }
 
 /* زر أضف إلى السلة باللون الأزرق */
@@ -4059,6 +4068,18 @@ const [orders, setOrders] = useState(() => {
   const [toast, setToast] = useState("");
   const toastTimer = useRef(null);
   const [user, setUser] = useState(null);
+
+    useEffect(() => {
+      const footer = document.querySelector(".footer");
+      if (!footer) return;
+
+      const observer = new IntersectionObserver(([entry]) => {
+        setCartBarHidden(entry.isIntersecting);
+      }, {threshold: 0.01});
+
+      observer.observe(footer);
+      return () => observer.disconnect();
+    }, []);
 
   useEffect(() => {
     const currentState = window.history.state;
