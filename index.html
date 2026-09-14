@@ -1196,11 +1196,16 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .pd-tab{padding:14px 22px;font-weight:700;font-size:14.5px;color:var(--ink-faint);border-bottom:2.5px solid transparent;margin-bottom:-1.5px;}
 .pd-tab.active{color:var(--ink);border-color:var(--coral);}
 .pd-tab-panel{padding:32px 4px;color:var(--ink-soft);line-height:1.7;font-size:15px;max-width:760px;}
-.pd-rich-text{white-space:pre-line;}
+.pd-rich-text{white-space:pre-line;font-weight:500;}
 .pd-rich-text h3,.pd-rich-text h4{color:var(--ink);line-height:1.35;margin:0 0 12px;font-weight:800;}
 .pd-rich-text h3{font-size:20px;}.pd-rich-text h4{font-size:17px;}
+.pd-rich-text, .pd-rich-text * {
+    font-weight: 500 !important;
+    color: var(--ink-soft) !important;
+}
 .pd-rich-text p,.pd-rich-text div{margin:0 0 14px;}.pd-rich-text ul,.pd-rich-text ol{margin:0 0 16px;padding-inline-start:24px;}
-.pd-rich-text li{margin-bottom:6px;}.pd-rich-text a{color:var(--periwinkle);text-decoration:underline;}
+.pd-rich-text ul{display:block;list-style-type:disc!important;list-style-position:outside!important;margin-block:0 16px;padding-inline-start:24px;}.pd-rich-text ol{display:block;list-style-type:decimal!important;list-style-position:outside!important;margin-block:0 16px;padding-inline-start:24px;}.pd-rich-text li{display:list-item!important;margin-bottom:6px;}
+.pd-rich-text a{color:var(--periwinkle);text-decoration:underline;}
 
 
 /* ============ CART ============ */
@@ -1415,6 +1420,29 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 }
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast .dot{width:22px;height:22px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* ============ MOBILE CART BAR ============ */
+.cart-bar{
+  position:fixed;right:0;bottom:0;left:0;z-index:180;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:10px max(16px, calc((100vw - 1280px) / 2 + 20px)) calc(10px + env(safe-area-inset-bottom));
+  background:var(--ink);color:#fff;box-shadow:0 -8px 24px rgba(17,17,17,.16);
+  animation:cartBarIn .3s var(--ease);
+}
+.cart-bar-summary{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.cart-bar-label{font-size:11px;color:rgba(255,255,255,.68);font-weight:700;}
+.cart-bar-total{font-family:'DM Mono';font-size:14px;font-weight:700;white-space:nowrap;}
+.cart-bar-button{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;flex-shrink:0;
+  min-height:42px;padding:0 24px;border:0;border-radius:var(--r-pill);
+  background:var(--green);color:#fff;font:inherit;font-size:13.5px;font-weight:800;cursor:pointer;
+  transition:transform .2s ease,background .2s ease;
+}
+.cart-bar-button:hover{background:var(--green-deep);transform:translateY(-1px);}
+.cart-bar-button:active{transform:scale(.97);}
+@keyframes cartBarIn{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@media (min-width:761px){.cart-bar{right:20px;bottom:20px;left:auto;width:min(340px,calc(100vw - 40px));border-radius:18px;}}
+@media (max-width:460px){.cart-bar{gap:10px;padding-inline:12px;}.cart-bar-button{padding-inline:17px;font-size:13px;}}
 
 .logout-modal-backdrop {
   position: fixed;
@@ -2031,15 +2059,18 @@ const getCachedProducts = () => {
 
 const money = n => n.toLocaleString(activeLanguage === "en" ? "en-US" : "EN-EG") + (activeLanguage === "en" ? " EGP" : " ج.م");
 const SHIPPING_ZONES = [
-  { name: "القاهرة والجيزة", price: 75, time: "خلال 24-48 ساعة" },
-  { name: "المدن الجديدة (التجمعات - الرحاب - مدينتي - الشروق - أكتوبر - زايد - حلوان)", price: 87, time: "24-72 ساعة" },
-  { name: "ضواحي القاهرة والجيزة (العبور - 15 مايو - بدر - المرج - عزبة النخل)", price: 92, time: "24-72 ساعة" },
-  { name: "الإسكندرية", price: 95, time: "24-72 ساعة" },
-  { name: "محافظات القناة", price: 99, time: "1-3 أيام" },
-  { name: "محافظات الدلتا", price: 99, time: "2-4 أيام" },
-  { name: "محافظات الصعيد", price: 110, time: "2-4 أيام" },
-  { name: "المناطق الحدودية (شرم - الغردقة - مطروح - الساحل - السخنة)", price: 180, time: "3-6 أيام" }
+  { name: "القاهرة والجيزة", nameEn: "Cairo and Giza", price: 75, time: "خلال 24-48 ساعة", timeEn: "Within 24-48 hours" },
+  { name: "المدن الجديدة (التجمعات - الرحاب - مدينتي - الشروق - أكتوبر - زايد - حلوان)", nameEn: "New cities (New Cairo - Rehab - Madinaty - Shorouk - October - Zayed - Helwan)", price: 87, time: "24-72 ساعة", timeEn: "24-72 hours" },
+  { name: "ضواحي القاهرة والجيزة (العبور - 15 مايو - بدر - المرج - عزبة النخل)", nameEn: "Cairo and Giza suburbs (Obour - 15 May - Badr - El Marg - Ezbet El Nakhl)", price: 92, time: "24-72 ساعة", timeEn: "24-72 hours" },
+  { name: "الإسكندرية", nameEn: "Alexandria", price: 95, time: "24-72 ساعة", timeEn: "24-72 hours" },
+  { name: "محافظات القناة", nameEn: "Canal Governorates", price: 99, time: "1-3 أيام", timeEn: "1-3 days" },
+  { name: "محافظات الدلتا", nameEn: "Delta Governorates", price: 99, time: "2-4 أيام", timeEn: "2-4 days" },
+  { name: "محافظات الصعيد", nameEn: "Upper Egypt Governorates", price: 110, time: "2-4 أيام", timeEn: "2-4 days" },
+  { name: "المناطق الحدودية (شرم - الغردقة - مطروح - الساحل - السخنة)", nameEn: "Border areas (Sharm El Sheikh - Hurghada - Matrouh - North Coast - Ain Sokhna)", price: 180, time: "3-6 أيام", timeEn: "3-6 days" }
 ];
+const isEnglish = () => activeLanguage === "en" || localStorage.getItem("openmart_lang") === "en";
+const zoneName = zone => isEnglish() ? (zone?.nameEn || zone?.name) : zone?.name;
+const zoneTime = zone => isEnglish() ? (zone?.timeEn || zone?.time) : zone?.time;
 const productName = product => activeLanguage === "en" && product?.name_en ? product.name_en : product?.name;
 const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
 const optionText = value => {
@@ -2088,6 +2119,26 @@ const safeDescription = value => {
     [...node.attributes].forEach(attr => {
       if (node.tagName !== "A" || attr.name !== "href" || !/^(https?:|mailto:)/i.test(attr.value)) node.removeAttribute(attr.name);
     });
+  });
+  // Keep older descriptions readable when they contain list items without a list wrapper.
+  const orphanItems = [...doc.body.children].filter(node => node.tagName === "LI");
+  if (orphanItems.length) {
+    const list = doc.createElement("ul");
+    orphanItems.forEach(item => list.appendChild(item));
+    doc.body.appendChild(list);
+  }
+  // Render list markers explicitly so product cards cannot collapse list items into one paragraph.
+  doc.body.querySelectorAll("ul, ol").forEach(list => {
+    const replacement = doc.createDocumentFragment();
+    [...list.children].forEach((item, index) => {
+      if (item.tagName !== "LI") return;
+      const line = doc.createElement("div");
+      line.style.marginBottom = "6px";
+      line.appendChild(doc.createTextNode(list.tagName === "OL" ? `${index + 1}. ` : "• "));
+      while (item.firstChild) line.appendChild(item.firstChild);
+      replacement.appendChild(line);
+    });
+    list.replaceWith(replacement);
   });
   return doc.body.innerHTML;
 };
@@ -3494,7 +3545,7 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
                   <div className="qty-stepper">
                     <button onClick={()=>updateQty(idx,Math.max(1,item.qty-1))}><MinusIcon size={13}/></button>
                     <span className="qty-val">{item.qty}</span>
-                    <button onClick={()=>updateQty(idx,item.qty+1)}><PlusIcon size={13}/></button>
+                    <button onClick={()=>updateQty(idx,item.qty+1)} disabled={item.product.stock_quantity !== null && item.product.stock_quantity !== undefined && item.qty >= Number(item.product.stock_quantity)} aria-label="زيادة الكمية"><PlusIcon size={13}/></button>
                   </div>
                   <button className="cart-remove" onClick={()=>removeItem(idx)}><TrashIcon size={14}/> حذف</button>
                 </div>
@@ -3530,7 +3581,7 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
                 fontFamily: "inherit"
               }}
             >
-              {selectedZone ? `${money(selectedZone.price)} (${selectedZone.name}) ✎` : "(اضغط لتحديد سعر الشحن لمنطقتك 📍)"}
+              {selectedZone ? `${money(selectedZone.price)} (${zoneName(selectedZone)}) ✎` : "(اضغط لتحديد سعر الشحن لمنطقتك 📍)"}
             </button>
           </div>
 
@@ -3574,8 +3625,8 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
                   }}
                 >
                   <div style={{textAlign: "right"}}>
-                    <div style={{fontWeight: "700", fontSize: "13.5px", color: "var(--ink)"}}>{zone.name}</div>
-                    <div style={{fontSize: "11.5px", color: "var(--ink-faint)", marginTop: "2px"}}>{zone.time}</div>
+                    <div style={{fontWeight: "700", fontSize: "13.5px", color: "var(--ink)"}}>{zoneName(zone)}</div>
+                    <div style={{fontSize: "11.5px", color: "var(--ink-faint)", marginTop: "2px"}}>{zoneTime(zone)}</div>
                   </div>
                   <div style={{fontWeight: "800", color: "#4F6FF5", fontSize: "14.5px", fontFamily: "DM Mono", whiteSpace: "nowrap", marginRight: "10px"}}>
                     {money(zone.price)}
@@ -3593,11 +3644,19 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
 /* ============================================================
    CHECKOUT PAGE
 ============================================================ */
-function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedCoupon}){
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [notes, setNotes] = useState("");
+function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedCoupon, user}){
+  const customerStorageKey = user?.id ? `openmart_customer_${user.id}` : "openmart_customer_guest";
+  const savedCustomer = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(customerStorageKey) || localStorage.getItem("openmart_customer_guest") || "null") || {};
+    } catch {
+      return {};
+    }
+  })();
+  const [name, setName] = useState(savedCustomer.name || user?.user_metadata?.full_name || "");
+  const [phone, setPhone] = useState(savedCustomer.phone || "");
+  const [address, setAddress] = useState(savedCustomer.address || "");
+  const [notes, setNotes] = useState(savedCustomer.notes || "");
   const [couponInput, setCouponInput] = useState(appliedCoupon?.code || "");
   const [couponMessage, setCouponMessage] = useState("");
   const [missingFields, setMissingFields] = useState([]);
@@ -3647,6 +3706,7 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
     if (!address.trim()) missing.push("عنوان التوصيل بالتفصيل");
     setMissingFields(missing);
     if (missing.length) return;
+    localStorage.setItem(customerStorageKey, JSON.stringify({name, phone, address, notes}));
     placeOrder({ 
       name, 
       phone, 
@@ -3701,7 +3761,7 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
                 <select value={selectedZone?.name || ""} onChange={handleZoneChange}>
                   <option value="">اختر المحافظة أو المنطقة</option>
                   {SHIPPING_ZONES.map(zone => (
-                    <option key={zone.name} value={zone.name}>{zone.name} - {money(zone.price)}</option>
+                    <option key={zone.name} value={zone.name}>{zoneName(zone)} - {money(zone.price)}</option>
                   ))}
                 </select>
               </div>
@@ -3951,6 +4011,7 @@ const [orders, setOrders] = useState(() => {
 });
 
  const [menuOpen, setMenuOpen] = useState(false);
+  const [cartBarHidden, setCartBarHidden] = useState(false);
   const [catFilter, setCatFilter] = useState(null);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
@@ -4033,6 +4094,20 @@ const [orders, setOrders] = useState(() => {
         if (data && data.length > 0) {
           setProducts(data);
           localStorage.setItem("openmart_products", JSON.stringify(data));
+          setCart(currentCart => currentCart
+            .map(item => {
+              const latestProduct = data.find(product => String(product.id) === String(item.product.id));
+              if (!latestProduct) return item;
+              const stockLimit = latestProduct.stock_quantity === null || latestProduct.stock_quantity === undefined
+                ? Infinity
+                : Math.max(0, Number(latestProduct.stock_quantity));
+              return {
+                ...item,
+                product: latestProduct,
+                qty: Math.min(item.qty, stockLimit)
+              };
+            })
+            .filter(item => item.qty > 0));
         }
         setLoading(false);
       }).catch(err => {
@@ -4075,6 +4150,7 @@ useEffect(() => {
   // 3. دالة التنقل بين الصفحات
   const go = (p, id) => {
     if(id) setProductId(id);
+    if (p === "home") setCartBarHidden(false);
     setPage(p);
     window.history.pushState({ openmart: true, page: p, id: id || null }, "", "");
     window.scrollTo({top:0, behavior:"instant" in window ? "instant" : "auto"});
@@ -4125,10 +4201,14 @@ useEffect(() => {
   const addToCart = (product, variant, qty) => {
     setCart(c=>{
       const existingIdx = c.findIndex(i=>i.product.id===product.id && i.variant.size===variant.size && i.variant.color===variant.color);
+      const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
+      const existingQty = existingIdx > -1 ? c[existingIdx].qty : 0;
+      const nextQty = Math.min(existingQty + qty, stockLimit);
+      if (nextQty <= existingQty) return c;
       if(existingIdx>-1){
-        const copy=[...c]; copy[existingIdx] = {...copy[existingIdx], qty: copy[existingIdx].qty+qty}; return copy;
+        const copy=[...c]; copy[existingIdx] = {...copy[existingIdx], qty: nextQty}; return copy;
       }
-      return [...c, {product, variant, qty}];
+      return [...c, {product, variant, qty: nextQty}];
     });
     showToast(`تمت إضافة "${productName(product)}" إلى السلة`);
 
@@ -4152,15 +4232,22 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       );
       if (existingIdx > -1) {
         const copy = [...c];
-        copy[existingIdx] = { ...copy[existingIdx], qty: copy[existingIdx].qty + selectedQty };
+        const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
+        copy[existingIdx] = { ...copy[existingIdx], qty: Math.min(copy[existingIdx].qty + selectedQty, stockLimit) };
         return copy;
       }
-      return [...c, { product, variant: { color: pColor, size: pSize }, qty: selectedQty }];
+      const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
+      return stockLimit > 0 ? [...c, { product, variant: { color: pColor, size: pSize }, qty: Math.min(selectedQty, stockLimit) }] : c;
     });
     
     showToast(`تمت إضافة "${productName(product)}" وجاري إتمام الطلب...`);
     go("checkout");
-  };  const updateQty = (idx, qty) => setCart(c=>c.map((it,i)=>i===idx?{...it,qty}:it));
+  };
+  const updateQty = (idx, qty) => setCart(c=>c.map((it,i)=>{
+    if (i !== idx) return it;
+    const stockLimit = it.product.stock_quantity === null || it.product.stock_quantity === undefined ? Infinity : Math.max(0, Number(it.product.stock_quantity));
+    return {...it, qty: Math.min(Math.max(1, qty), stockLimit)};
+  }));
   const removeItem = (idx) => setCart(c=>c.filter((_,i)=>i!==idx));
   const toggleWish = (id) => setWishlist(w=> w.includes(id) ? w.filter(x=>x!==id) : (showToast("تمت الإضافة إلى قائمة الأمنيات"), [...w,id]));
 
@@ -4304,6 +4391,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
                 coupons={coupons}
                 appliedCoupon={appliedCoupon}
                 setAppliedCoupon={setAppliedCoupon}
+                user={user}
               />
             )}
 
@@ -4317,6 +4405,19 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       )}
 
       <Footer go={go}/>
+
+      {cartCount > 0 && !cartBarHidden && (
+        <div className="cart-bar" role="region" aria-label={uiText("ملخص السلة", "Cart summary")}>
+          <div className="cart-bar-summary">
+            <span className="cart-bar-label">{uiText("إجمالي السلة", "Cart total")}</span>
+            <span className="cart-bar-total">{money(cart.reduce((total, item) => total + item.product.price * item.qty, 0))}</span>
+          </div>
+          <button className="cart-bar-button" onClick={() => { setCartBarHidden(true); go("cart"); }}>
+            <CartIcon size={16} />
+            {uiText("شوف السلة", "View cart")} ({cartCount})
+          </button>
+        </div>
+      )}
 
       <div className={"toast"+(toast?" show":"")}>
         <span className="dot"><CheckIcon size={13} style={{color:"#fff"}}/></span>{toast}
