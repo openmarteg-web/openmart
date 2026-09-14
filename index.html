@@ -9,6 +9,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Baloo+Bhaijaan+2:wght@600;700;800&family=Cairo:wght@500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
+  .pd-rich-text ul, .pd-rich-text ol {
+    list-style-position: inside !important;
+    padding-right: 0 !important;
+    margin: 10px 0 !important;
+}
+.pd-rich-text li {
+    display: list-item !important;
+    margin-bottom: 8px !important;
+    line-height: 1.8 !important;
+}
   /* ============ مفتاح تبديل اللغة (Language Switcher) ============ */
 .lang-switch {
   display: inline-flex;
@@ -1433,15 +1443,24 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .cart-bar-label{font-size:11px;color:rgba(255,255,255,.68);font-weight:700;}
 .cart-bar-total{font-family:'DM Mono';font-size:14px;font-weight:700;white-space:nowrap;}
 .cart-bar-button{
-  display:inline-flex;align-items:center;justify-content:center;gap:7px;flex-shrink:0;
-  min-height:42px;padding:0 24px;border:0;border-radius:var(--r-pill);
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:1 1 auto;min-width:0;
+  min-height:42px;padding:0 clamp(16px, 3vw, 24px);border:0;border-radius:var(--r-pill);
   background:var(--green);color:#fff;font:inherit;font-size:13.5px;font-weight:800;cursor:pointer;
   transition:transform .2s ease,background .2s ease;
 }
 .cart-bar-button:hover{background:var(--green-deep);transform:translateY(-1px);}
 .cart-bar-button:active{transform:scale(.97);}
 @keyframes cartBarIn{from{transform:translateY(100%)}to{transform:translateY(0)}}
-@media (min-width:761px){.cart-bar{right:20px;bottom:20px;left:auto;width:min(340px,calc(100vw - 40px));border-radius:18px;}}
+@media (min-width:761px){
+  .cart-bar{
+    inset-inline-start:auto;
+    inset-inline-end:clamp(16px, 4vw, 48px);
+    bottom:clamp(16px, 3vw, 32px);
+    width:min(420px, calc(100vw - 32px));
+    padding-inline:clamp(16px, 2vw, 24px);
+    border-radius:18px;
+  }
+}
 @media (max-width:460px){.cart-bar{gap:10px;padding-inline:12px;}.cart-bar-button{padding-inline:17px;font-size:13px;}}
 
 .logout-modal-backdrop {
@@ -2098,55 +2117,67 @@ const localizedOption = value => {
 };
 const safeDescription = value => {
   let text = String(value || "");
-  // Decode descriptions that were saved as HTML entities before sanitizing them.
+  if (!text.trim()) return "";
+
+  // فك أي تشفير مسبق للـ HTML إن وُجد
   for (let pass = 0; pass < 2 && /&(?:lt|gt|amp|quot|#39|#x27);/i.test(text); pass++) {
     text = new DOMParser().parseFromString(text, "text/html").body.textContent || "";
   }
-  if (!/<\s*(p|div|br|h[34]|ul|ol|li|strong|b|em|i|a)\b/i.test(text)) {
-    const plainText = text
-      .replace(/^\s*#{1,4}\s+/gm, "")
-      .replace(/\*\*(.*?)\*\*/g, "$1")
-      .replace(/__(.*?)__/g, "$1")
-      .replace(/`([^`]+)`/g, "$1")
-      .replace(/\*([^*\n]+)\*/g, "$1")
-      .replace(/_([^_\n]+)_/g, "$1");
-    return plainText.replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char])).replace(/\r?\n/g, "<br>");
-  }
-  const doc = new DOMParser().parseFromString(text, "text/html");
-  const allowed = new Set(["P", "DIV", "BR", "H3", "H4", "UL", "OL", "LI", "STRONG", "B", "EM", "I", "A"]);
-  doc.body.querySelectorAll("*").forEach(node => {
-    if (!allowed.has(node.tagName)) { node.replaceWith(...node.childNodes); return; }
-    [...node.attributes].forEach(attr => {
-      if (node.tagName !== "A" || attr.name !== "href" || !/^(https?:|mailto:)/i.test(attr.value)) node.removeAttribute(attr.name);
+
+  // إذا كان النص يحتوي بالفعل على وسوم HTML مثل ul, li, p, div
+  if (/<\s*(p|div|br|h[34]|ul|ol|li|strong|b|em|i|a)\b/i.test(text)) {
+    const doc = new DOMParser().parseFromString(text, "text/html");
+    const allowed = new Set(["P", "DIV", "BR", "H3", "H4", "UL", "OL", "LI", "STRONG", "B", "EM", "I", "A"]);
+    
+    doc.body.querySelectorAll("*").forEach(node => {
+      if (!allowed.has(node.tagName)) {
+        node.replaceWith(...node.childNodes);
+        return;
+      }
+      [...node.attributes].forEach(attr => {
+        if (node.tagName !== "A" || attr.name !== "href" || !/^(https?:|mailto:)/i.test(attr.value)) {
+          node.removeAttribute(attr.name);
+        }
+      });
     });
-  });
-  // Keep older descriptions readable when they contain list items without a list wrapper.
-  const orphanItems = [...doc.body.children].filter(node => node.tagName === "LI");
-  if (orphanItems.length) {
-    const list = doc.createElement("ul");
-    orphanItems.forEach(item => list.appendChild(item));
-    doc.body.appendChild(list);
-  }
-  // Render list markers explicitly so product cards cannot collapse list items into one paragraph.
-  doc.body.querySelectorAll("ul, ol").forEach(list => {
-    const replacement = doc.createDocumentFragment();
-    [...list.children].forEach((item, index) => {
-      if (item.tagName !== "LI") return;
-      const line = doc.createElement("div");
-      line.style.marginBottom = "6px";
-      line.appendChild(doc.createTextNode(list.tagName === "OL" ? `${index + 1}. ` : "• "));
-      while (item.firstChild) line.appendChild(item.firstChild);
-      replacement.appendChild(line);
+
+    // الحفاظ على عناصر li إن وُجدت بدون ul
+
+    doc.body.querySelectorAll("li").forEach(item => {
+      if (!item.textContent.trim()) item.remove();
     });
-    list.replaceWith(replacement);
-  });
-  return doc.body.innerHTML;
+    const orphanItems = [...doc.body.children].filter(node => node.tagName === "LI");
+    if (orphanItems.length) {
+      const list = doc.createElement("ul");
+      orphanItems.forEach(item => list.appendChild(item));
+      doc.body.appendChild(list);
+    }
+
+    return doc.body.innerHTML;
+  }
+
+  // إذا كان النص نصاً عادياً (Plain Text) ومقسماً لأسطر أو نقاط
+  const lines = text.replace(/\r\n?/g, "\n").split("\n").map(l => l.trim()).filter(Boolean);
+  
+  if (lines.length > 1) {
+    return `<ul style="margin: 0 0 16px; padding-inline-start: 20px;">` + 
+      lines.map(line => {
+        const clean = line.replace(/^[•●▪◦*-]\s*/, "");
+        return `<li style="margin-bottom: 6px;">${clean.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}</li>`;
+      }).join("") + `</ul>`;
+  }
+
+  // في حال كان النص سطراً واحداً وفيه نقاط مفصولة
+  const bulletParts = text.split(/\s*[•●▪◦]\s*/).map(l => l.trim()).filter(Boolean);
+  if (bulletParts.length >= 2) {
+    return `<ul style="margin: 0 0 16px; padding-inline-start: 20px;">` + 
+      bulletParts.map(part => `<li style="margin-bottom: 6px;">${part.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}</li>`).join("") + 
+      `</ul>`;
+  }
+
+  return text.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])).replace(/\n/g, "<br>");
 };
-const descriptionPreview = value => {
-  const html = safeDescription(value);
-  const text = new DOMParser().parseFromString(html, "text/html").body.textContent || "";
-  return text.replace(/\s+/g, " ").trim();
-};
+
 /* ============================================================
    SMALL SHARED COMPONENTS
 ============================================================ */
@@ -3227,11 +3258,17 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
             <Stars rating={product.rating} size={16}/>
             <a href="#" onClick={(e)=>{e.preventDefault();setTab("reviews");}}>{product.rating || 5} · {product.reviews || 0} {uiText("تقييم", "reviews")}</a>
           </div>
-          <div className="pd-price-row">
+      <div className="pd-price-row">
             <span className="price-now">{money(currentUnitPrice)}</span>
             {product.was && <span className="price-was">{money(product.was)}</span>}
             {product.was && <span className="pd-save">{uiText("وفر", "Save")} {Math.round((1-product.price/product.was)*100)}%</span>}
           </div>
+          
+          <div
+            className="pd-desc pd-rich-text"
+            dangerouslySetInnerHTML={{__html: safeDescription(productDesc(product))}}
+          />
+
           {hasStockLimit && (
             <div style={{fontSize: "14px", color: isOutOfStock ? "#b91c1c" : "var(--ink-soft)", marginBottom: "18px", fontWeight: "700"}}>
               {isOutOfStock ? uiText("غير متوفر حاليًا", "Currently out of stock") : uiText(`متبقي ${product.stock_quantity} ${Number(product.stock_quantity) === 1 ? "قطعة" : "قطع"}`, `${product.stock_quantity} pieces available`)}
@@ -3250,11 +3287,7 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
               </div>
             </div>;
           })()}
-          <div
-            className="pd-desc pd-rich-text"
-            dangerouslySetInnerHTML={{__html: safeDescription(productDesc(product))}}
-          />
-{/* إظهار دوائر الألوان بشكل منفصل وملوّن */}
+
           {colorsList.length > 0 && (
             <>
               <div className="pd-option-label" style={{marginBottom: "10px", fontSize: "14px"}}>
