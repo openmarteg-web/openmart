@@ -943,7 +943,7 @@ html[lang="ar"] .footer-brand-word {
 .footer-social a:hover{color:#fff;}
 .footer-social a:nth-child(1),.footer-social a:nth-child(1):hover{background:#E1306C;}
 .footer-social a:nth-child(2),.footer-social a:nth-child(2):hover{background:#1877F2;}
-.footer-social a:nth-child(3),.footer-social a:nth-child(3):hover{background:#000;}
+.footer-social a:nth-child(3),.footer-social a:nth-child(3):hover{background:#000;border:1px solid rgba(255,255,255,.45);}
 .footer-social a:nth-child(4),.footer-social a:nth-child(4):hover{background:#FF0000;}
 .footer-h{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:18px;}
 .footer-links{display:flex;flex-direction:column;gap:12px;}
@@ -4469,7 +4469,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
 
       <Footer go={go}/>
 
-      {cartCount > 0 && !cartBarHidden && (
+      {cartCount > 0 && !cartBarHidden && !menuOpen && (
         <div className="cart-bar" role="region" aria-label={uiText("ملخص السلة", "Cart summary")}>
           <div className="cart-bar-summary">
             <span className="cart-bar-label">{uiText("إجمالي السلة", "Cart total")}</span>
