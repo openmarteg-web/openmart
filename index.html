@@ -1148,19 +1148,28 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
   }
   
   .qty-add-row {
-    flex-wrap: wrap; /* تمنع خروج أزرار الكمية والسلة برا الشاشة */
-  }
-
-  .qty-add-row {
-    position: relative;
-    justify-content: space-between;
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr) auto;
+    gap:8px;
+    width:100%;
   }
 
   .qty-add-row .btn-add-cart {
-    position: absolute;
-    left: 50%;
-    width: 56%;
-    transform: translateX(-50%);
+    position:static;
+    width:auto;
+    min-width:0;
+    transform:none;
+    padding-inline:10px;
+    font-size:12px;
+    white-space:nowrap;
+  }
+
+  .qty-add-row .qty-stepper button {
+    width:34px;
+  }
+
+  .qty-add-row .qty-stepper .qty-val {
+    width:28px;
   }
 }
 .pd-rating-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
@@ -1453,8 +1462,8 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 @keyframes cartBarIn{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @media (min-width:761px){
   .cart-bar{
-    inset-inline-start:auto;
-    inset-inline-end:clamp(16px, 4vw, 48px);
+    right:clamp(16px, 4vw, 48px);
+    left:auto;
     bottom:clamp(16px, 3vw, 32px);
     width:min(420px, calc(100vw - 32px));
     padding-inline:clamp(16px, 2vw, 24px);
