@@ -19,6 +19,81 @@
     margin-bottom: 8px !important;
     line-height: 1.8 !important;
 }
+/* أيقونات السوشيال ميديا بألوانها الأصلية في الـ Navbar */
+.nav-social {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: 4px;
+}
+
+.nav-social a {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff !important; /* الأيقونة دائماً باللون الأبيض */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+/* الألوان الرسمية المباشرة لكل منصة */
+.nav-social a.soc-insta {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%) !important;
+}
+
+.nav-social a.soc-fb {
+  background: #1877F2 !important;
+}
+
+.nav-social a.soc-tiktok {
+  background: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-social a.soc-yt {
+  background: #FF0000 !important;
+}
+
+/* تفاعل بسيط وسلس عند الوقوف عليها */
+.nav-social a:hover {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
+}
+
+/* إخفاء الأيقونات في الهيدر على الشاشات الأصغر من 1080px */
+@media (max-width: 1080px) {
+  .nav-social {
+    display: none !important;
+  }
+}
+
+/* السوشيال ميديا في أسفل منيو الموبايل */
+.drawer-social {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 20px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.drawer-social a {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sand);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  transition: all 0.2s ease;
+}
+.drawer-social a.soc-insta { background: #E1306C; color: #fff; }
+.drawer-social a.soc-fb { background: #1877F2; color: #fff; }
+.drawer-social a.soc-tiktok { background: #000; color: #fff; }
+.drawer-social a.soc-yt { background: #FF0000; color: #fff; }
   /* ============ مفتاح تبديل اللغة (Language Switcher) ============ */
 .lang-switch {
   display: inline-flex;
@@ -2367,7 +2442,21 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
             <a className="header-whatsapp" href="https://wa.me/201041397168" target="_blank" rel="noreferrer" aria-label="التواصل عبر واتساب" title="التواصل عبر واتساب">
               <img src="https://cdn.simpleicons.org/whatsapp/25D366" alt="واتساب" />
             </a>
-
+{/* أيقونات السوشيال ميديا للكمبيوتر */}
+            <div className="nav-social">
+              <a href="https://www.instagram.com/openmart_egypt/" target="_blank" rel="noopener noreferrer" className="soc-insta" aria-label="إنستغرام" title="Instagram">
+                <InstaIcon size={16}/>
+              </a>
+              <a href="https://www.facebook.com/openmartegypt" target="_blank" rel="noopener noreferrer" className="soc-fb" aria-label="فيسبوك" title="Facebook">
+                <FbIcon size={16}/>
+              </a>
+              <a href="https://www.tiktok.com/@open.mart.egypt" target="_blank" rel="noopener noreferrer" className="soc-tiktok" aria-label="تيك توك" title="TikTok">
+                <TikTokIcon size={16}/>
+              </a>
+              <a href="https://www.youtube.com/@openmart_Egypt" target="_blank" rel="noopener noreferrer" className="soc-yt" aria-label="يوتيوب" title="YouTube">
+                <YoutubeIcon size={16}/>
+              </a>
+            </div>
             {/* زر سويتش اللغة المضاف */}
             <div className="lang-switch">
               <button 
@@ -2651,6 +2740,21 @@ const links = [["الرئيسية","home"],["المتجر","shop"],["الأكث�
             <a key={label} href="#" onClick={(e)=>{e.preventDefault();go(id);onClose();}}>{label}</a>
           ))}
         </nav>
+        {/* أيقونات السوشيال ميديا في أسفل المنيو للموبايل */}
+        <div className="drawer-social">
+          <a href="https://www.instagram.com/openmart_egypt/" target="_blank" rel="noopener noreferrer" className="soc-insta" aria-label="إنستغرام">
+            <InstaIcon size={16}/>
+          </a>
+          <a href="https://www.facebook.com/openmartegypt" target="_blank" rel="noopener noreferrer" className="soc-fb" aria-label="فيسبوك">
+            <FbIcon size={16}/>
+          </a>
+          <a href="https://www.tiktok.com/@open.mart.egypt" target="_blank" rel="noopener noreferrer" className="soc-tiktok" aria-label="تيك توك">
+            <TikTokIcon size={16}/>
+          </a>
+          <a href="https://www.youtube.com/@openmart_Egypt" target="_blank" rel="noopener noreferrer" className="soc-yt" aria-label="يوتيوب">
+            <YoutubeIcon size={16}/>
+          </a>
+        </div>
         <div className="drawer-foot">
           {user ? (
             <button className="icon-btn" aria-label="حسابك نشط" title="حسابك نشط (اضغط لتسجيل الخروج)" onClick={()=>{requestLogout();onClose();}} style={{padding:0, overflow:"hidden", borderRadius:"50%"}}>
