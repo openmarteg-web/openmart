@@ -2221,8 +2221,8 @@ const safeDescription = value => {
   let text = String(value || "");
   if (!text.trim()) return "";
 
-  // فك أي تشفير مسبق للـ HTML إن وُجد
-  for (let pass = 0; pass < 2 && /&(?:lt|gt|amp|quot|#39|#x27);/i.test(text); pass++) {
+  // فك HTML المشفر فقط، مع الحفاظ على HTML الحقيقي كما هو
+  for (let pass = 0; pass < 2 && /&lt;\s*\/?\s*(?:p|div|br|h[34]|ul|ol|li|strong|b|em|i|a)\b/i.test(text); pass++) {
     text = new DOMParser().parseFromString(text, "text/html").body.textContent || "";
   }
 
