@@ -154,6 +154,8 @@
     td { padding: 14px 12px; border-bottom: 1px solid var(--border); font-size: 13.5px; vertical-align: middle; }
     
     .prod-thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; background: #eee; }
+    .btn-edit { background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; }
+    .btn-edit:hover { background: var(--primary); color: #fff; }
     .btn-delete { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; }
     .btn-delete:hover { background: var(--danger); color: #fff; }
     
@@ -469,25 +471,30 @@
   <div id="categoriesView" class="hidden">
     <div class="grid">
       <div class="card">
-        <h2 class="card-title">إضافة قسم جديد</h2>
+        <h2 class="card-title" id="categoryFormTitle">إضافة قسم جديد</h2>
         <form id="categoryForm">
+          <input type="hidden" id="editing_category_id" value="">
           <div class="form-group">
             <label>اسم القسم بالعربي *</label>
             <input type="text" id="cat_name" required placeholder="مثال: إلكترونيات">
           </div>
           <div class="form-group">
-            <label>معرّف القسم بالإنجليزي (ID) *</label>
-            <input type="text" id="cat_id" required placeholder="مثال: electronics (بدون مسافات)">
+            <label>اسم القسم بالإنجليزي (اختياري)</label>
+            <input type="text" id="cat_name_en" dir="ltr" placeholder="Example: Bathroom">
           </div>
+          <input type="hidden" id="cat_id" value="">
           <div class="form-group">
             <label>صورة القسم *</label>
             <div class="file-upload-box" onclick="document.getElementById('cat_img_file').click()">
-              <input type="file" id="cat_img_file" accept="image/*" required style="display: none;">
+              <input type="file" id="cat_img_file" accept="image/*" style="display: none;">
               <div id="catImgPreviewText" style="color: var(--muted); font-size: 13.5px;">📁 اضغط لاختيار صورة القسم</div>
               <img id="catImgPreview" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin: 10px auto 0; display: none; border: 2px solid var(--primary);">
             </div>
           </div>
-          <button type="submit" class="btn" id="catSubmitBtn">حفظ ونشر القسم</button>
+          <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn" id="catSubmitBtn">حفظ ونشر القسم</button>
+            <button type="button" class="btn hidden" id="cancelCategoryEditBtn" style="background: var(--muted);" onclick="resetCategoryForm()">إلغاء التعديل</button>
+          </div>
         </form>
       </div>
 
@@ -896,7 +903,7 @@
     tbody.innerHTML = categories.map(c => `
       <tr>
         <td><img src="${c.img}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border);"></td>
-        <td><b>${c.name}</b></td>
+        <td><b>${c.name}</b>${c.name_en ? `<div style="font-size: 11.5px; color: var(--muted); font-family: sans-serif;">${c.name_en}</div>` : ''}</td>
         <td style="color: var(--muted); font-family: monospace;">${c.id}</td>
         <td>
           <label style="color: var(--primary); font-size: 12.5px; font-weight: bold; cursor: pointer;">
@@ -905,7 +912,10 @@
           </label>
         </td>
         <td>
-          <button class="btn-delete" onclick="deleteCategory('${c.id}')">حذف</button>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-edit" onclick="editCategory('${c.id}')">تعديل</button>
+            <button class="btn-delete" onclick="deleteCategory('${c.id}')">حذف</button>
+          </div>
         </td>
       </tr>
     `).join('');
@@ -931,38 +941,70 @@
     else loadCategories();
   };
 
+  window.editCategory = async function(catId) {
+    const { data: category, error } = await supabase.from('categories').select('*').eq('id', catId).single();
+    if (error || !category) return alert('تعذر جلب بيانات القسم');
+
+    document.getElementById('editing_category_id').value = category.id;
+    document.getElementById('cat_name').value = category.name || '';
+    document.getElementById('cat_name_en').value = category.name_en || category.nameEn || '';
+    document.getElementById('cat_id').value = category.id || '';
+    catImgInput.required = false;
+    catImgPreview.src = category.img || '';
+    catImgPreview.style.display = category.img ? 'block' : 'none';
+    catImgPreviewText.style.display = category.img ? 'none' : 'block';
+    document.getElementById('categoryFormTitle').innerText = 'تعديل القسم';
+    document.getElementById('catSubmitBtn').innerText = 'حفظ تعديلات القسم';
+    document.getElementById('cancelCategoryEditBtn').classList.remove('hidden');
+    document.getElementById('categoriesView').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  window.resetCategoryForm = function() {
+    categoryForm?.reset();
+    document.getElementById('editing_category_id').value = '';
+    document.getElementById('cat_name_en').value = '';
+    catImgInput.required = true;
+    catImgPreview.src = '';
+    catImgPreview.style.display = 'none';
+    catImgPreviewText.style.display = 'block';
+    document.getElementById('categoryFormTitle').innerText = 'إضافة قسم جديد';
+    document.getElementById('catSubmitBtn').innerText = 'حفظ ونشر القسم';
+    document.getElementById('cancelCategoryEditBtn').classList.add('hidden');
+  };
+
   const categoryForm = document.getElementById('categoryForm');
   if (categoryForm) {
     categoryForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('catSubmitBtn');
+      const editId = document.getElementById('editing_category_id').value;
       const file = catImgInput.files[0];
-      if (!file) return alert('اختر صورة للقسم');
+      if (!editId && !file) return alert('اختر صورة للقسم');
 
       btn.disabled = true;
       btn.innerText = 'جاري ضغط ورفع الصورة...';
 
       try {
-        const urls = await uploadImages([file]);
         const newCat = {
           name: document.getElementById('cat_name').value.trim(),
-          id: document.getElementById('cat_id').value.trim().toLowerCase().replace(/\s+/g, '-'),
-          img: urls[0]
+          name_en: document.getElementById('cat_name_en').value.trim() || null,
+          id: editId || (document.getElementById('cat_name_en').value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `category-${Date.now()}`)
         };
+        if (file) newCat.img = (await uploadImages([file]))[0];
 
-        const { error } = await supabase.from('categories').insert([newCat]);
+        const { error } = editId
+          ? await supabase.from('categories').update(newCat).eq('id', editId)
+          : await supabase.from('categories').insert([newCat]);
         if (error) throw error;
 
-        categoryForm.reset();
-        catImgPreview.style.display = 'none';
-        catImgPreviewText.style.display = 'block';
-        alert('تمت إضافة القسم بنجاح!');
+        resetCategoryForm();
+        alert(editId ? 'تم تحديث القسم بنجاح!' : 'تمت إضافة القسم بنجاح!');
         loadCategories();
       } catch (err) {
         alert('حدث خطأ: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerText = 'حفظ ونشر القسم';
+        btn.innerText = document.getElementById('editing_category_id').value ? 'حفظ تعديلات القسم' : 'حفظ ونشر القسم';
       }
     });
   }

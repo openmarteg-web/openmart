@@ -1833,7 +1833,10 @@ window.fetchCategoriesFromDB = async function() {
     try {
       const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: true });
       if (error) throw error;
-      return data || [];
+      return (data || []).map(category => ({
+        ...category,
+        name_en: String(category.name_en ?? category.nameEn ?? "").trim()
+      }));
     } catch (e) {
       console.error(e);
       return [];
@@ -1859,7 +1862,7 @@ window.fetchCategoriesFromDB = async function() {
     return (data || []).map(item => ({
       id: item.id,
       name: item.name,
-      name_en: item.name_en || "",
+      name_en: String(item.name_en ?? item.nameEn ?? "").trim(),
       price: Number(item.price),
       cat: item.cat,
       categories: Array.isArray(item.categories) ? item.categories : (item.cat ? [item.cat] : []),
@@ -2183,7 +2186,10 @@ const SHIPPING_ZONES = [
 const isEnglish = () => activeLanguage === "en" || localStorage.getItem("openmart_lang") === "en";
 const zoneName = zone => isEnglish() ? (zone?.nameEn || zone?.name) : zone?.name;
 const zoneTime = zone => isEnglish() ? (zone?.timeEn || zone?.time) : zone?.time;
-const productName = product => activeLanguage === "en" && product?.name_en ? product.name_en : product?.name;
+const productName = product => {
+  const englishName = String(product?.name_en ?? product?.nameEn ?? "").trim();
+  return activeLanguage === "en" && englishName ? englishName : product?.name;
+};
 const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
 const optionText = value => {
   if (activeLanguage !== "en" || value === null || value === undefined) return value;
@@ -2208,6 +2214,9 @@ const localizedOption = value => {
   if (activeLanguage !== "en" || value === null || value === undefined) return value;
   return UI_TRANSLATIONS[value] || optionText(value);
 };
+const categoryName = category => activeLanguage === "en" && category?.name_en
+  ? category.name_en
+  : localizedOption(category?.name);
 const safeDescription = value => {
   let text = String(value || "");
   if (!text.trim()) return "";
@@ -2915,8 +2924,8 @@ function CategoryRow({go, setCatFilter, categories}){
       <div className="cat-row">
         {list.map(c=>(
           <a href="#" className="cat-card" key={c.id} onClick={(e)=>{e.preventDefault();setCatFilter(c.id);go("shop");}}>
-            <div className="cat-circle"><img src={c.img} alt={localizedOption(c.name)}/></div>
-            <span className="cat-name">{localizedOption(c.name)}</span>
+            <div className="cat-circle"><img src={c.img} alt={categoryName(c)}/></div>
+            <span className="cat-name">{categoryName(c)}</span>
           </a>
         ))}
       </div>
@@ -3094,7 +3103,7 @@ return (
             {currentCats.map(c=>(
               <label key={c.id} className={"filter-opt"+(selectedCats.includes(c.id)?" checked":"")} onClick={()=>{toggleCat(c.id);setPage(1);}}>
                 <span className="chk">{selectedCats.includes(c.id) && <CheckIcon size={12}/>}</span>
-                {c.name}<span className="fcount">{catCounts[c.id]}</span>
+                {categoryName(c)}<span className="fcount">{catCounts[c.id]}</span>
               </label>
             ))}
           </div>
@@ -3251,7 +3260,7 @@ function ReviewsList({ productId }) {
     </div>
   );
 }
-function ProductPage({productId, go, wishlist, toggleWish, addToCart, onBuyNow, products}){
+function ProductPage({productId, go, wishlist, toggleWish, addToCart, onBuyNow, products, categories}){
   const product = products.find(p=>String(p.id)===String(productId));
 const [imgIdx, setImgIdx] = useState(0);
   const [color, setColor] = useState(0);
@@ -3510,7 +3519,7 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
           {tab==="specs" && (
             <ul style={{margin:0,paddingLeft:18,display:"flex",flexDirection:"column",gap:8}}>
               {product.brand?.trim() && <li>{uiText("العلامة التجارية:", "Brand:")} {localizedOption(product.brand)}</li>}
-              {productCategories(product).length > 0 && <li>{uiText("القسم:", "Category:")} {productCategories(product).map(category => localizedOption(CATEGORIES.find(c=>c.id===category)?.name)).filter(Boolean).join(activeLanguage === "en" ? ", " : "، ")}</li>}
+              {productCategories(product).length > 0 && <li>{uiText("القسم:", "Category:")} {productCategories(product).map(category => categoryName((categories || CATEGORIES).find(c=>c.id===category))).filter(Boolean).join(activeLanguage === "en" ? ", " : "، ")}</li>}
               {Array.isArray(product.colors) && product.colors.length > 0 && <li>{uiText("الألوان المتاحة:", "Available colors:")} {product.colors.length}</li>}
               {Array.isArray(product.sizes) && product.sizes.length > 0 && <li>{uiText("المقاسات المتاحة:", "Available sizes:")} {product.sizes.map(optionText).join(", ")}</li>}
             </ul>
@@ -4520,7 +4529,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
 {page==="home" && <HomePage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} onBuyNow={buyNowDirect} setCatFilter={setCatFilter} products={products} categories={categories}/>}
 {page==="shop" && <ShopPage go={go} wishlist={wishlist} toggleWish={toggleWish} quickAdd={quickAdd} onBuyNow={buyNowDirect} catFilter={catFilter} setCatFilter={setCatFilter} search={search} products={products} categories={categories}/>}
 
-{page==="product" && <ProductPage productId={productId} go={go} wishlist={wishlist} toggleWish={toggleWish} addToCart={addToCart} onBuyNow={buyNowDirect} products={products}/>}
+{page==="product" && <ProductPage productId={productId} go={go} wishlist={wishlist} toggleWish={toggleWish} addToCart={addToCart} onBuyNow={buyNowDirect} products={products} categories={categories}/>} 
 {page === "wishlist" && (
   <WishlistPage 
     wishlist={wishlist} 
