@@ -1396,21 +1396,27 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 .checkout-layout .field select {
   appearance: none;
   -webkit-appearance: none;
-  padding-left: 42px;
+  padding-inline-start: 14px;
+  padding-inline-end: 42px;
 }
 .select-wrap {
   position: relative;
 }
 .select-wrap::after {
-  content: "˅";
+  content: "";
   position: absolute;
   left: 15px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #2563EB;
+  border-bottom: 2px solid #2563EB;
   top: 50%;
-  transform: translateY(-58%);
-  color: var(--ink-soft);
-  font-size: 18px;
-  line-height: 1;
+  transform: translateY(-65%) rotate(45deg);
   pointer-events: none;
+}
+html[dir="ltr"] .select-wrap::after {
+  left: auto;
+  right: 15px;
 }
 .field-error {
   color: var(--coral-deep);
@@ -2138,25 +2144,29 @@ const translateRenderedUi = () => {
   const translations = activeLanguage === "en"
     ? UI_TRANSLATIONS
     : Object.fromEntries(Object.entries(UI_TRANSLATIONS).map(([arabic, english]) => [english, arabic]));
+  const englishToArabic = Object.fromEntries(Object.entries(UI_TRANSLATIONS).map(([arabic, english]) => [english, arabic]));
   const excluded = ".pcard-name, .pcard-brand, .pd-title, .pd-brand, .pd-desc, .pd-tab-panel, .co-mini-item .n";
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(node => {
     if (node.parentElement.closest(`script, style, ${excluded}`)) return;
-    const original = node.__translationOriginal || node.nodeValue;
-    node.__translationOriginal = original;
+    const currentText = node.nodeValue;
+    const currentTrimmed = currentText.trim();
+    const original = node.__translationArabic || englishToArabic[currentTrimmed] || currentText;
+    node.__translationArabic = original;
     const trimmed = original.trim();
     if (!trimmed) return;
     const translated = translations[trimmed];
-    if (translated) node.nodeValue = original.replace(trimmed, translated);
+    if (translated) node.nodeValue = currentText.replace(currentTrimmed, translated);
   });
 
   document.querySelectorAll("input, textarea, [title], [aria-label], img[alt]").forEach(element => {
     ["placeholder", "title", "aria-label", "alt"].forEach(attribute => {
       if (!element.hasAttribute(attribute)) return;
       const key = `translation${attribute.replace(/-/g, "_")}`;
-      const original = element.dataset[key] || element.getAttribute(attribute);
+      const currentValue = element.getAttribute(attribute);
+      const original = element.dataset[key] || englishToArabic[currentValue.trim()] || currentValue;
       element.dataset[key] = original;
       const translated = translations[original.trim()];
       if (translated) element.setAttribute(attribute, translated);
@@ -2206,7 +2216,7 @@ const SHIPPING_ZONES = [
   { name: "محافظات الصعيد", nameEn: "Upper Egypt Governorates", price: 110, time: "2-4 أيام", timeEn: "2-4 days" },
   { name: "المناطق الحدودية (شرم - الغردقة - مطروح - الساحل - السخنة)", nameEn: "Border areas (Sharm El Sheikh - Hurghada - Matrouh - North Coast - Ain Sokhna)", price: 180, time: "3-6 أيام", timeEn: "3-6 days" }
 ];
-const isEnglish = () => activeLanguage === "en" || localStorage.getItem("openmart_lang") === "en";
+const isEnglish = () => activeLanguage === "en";
 const zoneName = zone => isEnglish() ? (zone?.nameEn || zone?.name) : zone?.name;
 const zoneTime = zone => isEnglish() ? (zone?.timeEn || zone?.time) : zone?.time;
 const productName = product => {
@@ -3918,8 +3928,8 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
         <div className="empty-state">
           <div className="icon-circle"><BagIcon size={38}/></div>
           <h2 style={{fontSize: 24, marginBottom: 10}}>{headingText("السلة فارغة", "Your cart is empty")}</h2>
-          <p style={{color: "var(--ink-soft)", marginBottom: 26}}>يرجى اختيار منتجات أولاً قبل إتمام الطلب.</p>
-          <button className="btn btn-primary btn-lg" onClick={() => go("shop")}>تصفح المتجر</button>
+          <p style={{color: "var(--ink-soft)", marginBottom: 26}}>{uiText("يرجى اختيار منتجات أولاً قبل إتمام الطلب.", "Please choose products before checking out.")}</p>
+          <button className="btn btn-primary btn-lg" onClick={() => go("shop")}>{uiText("تصفح المتجر", "Browse shop")}</button>
         </div>
       </div>
     );
@@ -3931,7 +3941,7 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
         <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
           <div>
             <div className="breadcrumb">
-              <a href="#" onClick={(e) => { e.preventDefault(); go("home"); }}>الرئيسية</a> / <a href="#" onClick={(e) => { e.preventDefault(); go("cart"); }}>السلة</a> / <span>بيانات التوصيل</span>
+                <a href="#" onClick={(e) => { e.preventDefault(); go("home"); }}>{uiText("الرئيسية", "Home")}</a> / <a href="#" onClick={(e) => { e.preventDefault(); go("cart"); }}>{uiText("السلة", "Cart")}</a> / <span>{uiText("بيانات التوصيل", "Delivery details")}</span>
             </div>
             <h1 className="page-title">{headingText("إتمام الطلب عبر واتساب", "Checkout via WhatsApp")}</h1>
           </div>
@@ -3940,7 +3950,7 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
             className="btn btn-outline"
             style={{padding: "8px 14px", fontSize: "13px", gap: "4px"}}
           >
-            <ChevronRight size={16} /> الرئيسية
+            <ChevronRight size={16} /> {uiText("الرئيسية", "Home")}
           </button>
         </div>
       </div>
@@ -3949,14 +3959,14 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
         <form onSubmit={handleSubmit}>
           <div className="co-section">
             <div className="co-section-title">
-              <span className="co-num">1</span> تفاصيل العميل والتوصيل
+              <span className="co-num">1</span> {uiText("تفاصيل العميل والتوصيل", "Customer and delivery details")}
             </div>
 
             <div className="field">
-              <label>المحافظة / منطقة التوصيل *</label>
+              <label>{uiText("المحافظة / منطقة التوصيل *", "Governorate / delivery area *")}</label>
               <div className="select-wrap">
                 <select value={selectedZone?.name || ""} onChange={handleZoneChange}>
-                  <option value="">اختر المحافظة أو المنطقة</option>
+                  <option value="">{uiText("اختر المحافظة أو المنطقة", "Choose a governorate or area")}</option>
                   {SHIPPING_ZONES.map(zone => (
                     <option key={zone.name} value={zone.name}>{zoneName(zone)} - {money(zone.price)}</option>
                   ))}
@@ -3965,22 +3975,22 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
             </div>
             
             <div className="field">
-              <label>الاسم ثلاثي *</label>
-              <input required value={name} onChange={e => setName(e.target.value)} placeholder="اكتب اسمك الكريم" />
+              <label>{uiText("الاسم ثلاثي *", "Full name *")}</label>
+              <input required value={name} onChange={e => setName(e.target.value)} placeholder={uiText("اكتب اسمك الكريم", "Enter your name")} />
             </div>
 
             <div className="field">
-              <label>رقم هاتف الواتساب *</label>
+              <label>{uiText("رقم هاتف الواتساب *", "WhatsApp number *")}</label>
               <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="01X XXXX XXXX" />
             </div>
 
             <div className="field">
-              <label>عنوان التوصيل بالتفصيل *</label>
-              <textarea required rows="3" value={address} onChange={e => setAddress(e.target.value)} style={{padding: "12px", border: "1.5px solid var(--line)", borderRadius: "12px", fontFamily: "inherit", fontSize: "14.5px", outline: "none"}} placeholder="المحافظة، المدينة، اسم الشارع، رقم العمارة والشقة..."></textarea>
+              <label>{uiText("عنوان التوصيل بالتفصيل *", "Full delivery address *")}</label>
+              <textarea required rows="3" value={address} onChange={e => setAddress(e.target.value)} style={{padding: "12px", border: "1.5px solid var(--line)", borderRadius: "12px", fontFamily: "inherit", fontSize: "14.5px", outline: "none"}} placeholder={uiText("المحافظة، المدينة، اسم الشارع، رقم العمارة والشقة...", "Governorate, city, street, building and apartment number...")}></textarea>
             </div>
 
             <div className="field">
-              <label>ملاحظات إضافية (اختياري)</label>
+              <label>{uiText("ملاحظات إضافية (اختياري)", "Additional notes (optional)")}</label>
               <input value={notes} onChange={e => setNotes(e.target.value)} placeholder={uiText("أي تعليمات خاصة للمندوب أو الطلب", "Any special instructions for the courier or order")} />
             </div>
 
@@ -3995,7 +4005,7 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
 
             {missingFields.length > 0 && (
               <div className="field-error" role="alert">
-                يرجى استكمال: {missingFields.join("، ")}
+                {uiText("يرجى استكمال:", "Please complete:")} {missingFields.map(field => uiText(field, UI_TRANSLATIONS[field] || field)).join(activeLanguage === "en" ? ", " : "، ")}
               </div>
             )}
           </div>
@@ -4014,11 +4024,11 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
               <span className="p mono">{money((item.product?.price || 0) * item.qty)}</span>
             </div>
           ))}
-          <div className="summary-row" style={{marginTop: 10}}><span>المجموع الفرعي</span><span className="mono">{money(subtotal)}</span></div>
-          <div className="summary-row"><span>الشحن</span><span className="mono">{selectedZone ? money(shippingCost) : uiText("لم يتم التحديد", "Not selected")}</span></div>
+          <div className="summary-row" style={{marginTop: 10}}><span>{uiText("المجموع الفرعي", "Subtotal")}</span><span className="mono">{money(subtotal)}</span></div>
+          <div className="summary-row"><span>{uiText("الشحن", "Shipping")}</span><span className="mono">{selectedZone ? money(shippingCost) : uiText("لم يتم التحديد", "Not selected")}</span></div>
           {appliedCoupon && <div className="summary-row"><span>{uiText("الخصم", "Discount")} ({appliedCoupon.code})</span><span className="mono">-{money(discount)}</span></div>}
-          <div className="summary-row total"><span>الإجمالي المطلوب</span><span className="mono">{money(total)}</span></div>
-          <div className="trust-row"><ShieldIcon size={15}/> الدفع عند الاستلام نقداً</div>
+          <div className="summary-row total"><span>{uiText("الإجمالي المطلوب", "Total due")}</span><span className="mono">{money(total)}</span></div>
+          <div className="trust-row"><ShieldIcon size={15}/> {uiText("الدفع عند الاستلام نقداً", "Cash on delivery")}</div>
         </div>
       </div>
     </>
