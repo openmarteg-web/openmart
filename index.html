@@ -416,6 +416,20 @@ html {
 .btn-ghost:hover{background:var(--sand-deep);}
 .btn-block{width:100%;}
 .btn-lg{padding:16px 32px;font-size:16px;}
+.checkout-submit{
+  min-width:0;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  flex-direction:column;
+  gap:2px;
+  text-align:center;
+}
+.checkout-submit .checkout-label,
+.checkout-submit .checkout-total{
+  max-width:100%;
+  overflow-wrap:anywhere;
+  white-space:normal;
+}
 .btn:disabled{opacity:.45;cursor:not-allowed;transform:none !important;}
 
 .icon-btn{
@@ -499,8 +513,17 @@ html[lang="ar"] .footer-brand-word {
     gap:1px;
     min-width:0;
   }
-  .header-actions > .icon-btn[aria-label="بحث"]{
-    display:none !important;
+  .logo-mark img{
+    width:36px !important;
+    height:36px !important;
+  }
+  .header-whatsapp{
+    width:30px;
+    height:30px;
+  }
+  .header-whatsapp img{
+    width:17px;
+    height:17px;
   }
   .header-actions .icon-btn,
   .hamburger{
@@ -524,6 +547,55 @@ html[lang="ar"] .footer-brand-word {
   }
   .lang-btn .flag-icon{
     font-size:11px;
+  }
+}
+
+@media (max-width:360px){
+  .header-inner{
+    gap:3px;
+    padding-inline:8px;
+  }
+  .header-actions{
+    gap:0;
+  }
+  .header-inner{
+    padding-inline:6px;
+  }
+  .logo-mark img{
+    width:30px !important;
+    height:30px !important;
+  }
+  .header-whatsapp{
+    width:26px;
+    height:26px;
+  }
+  .header-whatsapp img{
+    width:15px;
+    height:15px;
+  }
+  .lang-btn{
+    padding-inline:4px;
+    font-size:9px;
+  }
+  .lang-btn .flag-icon{
+    display:none;
+  }
+  .header-actions .icon-btn,
+  .hamburger{
+    width:28px;
+    height:28px;
+  }
+  .header-actions .icon-btn svg,
+  .hamburger svg{
+    width:15px;
+    height:15px;
+  }
+  .header-actions > :nth-child(5){
+    width:28px !important;
+  }
+  .header-actions > :nth-child(5) .icon-btn{
+    width:28px !important;
+    height:28px !important;
   }
 }
 
@@ -1510,9 +1582,24 @@ html[dir="ltr"] .select-wrap::after {
 
   .checkout-layout form > .btn {
     width: 100%;
+    min-width: 0;
     white-space: normal;
-    line-height: 1.5;
-    padding-inline: 16px;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+    font-size: 14px;
+    padding: 12px 10px;
+  }
+
+  .checkout-submit {
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .checkout-submit .checkout-label,
+  .checkout-submit .checkout-total {
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -4023,8 +4110,9 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
             )}
           </div>
 
-          <button type="submit" className="btn btn-coral btn-block btn-lg" style={{background: "#25D366", borderColor: "#25D366"}}>
-            {uiText("تأكيد الطلب والمتابعة عبر واتساب", "Confirm order and continue via WhatsApp")} ← ({money(total)})
+          <button type="submit" className="btn btn-coral btn-block btn-lg checkout-submit" style={{background: "#25D366", borderColor: "#25D366"}}>
+            <span className="checkout-label">{uiText("تأكيد الطلب والمتابعة عبر واتساب", "Confirm order and continue via WhatsApp")}</span>
+            <span className="checkout-total">← ({money(total)})</span>
           </button>
         </form>
 
