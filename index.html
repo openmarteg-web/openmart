@@ -1746,7 +1746,8 @@ html[dir="ltr"] .select-wrap::after {
 /* misc */
 .pill-badge{display:inline-flex;align-items:center;gap:6px;background:var(--peach-pale);color:var(--peach-deep);font-weight:800;font-size:11.5px;padding:5px 12px;border-radius:var(--r-pill);text-transform:uppercase;letter-spacing:.04em;}
 .divider{height:1px;background:var(--line-soft);border:none;margin:0;}
-.fade-in{animation:fadeIn .5s var(--ease);}
+.fade-in{opacity:0;}
+.fade-in.is-visible{animation:fadeIn .5s var(--ease) both;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 /* ظهور كروت المنتجات بالتتابع بدل ظهورها كلها في نفس اللحظة */
 .grid-4 > .pcard.fade-in,
@@ -1758,6 +1759,7 @@ html[dir="ltr"] .select-wrap::after {
   .grid-3 > .pcard.fade-in{
     animation:none;
   }
+  .fade-in.is-visible{opacity:1;}
 }
 /* سطر السعر منفصل بالأعلى */
 .pcard-price-row {
@@ -2505,8 +2507,29 @@ const Stars = ({rating, size=13}) => {
 const Badge = ({type}) => type ? <span className={"pcard-tag " + ((type === "Sale" || type === "تخفيض") ? "sale" : "new")}>{activeLanguage === "en" ? (type === "تخفيض" || type === "Sale" ? "Sale" : type === "جديد" || type === "New" ? "New" : type) : (type === "Sale" ? "تخفيض" : type === "New" ? "جديد" : type)}</span> : null;
 
 function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow, index = 0}){
+  const cardRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
   const hasStockLimit = p.stock_quantity !== null && p.stock_quantity !== undefined;
   const isOutOfStock = hasStockLimit && Number(p.stock_quantity) <= 0;
+
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card || !window.IntersectionObserver) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        observer.unobserve(card);
+      }
+    }, {threshold: 0.12, rootMargin: "0px 0px -40px"});
+
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
+
   const shareProduct = async (event) => {
     event.stopPropagation();
     const shareUrl = `${window.location.origin}${window.location.pathname}?product=${encodeURIComponent(p.id)}`;
@@ -2527,7 +2550,7 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow, index = 0
   };
 
   return (
-    <div className="pcard fade-in" style={{"--card-index": index}}>
+    <div ref={cardRef} className={`pcard fade-in${isVisible ? " is-visible" : ""}`} style={{"--card-index": index}}>
       <div className={`pcard-media${isOutOfStock ? " is-out-of-stock" : ""}`} onClick={()=>onOpen(p.id)}>
         {/* شارة المنتج إن وجدت، أو يظهر مؤشر الضغط للتفاصيل */}
         {p.badge ? <Badge type={p.badge}/> : null}
