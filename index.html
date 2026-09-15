@@ -2206,6 +2206,19 @@ const getCachedProducts = () => {
 
 
 const money = n => n.toLocaleString(activeLanguage === "en" ? "en-US" : "EN-EG") + (activeLanguage === "en" ? " EGP" : " ج.م");
+const formatOrderDate = order => {
+  if (order.createdAt) {
+    return new Date(order.createdAt).toLocaleDateString(activeLanguage === "en" ? "en-US" : "ar-EG", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+  if (activeLanguage !== "en" || !order.date) return order.date;
+  const englishMonths = { "يناير": "Jan", "فبراير": "Feb", "مارس": "Mar", "أبريل": "Apr", "مايو": "May", "يونيو": "Jun", "يوليو": "Jul", "أغسطس": "Aug", "سبتمبر": "Sep", "أكتوبر": "Oct", "نوفمبر": "Nov", "ديسمبر": "Dec" };
+  return String(order.date)
+    .replace(/[٠-٩]/g, digit => "٠١٢٣٤٥٦٧٨٩".indexOf(digit))
+    .replace(/يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر/g, month => englishMonths[month])
+    .replace("،", ",")
+    .replace(/ م$/, " PM")
+    .replace(/ ص$/, " AM");
+};
 const SHIPPING_ZONES = [
   { name: "القاهرة والجيزة", nameEn: "Cairo and Giza", price: 75, time: "خلال 24-48 ساعة", timeEn: "Within 24-48 hours" },
   { name: "المدن الجديدة (التجمعات - الرحاب - مدينتي - الشروق - أكتوبر - زايد - حلوان)", nameEn: "New cities (New Cairo - Rehab - Madinaty - Shorouk - October - Zayed - Helwan)", price: 87, time: "24-72 ساعة", timeEn: "24-72 hours" },
@@ -2674,10 +2687,10 @@ function OrdersPage({orders, go, user}) {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'processing': return { text: '📦 جاري تجهيز الطلب', bg: '#FEF3C7', color: '#B45309' };
-      case 'completed': return { text: '✅ تم التوصيل', bg: '#D1FAE5', color: '#065F46' };
-      case 'cancelled': return { text: '❌ تم الإلغاء', bg: '#FEE2E2', color: '#991B1B' };
-      default: return { text: '⏳ تم استلام الطلب', bg: 'var(--periwinkle-pale)', color: 'var(--periwinkle-deep)' };
+      case 'processing': return { text: uiText('📦 جاري تجهيز الطلب', '📦 Processing order'), bg: '#FEF3C7', color: '#B45309' };
+      case 'completed': return { text: uiText('✅ تم التوصيل', '✅ Delivered'), bg: '#D1FAE5', color: '#065F46' };
+      case 'cancelled': return { text: uiText('❌ تم الإلغاء', '❌ Cancelled'), bg: '#FEE2E2', color: '#991B1B' };
+      default: return { text: uiText('⏳ تم استلام الطلب', '⏳ Order received'), bg: 'var(--periwinkle-pale)', color: 'var(--periwinkle-deep)' };
     }
   };
 
@@ -2686,9 +2699,9 @@ function OrdersPage({orders, go, user}) {
       <div className="wrap">
         <div className="empty-state">
           <div className="icon-circle"><UserIcon size={38}/></div>
-          <h2 style={{fontSize:24, marginBottom:10}}>سجل الدخول للاطلاع على طلباتك السابقة</h2>
-          <p style={{color:"var(--ink-soft)", marginBottom:26}}>يجب تسجيل الدخول لعرض الطلبات المرتبطة بحسابك.</p>
-          <button className="btn btn-primary btn-lg" onClick={()=>go("auth")}>تسجيل الدخول</button>
+          <h2 style={{fontSize:24, marginBottom:10}}>{uiText("سجل الدخول للاطلاع على طلباتك السابقة", "Log in to view your previous orders")}</h2>
+          <p style={{color:"var(--ink-soft)", marginBottom:26}}>{uiText("يجب تسجيل الدخول لعرض الطلبات المرتبطة بحسابك.", "You must log in to view orders linked to your account.")}</p>
+          <button className="btn btn-primary btn-lg" onClick={()=>go("auth")}>{uiText("تسجيل الدخول", "Log in")}</button>
         </div>
       </div>
     );
@@ -2700,8 +2713,8 @@ function OrdersPage({orders, go, user}) {
         <div className="empty-state">
           <div className="icon-circle"><TruckIcon size={38}/></div>
           <h2 style={{fontSize:24, marginBottom:10}}>{headingText("لا توجد طلبات سابقة")}</h2>
-          <p style={{color:"var(--ink-soft)", marginBottom:26}}>لم تقم بإجراء أي طلبات حتى الآن.</p>
-          <button className="btn btn-primary btn-lg" onClick={()=>go("shop")}>تسوق الآن</button>
+          <p style={{color:"var(--ink-soft)", marginBottom:26}}>{uiText("لم تقم بإجراء أي طلبات حتى الآن.", "You have not placed any orders yet.")}</p>
+          <button className="btn btn-primary btn-lg" onClick={()=>go("shop")}>{uiText("تسوق الآن", "Shop now")}</button>
         </div>
       </div>
     );
@@ -2713,7 +2726,7 @@ function OrdersPage({orders, go, user}) {
         <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
           <div>
             <div className="breadcrumb">
-              <a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>الرئيسية</a> / <span>طلباتي السابقة</span>
+              <a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>{uiText("الرئيسية", "Home")}</a> / <span>{uiText("طلباتي السابقة", "My orders")}</span>
             </div>
             <h1 className="page-title">{headingText("سجل الطلبات")}</h1>
           </div>
@@ -2722,7 +2735,7 @@ function OrdersPage({orders, go, user}) {
             className="btn btn-outline"
             style={{padding: "8px 14px", fontSize: "13px", gap: "4px"}}
           >
-            <ChevronRight size={16} /> الرئيسية
+            <ChevronRight size={16} /> {uiText("الرئيسية", "Home")}
           </button>
         </div>
       </div>
@@ -2740,8 +2753,8 @@ function OrdersPage({orders, go, user}) {
               }}>
                 <div style={{display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--line-soft)", paddingBottom: "12px", marginBottom: "16px", flexWrap: "wrap", gap: "10px"}}>
                   <div>
-                    <div style={{fontWeight: 800, fontSize: "16px"}}>طلب رقم #{order.id}</div>
-                    <div style={{fontSize: "12.5px", color: "var(--ink-faint)"}}>{order.date}</div>
+                    <div style={{fontWeight: 800, fontSize: "16px"}}>{uiText("طلب رقم", "Order #")} {order.id}</div>
+                    <div style={{fontSize: "12.5px", color: "var(--ink-faint)"}}>{formatOrderDate(order)}</div>
                   </div>
                   <div style={{textAlign: "left"}}>
                     <span className="pill-badge" style={{background: badge.bg, color: badge.color}}>
@@ -2757,7 +2770,7 @@ function OrdersPage({orders, go, user}) {
                       <img src={item.product.img} alt={item.product.name} style={{width: 50, height: 50, borderRadius: 8, objectFit: "cover"}}/>
                       <div style={{flex: 1}}>
                         <div style={{fontWeight: 700, fontSize: "14px"}}>{productName(item.product)}</div>
-                        <div style={{fontSize: "12px", color: "var(--ink-faint)"}}>الكمية: {item.qty} × {money(item.product.price)}</div>
+                        <div style={{fontSize: "12px", color: "var(--ink-faint)"}}>{uiText("الكمية:", "Quantity:")} {item.qty} × {money(item.product.price)}</div>
                       </div>
                     </div>
                   ))}
@@ -4525,6 +4538,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       const newOrder = {
         id: savedDbOrder ? savedDbOrder.id : Date.now().toString().slice(-6),
         userId: user?.id || null,
+        createdAt: new Date().toISOString(),
         date: new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
         items: [...cart],
         total: totalAmount,
@@ -4534,27 +4548,54 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
 
       setOrders(prev => [newOrder, ...prev]);
 
-      // تجهيز رسالة الواتساب المنسقة
-      let msg = "مرحباً، أود إتمام هذا الطلب (دفع عند الاستلام):%0A%0A";
-      msg += `👤 *الاسم:* ${customer.name}%0A`;
-      msg += `📞 *الموبايل:* ${customer.phone}%0A`;
-      msg += `📍 *العنوان:* ${customer.address}%0A`;
+      // Build the message as plain text, then encode it once for the WhatsApp URL.
+      const orderText = activeLanguage === "en"
+        ? {
+            greeting: "Hello, I would like to place this order (cash on delivery):",
+            name: "Name",
+            phone: "Phone",
+            address: "Address",
+            notes: "Notes",
+            products: "Products details",
+            quantity: "Quantity",
+            color: "Color",
+            size: "Size",
+            price: "Price",
+            total: "Final total"
+          }
+        : {
+            greeting: "مرحباً، أود إتمام هذا الطلب (دفع عند الاستلام):",
+            name: "الاسم",
+            phone: "الموبايل",
+            address: "العنوان",
+            notes: "ملاحظات",
+            products: "تفاصيل المنتجات",
+            quantity: "الكمية",
+            color: "اللون",
+            size: "المقاس",
+            price: "السعر",
+            total: "الإجمالي النهائي"
+          };
+      let msg = `${orderText.greeting}\n\n`;
+      msg += `👤 *${orderText.name}:* ${customer.name}\n`;
+      msg += `📞 *${orderText.phone}:* ${customer.phone}\n`;
+      msg += `📍 *${orderText.address}:* ${customer.address}\n`;
       if (customer.notes) {
-        msg += `📝 *ملاحظات:* ${customer.notes}%0A`;
+        msg += `📝 *${orderText.notes}:* ${customer.notes}\n`;
       }
-      msg += `%0A🛒 *تفاصيل المنتجات:*%0A`;
+      msg += `\n🛒 *${orderText.products}:*\n`;
       cart.forEach((item, idx) => {
-        msg += `${idx + 1}. ${productName(item.product)}%0A`;
-        msg += `   - الكمية: ${item.qty}%0A`;
-        if (item.variant && item.variant.color) msg += `   - اللون: ${item.variant.color}%0A`;
-        if (item.variant && item.variant.size) msg += `   - المقاس: ${item.variant.size}%0A`;
-        msg += `   - السعر: ${item.product.price * item.qty} ج.م%0A`;
+        msg += `${idx + 1}. ${productName(item.product)}\n`;
+        msg += `   - ${orderText.quantity}: ${item.qty}\n`;
+        if (item.variant && item.variant.color) msg += `   - ${orderText.color}: ${item.variant.color}\n`;
+        if (item.variant && item.variant.size) msg += `   - ${orderText.size}: ${item.variant.size}\n`;
+        msg += `   - ${orderText.price}: ${item.product.price * item.qty} ${activeLanguage === "en" ? "EGP" : "ج.م"}\n`;
       });
-      msg += `%0A💰 *الإجمالي النهائي:* ${totalAmount} ج.م`;
+      msg += `\n💰 *${orderText.total}:* ${totalAmount} ${activeLanguage === "en" ? "EGP" : "ج.م"}`;
 
       // تفريغ السلة وتوجيه العميل مباشرة للرقم المطلوب
       setCart([]);
-      window.open(`https://wa.me/201041397168?text=${msg}`, '_blank');
+      window.open(`https://wa.me/201041397168?text=${encodeURIComponent(msg)}`, '_blank');
       go("orders");
     } catch (error) {
       console.error(error);
