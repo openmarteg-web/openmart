@@ -1500,17 +1500,17 @@ html[dir="ltr"] .select-wrap::after {
   border-radius: 10px;
   background: var(--coral-pale);
 }
-}
 
 @media (max-width: 600px) {
   .wrap {
     width: 100%;
-    padding-inline: 16px;
+    padding-inline: 20px;
+    box-sizing: border-box;
   }
 
   .page-head > .wrap,
   .checkout-layout {
-    width: calc(100% - 32px);
+    width: calc(100% - 40px);
     margin-inline: auto;
     padding-inline: 0;
   }
@@ -1522,6 +1522,47 @@ html[dir="ltr"] .select-wrap::after {
   .page-head .wrap {
     gap: 16px;
     flex-wrap: wrap;
+  }
+
+  .cart-item {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+
+  .cart-item img {
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+  }
+
+  .cart-item > div,
+  .cart-item-name,
+  .cart-item-meta {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .cart-item-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .cart-item-right {
+    grid-column: 2;
+    grid-row: 2;
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  .cart-remove {
+    white-space: normal;
   }
 
   .page-title {
@@ -1600,6 +1641,27 @@ html[dir="ltr"] .select-wrap::after {
   .checkout-submit .checkout-total {
     max-width: 100%;
     overflow-wrap: anywhere;
+  }
+
+  .cart-layout,
+  .cart-layout > div,
+  .cart-item {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .cart-item-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, max-content);
+    width: 100% !important;
+    min-width: 0;
+  }
+
+  .cart-item-right {
+    min-width: 0;
+    width: 100%;
   }
 }
 
@@ -1686,6 +1748,17 @@ html[dir="ltr"] .select-wrap::after {
 .divider{height:1px;background:var(--line-soft);border:none;margin:0;}
 .fade-in{animation:fadeIn .5s var(--ease);}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* ظهور كروت المنتجات بالتتابع بدل ظهورها كلها في نفس اللحظة */
+.grid-4 > .pcard.fade-in,
+.grid-3 > .pcard.fade-in{
+  animation-delay:calc(var(--card-index, 0) * 70ms);
+}
+@media (prefers-reduced-motion: reduce){
+  .grid-4 > .pcard.fade-in,
+  .grid-3 > .pcard.fade-in{
+    animation:none;
+  }
+}
 /* سطر السعر منفصل بالأعلى */
 .pcard-price-row {
   margin-top: 8px;
@@ -2196,6 +2269,7 @@ const UI_TRANSLATIONS = {
   "حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.": "There was an error submitting the order. Please try again.",
   "تفاصيل": "Details", "مشاركة المنتج": "Share product", "شعار أوبن مارت": "Openmart logo",
   "التواصل عبر واتساب": "Contact via WhatsApp", "واتساب": "WhatsApp", "العربية": "Arabic",
+  "الشعار": "Openmart logo", "شعار أوبن مارت": "Openmart logo", "إنستغرام": "Instagram", "فيسبوك": "Facebook", "تيك توك": "TikTok", "يوتيوب": "YouTube",
   "الصورة التالية": "Next slide", "الصورة السابقة": "Previous slide", "شريحة": "Slide",
   "قائمة الأمنيات": "Wishlist", "لم تقم بإضافة أي منتج للمفضلة بعد.": "You have not added any products to your wishlist yet.",
   "تصفح المنتجات": "Browse products", "سجل الدخول للاطلاع على طلباتك السابقة": "Log in to view your previous orders",
@@ -2430,7 +2504,7 @@ const Stars = ({rating, size=13}) => {
 
 const Badge = ({type}) => type ? <span className={"pcard-tag " + ((type === "Sale" || type === "تخفيض") ? "sale" : "new")}>{activeLanguage === "en" ? (type === "تخفيض" || type === "Sale" ? "Sale" : type === "جديد" || type === "New" ? "New" : type) : (type === "Sale" ? "تخفيض" : type === "New" ? "جديد" : type)}</span> : null;
 
-function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
+function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow, index = 0}){
   const hasStockLimit = p.stock_quantity !== null && p.stock_quantity !== undefined;
   const isOutOfStock = hasStockLimit && Number(p.stock_quantity) <= 0;
   const shareProduct = async (event) => {
@@ -2453,7 +2527,7 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
   };
 
   return (
-    <div className="pcard fade-in">
+    <div className="pcard fade-in" style={{"--card-index": index}}>
       <div className={`pcard-media${isOutOfStock ? " is-out-of-stock" : ""}`} onClick={()=>onOpen(p.id)}>
         {/* شارة المنتج إن وجدت، أو يظهر مؤشر الضغط للتفاصيل */}
         {p.badge ? <Badge type={p.badge}/> : null}
@@ -2557,11 +2631,6 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
     {id:"about", label: uiText("من نحن", "About")},
   ];
 
-  const openMobileSearch = () => {
-    onOpenMenu();
-    setTimeout(() => document.querySelector(".drawer.open .drawer-search input")?.focus(), 0);
-  };
-
   return (
     <>
       <div className="topbar">{topbarText}</div>
@@ -2623,8 +2692,6 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
                 <span className="flag-icon">🇺🇸</span> EN
               </button>
             </div>
-
-            <button className="icon-btn" aria-label="بحث" onClick={openMobileSearch} style={{display: window.innerWidth<1080?"inline-flex":"none"}}><SearchIcon size={19}/></button>
 
             {user ? (
               <div style={{ position: "relative", display: "inline-flex" }}>
@@ -2716,10 +2783,11 @@ function WishlistPage({wishlist, toggleWish, quickAdd, onBuyNow, go, products}) 
       </div>
       <div className="wrap section">
         <div className="grid-4">
-          {wishedProducts.map(p => (
+            {wishedProducts.map((p, index) => (
 <ProductCard 
   key={p.id} 
   p={p} 
+          index={index}
   onOpen={(id)=>go("product", id)} 
   wished={true} 
   onWish={toggleWish} 
@@ -2876,7 +2944,7 @@ const links = [["الرئيسية","home"],["المتجر","shop"],["الأكث�
       <div className={"drawer-overlay"+(open?" open":"")} onClick={onClose}></div>
       <div className={"drawer"+(open?" open":"")}>
         <div className="drawer-head">
-          <div className="logo-mark"><img src={LOGO} alt="الشعار" style={{width:30,height:30}}/><span className="logo-word" style={{fontSize:19}}>أوبن <span>مارت</span></span></div>
+          <div className="logo-mark"><img src={LOGO} alt="الشعار" style={{width:30,height:30}}/><span className="logo-word" style={{fontSize:19}}>{activeLanguage === "en" ? "Openmart" : <>أوبن <span>مارت</span></>}</span></div>
           <button className="icon-btn" onClick={onClose}><XIcon/></button>
         </div>
         <form className="drawer-search" onSubmit={(e)=>{e.preventDefault();go("shop");onClose();}}>
@@ -3081,10 +3149,11 @@ function ProductGridSection({title, eyebrow, items, go, wishlist, toggleWish, qu
         <a href="#" className="section-link" onClick={(e)=>{e.preventDefault();viewAllGo?viewAllGo():go("shop");}}>{uiText("عرض الكل", "View all")} <ChevronRight size={15}/></a>
       </div>
       <div className="grid-4">
-        {items.map(p=>(
+        {items.map((p, index)=>(
           <ProductCard 
             key={p.id} 
             p={p} 
+            index={index}
             onOpen={(id)=>go("product",id)} 
             wished={wishlist.includes(p.id)} 
             onWish={toggleWish} 
@@ -3300,10 +3369,11 @@ return (
             </div>
          ) : view==="grid" ? (
             <div className="grid-4">
-              {shown.map(p=>(
+              {shown.map((p, index)=>(
                 <ProductCard 
                   key={p.id} 
                   p={p} 
+                  index={index}
                   onOpen={(id)=>go("product",id)} 
                   wished={wishlist.includes(p.id)} 
                   onWish={toggleWish} 
@@ -3814,8 +3884,8 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
         <div className="empty-state">
           <div className="icon-circle"><BagIcon size={38}/></div>
           <h2 style={{fontSize:24,marginBottom:10}}>{headingText("سلة التسوق فارغة")}</h2>
-          <p style={{color:"var(--ink-soft)",marginBottom:26}}>لم تضف أي منتجات بعد. ابدأ التسوق الآن.</p>
-          <button className="btn btn-primary btn-lg" onClick={()=>go("shop")}>ابدأ التسوق</button>
+          <p style={{color:"var(--ink-soft)",marginBottom:26}}>{uiText("لم تضف أي منتجات بعد. ابدأ التسوق الآن.", "You have not added any products yet. Start shopping now.")}</p>
+          <button className="btn btn-primary btn-lg" onClick={()=>go("shop")}>{uiText("ابدأ التسوق", "Start shopping")}</button>
         </div>
       </div>
     );
@@ -3826,15 +3896,15 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
       <div className="page-head">
         <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
           <div>
-            <div className="breadcrumb"><a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>الرئيسية</a> / <span>السلة</span></div>
-            <h1 className="page-title">{headingText("سلة التسوق")} ({cart.length})</h1>
+            <div className="breadcrumb"><a href="#" onClick={(e)=>{e.preventDefault();go("home");}}>{uiText("الرئيسية", "Home")}</a> / <span>{uiText("السلة", "Cart")}</span></div>
+              <h1 className="page-title">{headingText("سلة التسوق")} ({cart.length})</h1>
           </div>
           <button 
             onClick={()=>go("home")}
             className="btn btn-outline"
             style={{padding: "8px 14px", fontSize: "13px", gap: "4px"}}
           >
-            <ChevronRight size={16} /> الرئيسية
+            <ChevronRight size={16} /> {uiText("الرئيسية", "Home")}
           </button>
         </div>
       </div>
@@ -3846,15 +3916,15 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
               <div>
                 <div className="cart-item-name">{productName(item.product)}</div>
                 <div className="cart-item-meta">
-  اللون: {item.variant?.color || "—"} &nbsp;·&nbsp; المقاس: {item.variant?.size || "قياسي"}
+  {uiText("اللون:", "Color:")} {optionText(item.variant?.color || "قياسي")} &nbsp;·&nbsp; {uiText("المقاس:", "Size:")} {optionText(item.variant?.size || "موحد")}
 </div>
                 <div className="cart-item-actions">
                   <div className="qty-stepper">
                     <button onClick={()=>updateQty(idx,Math.max(1,item.qty-1))}><MinusIcon size={13}/></button>
                     <span className="qty-val">{item.qty}</span>
-                    <button onClick={()=>updateQty(idx,item.qty+1)} disabled={item.product.stock_quantity !== null && item.product.stock_quantity !== undefined && item.qty >= Number(item.product.stock_quantity)} aria-label="زيادة الكمية"><PlusIcon size={13}/></button>
+                    <button onClick={()=>updateQty(idx,item.qty+1)} disabled={item.product.stock_quantity !== null && item.product.stock_quantity !== undefined && item.qty >= Number(item.product.stock_quantity)} aria-label={uiText("زيادة الكمية", "Increase quantity")}><PlusIcon size={13}/></button>
                   </div>
-                  <button className="cart-remove" onClick={()=>removeItem(idx)}><TrashIcon size={14}/> حذف</button>
+                  <button className="cart-remove" onClick={()=>removeItem(idx)}><TrashIcon size={14}/> {uiText("حذف", "Remove")}</button>
                 </div>
               </div>
               <div className="cart-item-right">
@@ -3863,16 +3933,16 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
               </div>
             </div>
           ))}
-          <button className="btn btn-outline" style={{marginTop:22}} onClick={()=>go("shop")}><ChevronLeft size={15}/> متابعة التسوق</button>
+          <button className="btn btn-outline" style={{marginTop:22}} onClick={()=>go("shop")}><ChevronLeft size={15}/> {uiText("متابعة التسوق", "Continue shopping")}</button>
         </div>
 
         <div className="summary-card">
           <h3 style={{fontSize:19,marginBottom:6}}>{headingText("ملخص الطلب")}</h3>
-          <div className="summary-row"><span>المجموع الفرعي</span><span className="mono">{money(subtotal)}</span></div>
+          <div className="summary-row"><span>{uiText("المجموع الفرعي", "Subtotal")}</span><span className="mono">{money(subtotal)}</span></div>
 
-          {/* سطر الشحن التفاعلي يفتح النافذة بالضغط */}
+          {/* Interactive shipping row opens the selection dialog. */}
           <div className="summary-row" style={{alignItems: "center"}}>
-            <span>الشحن</span>
+            <span>{uiText("الشحن", "Shipping")}</span>
             <button 
               type="button" 
               onClick={() => setShowShippingModal(true)}
@@ -3888,7 +3958,7 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
                 fontFamily: "inherit"
               }}
             >
-              {selectedZone ? `${money(selectedZone.price)} (${zoneName(selectedZone)}) ✎` : "(اضغط لتحديد سعر الشحن لمنطقتك 📍)"}
+              {selectedZone ? `${money(selectedZone.price)} (${zoneName(selectedZone)}) ✎` : uiText("(اضغط لتحديد سعر الشحن لمنطقتك 📍)", "(Click to select your area's shipping rate 📍)")}
             </button>
           </div>
 
@@ -3898,13 +3968,13 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
           </div>
           {couponMessage && <div style={{fontSize:12.5,color:appliedCoupon ? "var(--green)" : "var(--coral-deep)",marginBottom:10}}>{couponMessage}</div>}
           {appliedCoupon && <div className="summary-row"><span>{uiText("الخصم", "Discount")} ({appliedCoupon.code})</span><span className="mono">-{money(discount)}</span></div>}
-          <div className="summary-row total"><span>الإجمالي</span><span className="mono">{money(total)}</span></div>
-          <button className="btn btn-coral btn-block btn-lg" style={{marginTop:18}} onClick={()=>selectedZone ? go("checkout") : setShowShippingModal(true)}>إتمام الطلب <ChevronRight size={16}/></button>
-          <div className="trust-row"><ShieldIcon size={15}/>دفع عند الاستلام</div>
+          <div className="summary-row total"><span>{uiText("الإجمالي", "Total")}</span><span className="mono">{money(total)}</span></div>
+          <button className="btn btn-coral btn-block btn-lg" style={{marginTop:18}} onClick={()=>selectedZone ? go("checkout") : setShowShippingModal(true)}>{uiText("إتمام الطلب", "Checkout")} <ChevronRight size={16}/></button>
+          <div className="trust-row"><ShieldIcon size={15}/> {uiText("دفع عند الاستلام", "Cash on delivery")}</div>
         </div>
       </div>
 
-      {/* نافذة اختيار منطقة الشحن المنبثقة */}
+      {/* Shipping area selection dialog. */}
       {showShippingModal && (
         <div style={{
           position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 99999,
@@ -3916,7 +3986,7 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
             boxShadow: "var(--shadow-lg)"
           }} onClick={e => e.stopPropagation()}>
             <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px"}}>
-              <h3 style={{fontSize: "17px", fontWeight: "800", margin: 0}}>اختر منطقة التوصيل 🚚</h3>
+              <h3 style={{fontSize: "17px", fontWeight: "800", margin: 0}}>{uiText("اختر منطقة التوصيل 🚚", "Choose a delivery area 🚚")}</h3>
               <button type="button" onClick={() => setShowShippingModal(false)} style={{border: "none", background: "#f3f4f6", width: "30px", height: "30px", borderRadius: "50%", cursor: "pointer", fontWeight: "bold"}}>✕</button>
             </div>
             <div style={{overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", paddingLeft: "4px"}}>
@@ -4714,7 +4784,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
   user={user} 
   login={() => go("auth")} 
   requestLogout={requestLogout} 
-  topbarText={lang === "en" ? (topbarTextEn || topbarText) : topbarText}
+  topbarText={lang === "en" ? (topbarTextEn || "Free shipping on orders over 75 EGP • New products every Friday • Free returns within 30 days") : topbarText}
   lang={lang}
   setLang={setLang}
 />      
