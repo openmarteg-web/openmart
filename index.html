@@ -1035,7 +1035,7 @@ html[lang="ar"] .footer-brand-word {
   aspect-ratio:1/1.08;margin-bottom:14px;cursor:pointer;
 }
 .pcard-media.is-out-of-stock img{filter:none;opacity:1;}
-.pcard-sold-out{position:absolute;inset:0;z-index:3;display:flex;align-items:flex-start;justify-content:flex-start;padding:10px;background:transparent;pointer-events:none;}
+.pcard-sold-out{position:absolute;top:10px;left:10px;z-index:4;display:flex;align-items:flex-start;justify-content:flex-start;padding:0;background:transparent;pointer-events:none;}
 .pcard-sold-out span{color:#d62828;background:rgba(255,255,255,.9);border:1px solid #d62828;padding:4px 8px;border-radius:4px;font-size:11px;font-weight:800;letter-spacing:.02em;}
 .pcard-media img{width:100%;height:100%;object-fit:cover;transform:scale(1);transform-origin:center;will-change:transform;transition:transform .7s cubic-bezier(.16,1,.3,1);}
 .pcard:hover .pcard-media img{transform:scale(1.04);}
@@ -1684,6 +1684,8 @@ html[dir="ltr"] .select-wrap::after {
   z-index: 200;
   transition: transform .4s var(--ease);
 }
+.toast.error{background:#fff1f2;border-color:#fecdd3;color:#b91c1c;}
+.toast.error .dot{background:#b91c1c;}
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast .dot{width:22px;height:22px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 
@@ -2615,7 +2617,6 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow, index = 0
           <button 
             type="button"
             className="pcard-add-cart-btn"
-            disabled={isOutOfStock}
             onClick={(e) => {
               e.stopPropagation();
               onQuickAdd(p);
@@ -2628,7 +2629,6 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow, index = 0
           <button 
             type="button"
             className="pcard-buy-now-btn"
-            disabled={isOutOfStock}
             onClick={(e) => {
               e.stopPropagation();
               onBuyNow(p);
@@ -3732,7 +3732,6 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
   className="btn btn-add-cart btn-lg" 
   style={{flex:1}} 
   onClick={()=>addToCart({ ...product, price: currentUnitPrice }, { color: currentColorName, size }, qty)}
-  disabled={isOutOfStock}
 >
   <BagIcon size={17}/> {uiText("أضف إلى السلة", "Add to cart")} — {money(currentUnitPrice * qty)}
 </button>
@@ -3745,7 +3744,6 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
             type="button"
             className="btn btn-lg pd-buy-now-btn"
             onClick={()=>onBuyNow({ ...product, price: currentUnitPrice }, { color: currentColorName, size }, qty)}
-            disabled={isOutOfStock}
           >
             {uiText("اشتري الآن", "Buy now")} — {money(currentUnitPrice * qty)}
           </button>
@@ -3887,6 +3885,7 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
   const [couponMessage, setCouponMessage] = useState("");
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
   const total = Math.max(0, subtotal + shipping - discount);
+  const unavailableItems = cart.filter(item => item.product.stock_quantity !== null && item.product.stock_quantity !== undefined && Number(item.product.stock_quantity) < Number(item.qty));
 
   const handleSelectZone = (zone) => {
     setSelectedZone(zone);
@@ -3946,6 +3945,11 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
       </div>
       <div className="wrap cart-layout">
         <div>
+          {unavailableItems.length > 0 && (
+            <div className="field-error" role="alert">
+              {uiText("تنبيه: بعض المنتجات نفدت من المخزون أو أصبحت كميتها المطلوبة غير متاحة. يرجى تعديل السلة قبل إتمام الطلب.", "Warning: Some products are sold out or the requested quantity is no longer available. Please update your cart before checkout.")}
+            </div>
+          )}
           {cart.map((item,idx)=>(
             <div className="cart-item" key={idx}>
               <img src={item.product.img} alt={productName(item.product)}/>
@@ -4005,7 +4009,7 @@ function CartPage({cart, go, updateQty, removeItem, coupons, appliedCoupon, setA
           {couponMessage && <div style={{fontSize:12.5,color:appliedCoupon ? "var(--green)" : "var(--coral-deep)",marginBottom:10}}>{couponMessage}</div>}
           {appliedCoupon && <div className="summary-row"><span>{uiText("الخصم", "Discount")} ({appliedCoupon.code})</span><span className="mono">-{money(discount)}</span></div>}
           <div className="summary-row total"><span>{uiText("الإجمالي", "Total")}</span><span className="mono">{money(total)}</span></div>
-          <button className="btn btn-coral btn-block btn-lg" style={{marginTop:18}} onClick={()=>selectedZone ? go("checkout") : setShowShippingModal(true)}>{uiText("إتمام الطلب", "Checkout")} <ChevronRight size={16}/></button>
+          <button className="btn btn-coral btn-block btn-lg" style={{marginTop:18}} disabled={unavailableItems.length > 0} onClick={()=>selectedZone ? go("checkout") : setShowShippingModal(true)}>{uiText("إتمام الطلب", "Checkout")} <ChevronRight size={16}/></button>
           <div className="trust-row"><ShieldIcon size={15}/> {uiText("دفع عند الاستلام", "Cash on delivery")}</div>
         </div>
       </div>
@@ -4073,6 +4077,7 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
   const [couponInput, setCouponInput] = useState(appliedCoupon?.code || "");
   const [couponMessage, setCouponMessage] = useState("");
   const [missingFields, setMissingFields] = useState([]);
+  const unavailableItems = cart.filter(item => item.product.stock_quantity !== null && item.product.stock_quantity !== undefined && Number(item.product.stock_quantity) < Number(item.qty));
 
   const [selectedZone, setSelectedZone] = useState(() => {
     try { return JSON.parse(localStorage.getItem("openmart_shipping_zone")); } catch { return null; }
@@ -4112,6 +4117,10 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (unavailableItems.length > 0) {
+      setMissingFields([uiText("يوجد منتج نفد من المخزون أو كميته غير متاحة", "A product is sold out or the requested quantity is unavailable")]);
+      return;
+    }
     const missing = [];
     if (!selectedZone) missing.push("المحافظة / منطقة التوصيل");
     if (!name.trim()) missing.push("الاسم ثلاثي");
@@ -4163,6 +4172,11 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
 
       <div className="wrap checkout-layout">
         <form onSubmit={handleSubmit}>
+          {unavailableItems.length > 0 && (
+            <div className="field-error" role="alert">
+              {uiText("تنبيه: يوجد منتج نفد من المخزون. لا يمكن إتمام الطلب قبل حذفه من السلة.", "Warning: A product is sold out. You cannot complete the order until it is removed from the cart.")}
+            </div>
+          )}
           <div className="co-section">
             <div className="co-section-title">
               <span className="co-num">1</span> {uiText("تفاصيل العميل والتوصيل", "Customer and delivery details")}
@@ -4450,6 +4464,7 @@ const [orders, setOrders] = useState(() => {
   const [catFilter, setCatFilter] = useState(null);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
+  const [toastType, setToastType] = useState("success");
   const toastTimer = useRef(null);
   const [user, setUser] = useState(null);
   const accountSyncReady = useRef(false);
@@ -4556,7 +4571,7 @@ const [orders, setOrders] = useState(() => {
               return {
                 ...item,
                 product: latestProduct,
-                qty: Math.min(item.qty, stockLimit)
+                qty: stockLimit === 0 ? item.qty : Math.min(item.qty, stockLimit)
               };
             })
             .filter(item => item.qty > 0));
@@ -4679,8 +4694,9 @@ useEffect(() => {
   const requestLogout = () => setShowLogoutConfirm(true);
 
   // 6. إدارة السلة والإشعارات
-  const showToast = (msg) => {
+  const showToast = (msg, type = "success") => {
     setToast(activeLanguage === "en" ? (UI_TRANSLATIONS[msg] || msg) : msg);
+    setToastType(type);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(()=>setToast(""), 2400);
   };
@@ -4699,7 +4715,7 @@ useEffect(() => {
   const addToCart = (product, variant, qty) => {
     const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
     if (stockLimit <= 0) {
-      showToast(uiText("هذا المنتج نفد من المخزون", "This product is sold out"));
+      showToast(uiText("هذا المنتج نفد من المخزون", "This product is sold out"), "error");
       return;
     }
     setCart(c=>{
@@ -4725,7 +4741,7 @@ const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:
 const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
   const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
   if (stockLimit <= 0) {
-    showToast(uiText("هذا المنتج نفد من المخزون", "This product is sold out"));
+    showToast(uiText("هذا المنتج نفد من المخزون", "This product is sold out"), "error");
     return;
   }
   const pColor = selectedVariant?.color || ((product.colors && product.colors.length > 0) ? product.colors[0] : "قياسي");
@@ -4846,7 +4862,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       window.location.assign(`https://wa.me/201044776168?text=${encodeURIComponent(msg)}`);
     } catch (error) {
       console.error(error);
-      showToast(error.message || "حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.");
+      showToast(error.message || "حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.", "error");
     }
   };
   const cartCount = cart.reduce((s,i)=>s+i.qty,0);
@@ -4964,7 +4980,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
         </div>
       )}
 
-      <div className={"toast"+(toast?" show":"")}>
+      <div className={`toast ${toastType}`+(toast?" show":"")}>
         <span className="dot"><CheckIcon size={13} style={{color:"#fff"}}/></span>{toast}
       </div>
 
