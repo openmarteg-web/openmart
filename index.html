@@ -2153,6 +2153,19 @@ window.saveOrderToDatabase = async function(cartData, total, customer) {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
+
+  window.loadAccountData = async function() {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return user?.user_metadata?.openmart_data || null;
+  };
+
+  window.saveAccountData = async function(accountData) {
+    const { error } = await supabase.auth.updateUser({
+      data: { openmart_data: accountData }
+    });
+    if (error) throw error;
+  };
 </script>
 <script type="text/babel" data-presets="react,env">
 const {useState,useEffect,useMemo,useRef} = React;
@@ -4439,6 +4452,7 @@ const [orders, setOrders] = useState(() => {
   const [toast, setToast] = useState("");
   const toastTimer = useRef(null);
   const [user, setUser] = useState(null);
+  const accountSyncReady = useRef(false);
 
     useEffect(() => {
       const footer = document.querySelector(".footer");
@@ -4568,6 +4582,39 @@ useEffect(() => {
 useEffect(() => {
   localStorage.setItem("openmart_cart", JSON.stringify(cart));
 }, [cart]);
+  // تحميل بيانات الحساب من Supabase عند تسجيل الدخول لتظهر على أي جهاز.
+  useEffect(() => {
+    accountSyncReady.current = false;
+    if (!user || !window.loadAccountData) return;
+    let cancelled = false;
+    window.loadAccountData().then(accountData => {
+      if (cancelled) return;
+      const nextWishlist = [...new Set([...(wishlist || []), ...(accountData?.wishlist || [])])];
+      const nextCart = accountData && Object.prototype.hasOwnProperty.call(accountData, 'cart') ? accountData.cart : cart;
+      const nextOrders = accountData && Object.prototype.hasOwnProperty.call(accountData, 'orders') ? accountData.orders : orders;
+      setWishlist(nextWishlist);
+      setCart(nextCart || []);
+      setOrders(nextOrders || []);
+      accountSyncReady.current = true;
+      window.saveAccountData?.({ wishlist: nextWishlist, cart: nextCart || [], orders: nextOrders || [] }).catch(error => {
+        console.error('تعذر ترحيل بيانات الجهاز للحساب:', error);
+      });
+    }).catch(error => {
+      accountSyncReady.current = true;
+      console.error('تعذر تحميل بيانات الحساب:', error);
+    });
+    return () => { cancelled = true; };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !window.saveAccountData || !accountSyncReady.current) return;
+    const timer = window.setTimeout(() => {
+      window.saveAccountData({ wishlist, cart, orders }).catch(error => {
+        console.error('تعذر حفظ بيانات الحساب:', error);
+      });
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [user, wishlist, cart, orders]);
 // مراقبة حالة جلسة المستخدم وحفظها تلقائياً
   useEffect(() => {
     if (window.supabase) {
