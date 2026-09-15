@@ -4604,7 +4604,10 @@ useEffect(() => {
     let cancelled = false;
     window.loadAccountData().then(accountData => {
       if (cancelled) return;
-      const nextWishlist = [...new Set([...(wishlist || []), ...(accountData?.wishlist || [])])];
+      const hasAccountWishlist = accountData && Object.prototype.hasOwnProperty.call(accountData, 'wishlist');
+      const nextWishlist = hasAccountWishlist
+        ? (Array.isArray(accountData.wishlist) ? accountData.wishlist : [])
+        : [...new Set(wishlist || [])];
       const nextCart = accountData && Object.prototype.hasOwnProperty.call(accountData, 'cart') ? accountData.cart : cart;
       const nextOrders = accountData && Object.prototype.hasOwnProperty.call(accountData, 'orders') ? accountData.orders : orders;
       setWishlist(nextWishlist);
