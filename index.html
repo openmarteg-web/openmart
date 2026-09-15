@@ -4707,7 +4707,13 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
    try {
       let savedDbOrder = null;
       if (window.saveOrderToDatabase) {
-        savedDbOrder = await window.saveOrderToDatabase(cart, totalAmount, customer);
+        try {
+          savedDbOrder = await window.saveOrderToDatabase(cart, totalAmount, customer);
+        } catch (databaseError) {
+          const isOrdersPermissionError = /permission denied for table orders|42501/i.test(String(databaseError?.message || databaseError));
+          if (!isOrdersPermissionError) throw databaseError;
+          console.error("تعذر حفظ الطلب في قاعدة البيانات بسبب صلاحيات جدول orders، سيتم متابعة الطلب عبر واتساب:", databaseError);
+        }
       }
 
       const refreshedProducts = await window.fetchProductsFromDB?.();
@@ -4774,10 +4780,10 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       });
       msg += `\n💰 *${orderText.total}:* ${totalAmount} ${activeLanguage === "en" ? "EGP" : "ج.م"}`;
 
-      // تفريغ السلة وتوجيه العميل مباشرة للرقم المطلوب
+      // تفريغ السلة وتوجيه العميل مباشرة للرقم المطلوب. الانتقال في نفس التبويب
+      // أكثر توافقًا مع متصفحات الهاتف من window.open بعد عملية await.
       setCart([]);
-      window.open(`https://wa.me/201041397168?text=${encodeURIComponent(msg)}`, '_blank');
-      go("orders");
+      window.location.assign(`https://wa.me/201041397168?text=${encodeURIComponent(msg)}`);
     } catch (error) {
       console.error(error);
       showToast(error.message || "حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.");
