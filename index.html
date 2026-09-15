@@ -962,6 +962,9 @@ html[lang="ar"] .footer-brand-word {
   position:relative;border-radius:var(--r-md);overflow:hidden;background:var(--sand);
   aspect-ratio:1/1.08;margin-bottom:14px;cursor:pointer;
 }
+.pcard-media.is-out-of-stock img{filter:blur(3px) grayscale(.35);opacity:.62;}
+.pcard-sold-out{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;background:rgba(17,17,17,.28);backdrop-filter:blur(2px);pointer-events:none;}
+.pcard-sold-out span{color:#fff;background:rgba(17,17,17,.8);border:2px solid rgba(255,255,255,.8);padding:10px 18px;border-radius:8px;font-size:18px;font-weight:800;letter-spacing:.04em;}
 .pcard-media img{width:100%;height:100%;object-fit:cover;transform:scale(1);transform-origin:center;will-change:transform;transition:transform .7s cubic-bezier(.16,1,.3,1);}
 .pcard:hover .pcard-media img{transform:scale(1.04);}
 .pcard-tag{
@@ -1010,6 +1013,7 @@ html[lang="ar"] .footer-brand-word {
 /* ============ FOOTER ============ */
 .footer{background:var(--ink);color:#DAD5E6;padding:64px 0 0;margin-top:80px;}
 .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1.3fr;gap:32px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.1);}
+.footer-brand-logo{display:block;width:86px;height:86px;object-fit:cover;border-radius:16px;overflow:hidden;}
 .footer-brand-word{font-family:'Baloo 2';font-weight:700;font-size:24px;color:#fff;}
 .footer-brand-word span{color:var(--coral);}
 .footer-desc{font-size:14px;color:#B4AEC6;line-height:1.6;margin:14px 0 20px;max-width:280px;}
@@ -1330,7 +1334,7 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
 @media (max-width:900px){.cart-layout{grid-template-columns:1fr;}.summary-card{position:static;}}
 
 /* ============ CHECKOUT ============ */
-.checkout-layout{display:grid;grid-template-columns:1fr 380px;gap:44px;padding:44px 0 80px;align-items:start;}
+.checkout-layout{display:grid;grid-template-columns:1fr 380px;gap:44px;padding:44px 32px 80px;align-items:start;}
 .co-section{margin-bottom:34px;}
 .co-section-title{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;margin-bottom:18px;}
 .co-num{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono';}
@@ -1361,13 +1365,18 @@ select{border:none;background:transparent;font-family:inherit;font-weight:600;fo
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #25D366;
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: 0 2px 5px rgba(0,0,0,.12);
   flex-shrink: 0;
+  transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
 }
-.header-whatsapp img { width: 23px; height: 23px; }
-.header-whatsapp:hover { transform: scale(1.08); }
-@media (max-width:900px){.checkout-layout{grid-template-columns:1fr;}.field-grid{grid-template-columns:1fr;}}
+.header-whatsapp img { width: 19px; height: 19px; }
+.header-whatsapp:hover { transform: translateY(-2px) scale(1.06); box-shadow: 0 4px 10px rgba(0,0,0,.2); opacity: .95; }
+@media (max-width:900px){.checkout-layout{grid-template-columns:1fr;padding:28px 24px 52px;}.field-grid{grid-template-columns:1fr;}}
 
 /* ============ تحسين صفحة إتمام الطلب على الهاتف ============ */
 .checkout-layout,
@@ -1903,29 +1912,43 @@ window.fetchCategoriesFromDB = async function() {
     }
   };
 window.saveOrderToDatabase = async function(cartData, total, customer) {
-    const { data, error } = await supabase
-      .from('orders')
-      .insert([
-        {
-          customer_name: customer.name,
-          phone: customer.phone,
-          address: customer.address,
-          email: customer.email || "لم يُسجل",
-          items_count: cartData.length,
-          items: cartData.map(item => ({
-            name: item.product.name,
-            quantity: item.qty,
-            price: item.product.price
-          })),
-          total: total,
-          status: "new"
-        }
-      ])
-      .select('id, status, created_at')
-      .single();
+    const limitedItems = cartData.filter(item => item.product.stock_quantity !== null && item.product.stock_quantity !== undefined);
+    const requestedByProduct = limitedItems.reduce((result, item) => {
+      const id = String(item.product.id);
+      result[id] = (result[id] || 0) + Number(item.qty || 0);
+      return result;
+    }, {});
+    const reserved = [];
 
-    if (error) throw error;
-    return data;
+    try {
+      for (const [productId, requested] of Object.entries(requestedByProduct)) {
+        const { data: currentProduct, error: readError } = await supabase.from('products').select('id, stock_quantity').eq('id', productId).single();
+        if (readError) throw readError;
+        const currentStock = Number(currentProduct.stock_quantity);
+        if (!Number.isFinite(currentStock) || currentStock < requested) throw new Error('لم تعد الكمية المطلوبة متاحة. يرجى تحديث السلة.');
+
+        const { data: updatedProduct, error: updateError } = await supabase.from('products').update({ stock_quantity: currentStock - requested }).eq('id', productId).eq('stock_quantity', currentStock).select('id, stock_quantity');
+        if (updateError) throw updateError;
+        if (!updatedProduct || updatedProduct.length === 0) throw new Error('تغير المخزون أثناء تنفيذ الطلب. يرجى المحاولة مرة أخرى.');
+        reserved.push({ id: productId, stock: currentStock });
+      }
+
+      const { data, error } = await supabase.from('orders').insert([{
+        customer_name: customer.name,
+        phone: customer.phone,
+        address: customer.address,
+        email: customer.email || "لم يُسجل",
+        items_count: cartData.reduce((count, item) => count + Number(item.qty || 0), 0),
+        items: cartData.map(item => ({ name: item.product.name, quantity: item.qty, price: item.product.price })),
+        total: total,
+        status: "new"
+      }]).select('id, status, created_at').single();
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      await Promise.all(reserved.map(item => supabase.from('products').update({ stock_quantity: item.stock }).eq('id', item.id)));
+      throw error;
+    }
   };
 // دالة إنشاء حساب جديد بالبريد الإلكتروني وكلمة المرور
   window.signUpWithEmail = async function(email, password) {
@@ -2139,7 +2162,7 @@ const translateRenderedUi = () => {
       if (translated) element.setAttribute(attribute, translated);
     });
   });
-  document.title = activeLanguage === "en" ? "Openmart - One click, and it's yours" : "أوبن مارت — نقرة واحدة وتصبح لك";
+  document.title = activeLanguage === "en" ? "Openmart Egypt" : "أوبن مارت مصر  ";
 };
 /* ============================================================
    DATA
@@ -2298,6 +2321,8 @@ const Stars = ({rating, size=13}) => {
 const Badge = ({type}) => type ? <span className={"pcard-tag " + ((type === "Sale" || type === "تخفيض") ? "sale" : "new")}>{activeLanguage === "en" ? (type === "تخفيض" || type === "Sale" ? "Sale" : type === "جديد" || type === "New" ? "New" : type) : (type === "Sale" ? "تخفيض" : type === "New" ? "جديد" : type)}</span> : null;
 
 function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
+  const hasStockLimit = p.stock_quantity !== null && p.stock_quantity !== undefined;
+  const isOutOfStock = hasStockLimit && Number(p.stock_quantity) <= 0;
   const shareProduct = async (event) => {
     event.stopPropagation();
     const shareUrl = `${window.location.origin}${window.location.pathname}?product=${encodeURIComponent(p.id)}`;
@@ -2319,7 +2344,7 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
 
   return (
     <div className="pcard fade-in">
-      <div className="pcard-media" onClick={()=>onOpen(p.id)}>
+      <div className={`pcard-media${isOutOfStock ? " is-out-of-stock" : ""}`} onClick={()=>onOpen(p.id)}>
         {/* شارة المنتج إن وجدت، أو يظهر مؤشر الضغط للتفاصيل */}
         {p.badge ? <Badge type={p.badge}/> : null}
 
@@ -2327,6 +2352,7 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
           <HeartIcon size={16} style={{fill: wished ? "currentColor":"none"}}/>
         </button>
         <img src={p.img} alt={productName(p)} loading="lazy"/>
+        {isOutOfStock && <div className="pcard-sold-out" aria-label={uiText("نفد المخزون", "Sold out")}><span>{uiText("نفد المخزون", "SOLD OUT")}</span></div>}
       </div>
 
       <div className="pcard-actions-secondary">
@@ -2369,6 +2395,7 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
           <button 
             type="button"
             className="pcard-add-cart-btn"
+            disabled={isOutOfStock}
             onClick={(e) => {
               e.stopPropagation();
               onQuickAdd(p);
@@ -2381,6 +2408,7 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow}){
           <button 
             type="button"
             className="pcard-buy-now-btn"
+            disabled={isOutOfStock}
             onClick={(e) => {
               e.stopPropagation();
               onBuyNow(p);
@@ -2449,7 +2477,7 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
 
           <div className="header-actions">
             <a className="header-whatsapp" href="https://wa.me/201041397168" target="_blank" rel="noreferrer" aria-label="التواصل عبر واتساب" title="التواصل عبر واتساب">
-              <img src="https://cdn.simpleicons.org/whatsapp/25D366" alt="واتساب" />
+              <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="واتساب" />
             </a>
 {/* أيقونات السوشيال ميديا للكمبيوتر */}
             <div className="nav-social">
@@ -3311,6 +3339,9 @@ const defaultSize = (product?.sizes && product.sizes.length > 0) ? product.sizes
   const bundleTotal = bundleItem ? (product.price + bundleItem.price) : product.price;
 const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:product.sizes[0]}, 1);
   const buyBoth = () => {
+    const productOut = product.stock_quantity !== null && product.stock_quantity !== undefined && Number(product.stock_quantity) <= 0;
+    const bundleOut = bundleItem && bundleItem.stock_quantity !== null && bundleItem.stock_quantity !== undefined && Number(bundleItem.stock_quantity) <= 0;
+    if (productOut || bundleOut) return;
     addToCart(product, {
       color: product.colors?.[0] || "قياسي",
       size: product.sizes?.[0] || "موحد"
@@ -3950,7 +3981,7 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
 
             <div className="field">
               <label>ملاحظات إضافية (اختياري)</label>
-              <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="أي تعليمات خاصة للمندوب أو الطلب" />
+              <input value={notes} onChange={e => setNotes(e.target.value)} placeholder={uiText("أي تعليمات خاصة للمندوب أو الطلب", "Any special instructions for the courier or order")} />
             </div>
 
             <div className="field">
@@ -3970,7 +4001,7 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
           </div>
 
           <button type="submit" className="btn btn-coral btn-block btn-lg" style={{background: "#25D366", borderColor: "#25D366"}}>
-            تأكيد الطلب والمتابعة عبر واتساب ← ({money(total)})
+            {uiText("تأكيد الطلب والمتابعة عبر واتساب", "Confirm order and continue via WhatsApp")} ← ({money(total)})
           </button>
         </form>
 
@@ -3984,7 +4015,7 @@ function CheckoutPage({cart, go, placeOrder, coupons, appliedCoupon, setAppliedC
             </div>
           ))}
           <div className="summary-row" style={{marginTop: 10}}><span>المجموع الفرعي</span><span className="mono">{money(subtotal)}</span></div>
-          <div className="summary-row"><span>الشحن</span><span className="mono">{selectedZone ? money(shippingCost) : "لم يتم التحديد"}</span></div>
+          <div className="summary-row"><span>الشحن</span><span className="mono">{selectedZone ? money(shippingCost) : uiText("لم يتم التحديد", "Not selected")}</span></div>
           {appliedCoupon && <div className="summary-row"><span>{uiText("الخصم", "Discount")} ({appliedCoupon.code})</span><span className="mono">-{money(discount)}</span></div>}
           <div className="summary-row total"><span>الإجمالي المطلوب</span><span className="mono">{money(total)}</span></div>
           <div className="trust-row"><ShieldIcon size={15}/> الدفع عند الاستلام نقداً</div>
@@ -4068,7 +4099,7 @@ function Footer({go}){
     <footer className="footer">
       <div className="wrap footer-grid">
         <div>
-          <div className="footer-brand-word">أوبن <span>مارت</span></div>
+          <img className="footer-brand-logo" src={LOGO} alt="شعار أوبن مارت" />
           <p className="footer-desc">{uiText("سوق مختار لاحتياجاتك اليومية من الأحذية والصوتيات والإكسسوارات وغيرها، لمن ينقر ويواصل يومه.", "A curated store for your daily needs, from footwear and audio to accessories and more, for those who click and keep moving.")}</p>
           <div className="footer-social">
             <a href="https://www.instagram.com/openmart_egypt/" target="_blank" rel="noopener noreferrer" aria-label={uiText("إنستغرام", "Instagram")}><InstaIcon size={17}/></a>
@@ -4402,9 +4433,13 @@ useEffect(() => {
 
   // 3. دالة الإضافة مع فتح نافذة الاقتراحات
   const addToCart = (product, variant, qty) => {
+    const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
+    if (stockLimit <= 0) {
+      showToast(uiText("هذا المنتج نفد من المخزون", "This product is sold out"));
+      return;
+    }
     setCart(c=>{
       const existingIdx = c.findIndex(i=>i.product.id===product.id && i.variant.size===variant.size && i.variant.color===variant.color);
-      const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
       const existingQty = existingIdx > -1 ? c[existingIdx].qty : 0;
       const nextQty = Math.min(existingQty + qty, stockLimit);
       if (nextQty <= existingQty) return c;
@@ -4424,6 +4459,11 @@ useEffect(() => {
 
 const quickAdd = (product) => addToCart(product, {color:product.colors[0], size:product.sizes[0]}, 1);
 const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
+  const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
+  if (stockLimit <= 0) {
+    showToast(uiText("هذا المنتج نفد من المخزون", "This product is sold out"));
+    return;
+  }
   const pColor = selectedVariant?.color || ((product.colors && product.colors.length > 0) ? product.colors[0] : "قياسي");
   const pSize = selectedVariant?.size || ((product.sizes && product.sizes.length > 0) ? product.sizes[0] : "موحد");
     
@@ -4435,11 +4475,9 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       );
       if (existingIdx > -1) {
         const copy = [...c];
-        const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
         copy[existingIdx] = { ...copy[existingIdx], qty: Math.min(copy[existingIdx].qty + selectedQty, stockLimit) };
         return copy;
       }
-      const stockLimit = product.stock_quantity === null || product.stock_quantity === undefined ? Infinity : Math.max(0, Number(product.stock_quantity));
       return stockLimit > 0 ? [...c, { product, variant: { color: pColor, size: pSize }, qty: Math.min(selectedQty, stockLimit) }] : c;
     });
     
@@ -4466,6 +4504,12 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       let savedDbOrder = null;
       if (window.saveOrderToDatabase) {
         savedDbOrder = await window.saveOrderToDatabase(cart, totalAmount, customer);
+      }
+
+      const refreshedProducts = await window.fetchProductsFromDB?.();
+      if (refreshedProducts?.length) {
+        setProducts(refreshedProducts);
+        localStorage.setItem("openmart_products", JSON.stringify(refreshedProducts));
       }
 
       const newOrder = {
@@ -4504,7 +4548,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       go("orders");
     } catch (error) {
       console.error(error);
-      showToast("حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.");
+      showToast(error.message || "حدث خطأ أثناء تسجيل الطلب، يرجى المحاولة ثانية.");
     }
   };
   const cartCount = cart.reduce((s,i)=>s+i.qty,0);
