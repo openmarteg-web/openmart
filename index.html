@@ -2787,8 +2787,8 @@ function WishlistPage({wishlist, toggleWish, quickAdd, onBuyNow, go, products}) 
         <div className="empty-state">
           <div className="icon-circle"><HeartIcon size={38}/></div>
           <h2 style={{fontSize:24, marginBottom:10}}>{headingText("قائمة المفضلة فارغة")}</h2>
-          <p style={{color:"var(--ink-soft)", marginBottom:26}}>لم تقم بإضافة أي منتج للمفضلة بعد.</p>
-          <button className="btn btn-primary btn-lg" onClick={()=>go("shop")}>تصفح المنتجات</button>
+          <p style={{color:"var(--ink-soft)", marginBottom:26}}>{uiText("لم تقم بإضافة أي منتج للمفضلة بعد.", "You have not added any products to your wishlist yet.")}</p>
+          <button className="btn btn-primary btn-lg" onClick={()=>go("shop")}>{uiText("تصفح المنتجات", "Browse products")}</button>
         </div>
       </div>
     );
@@ -3302,7 +3302,7 @@ return (
   <div className="wrap" style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
     <div>
       <div className="breadcrumb">
-        <a href="#" onClick={(e)=>{e.preventDefault(); go("home");}}>الرئيسية</a> / <span>المتجر</span>
+        <a href="#" onClick={(e)=>{e.preventDefault(); go("home");}}>{uiText("الرئيسية", "Home")}</a> / <span>{uiText("المتجر", "Shop")}</span>
       </div>
       <h1 className="page-title">{headingText("كل المنتجات")}</h1>
     </div>
@@ -3313,23 +3313,23 @@ return (
       className="btn btn-outline"
       style={{padding: "8px 14px", fontSize: "13px", gap: "4px"}}
     >
-      <ChevronRight size={16} /> الرئيسية
+      <ChevronRight size={16} /> {uiText("الرئيسية", "Home")}
     </button>
   </div>
 </div>
       <div className="wrap shop-layout">
         <button
           className={"filter-backdrop"+(mobileFiltersOpen?" mobile-open":"")}
-          aria-label="إغلاق الفلاتر"
+          aria-label={uiText("إغلاق الفلاتر", "Close filters")}
           onClick={()=>setMobileFiltersOpen(false)}
         />
         <aside className={"filter-sidebar"+(mobileFiltersOpen?" mobile-open":"")}>
           <div className="filter-drawer-head">
-            <span className="filter-drawer-title">الفلاتر</span>
-            <button className="filter-drawer-close" aria-label="إغلاق الفلاتر" onClick={()=>setMobileFiltersOpen(false)}>×</button>
+            <span className="filter-drawer-title">{uiText("الفلاتر", "Filters")}</span>
+            <button className="filter-drawer-close" aria-label={uiText("إغلاق الفلاتر", "Close filters")} onClick={()=>setMobileFiltersOpen(false)}>×</button>
           </div>
           <div className="filter-block">
-            <div className="filter-title">القسم</div>
+            <div className="filter-title">{uiText("القسم", "Category")}</div>
             {currentCats.map(c=>(
               <label key={c.id} className={"filter-opt"+(selectedCats.includes(c.id)?" checked":"")} onClick={()=>{toggleCat(c.id);setPage(1);}}>
                 <span className="chk">{selectedCats.includes(c.id) && <CheckIcon size={12}/>}</span>
@@ -3338,7 +3338,7 @@ return (
             ))}
           </div>
        <div className="filter-block">
-            <div className="filter-title">السعر <span className="mono" style={{color:"var(--ink-faint)",fontWeight:600,fontSize:12.5}}>حتى {money(maxPrice > highestPrice ? highestPrice : maxPrice)}</span></div>
+            <div className="filter-title">{uiText("السعر", "Price")} <span className="mono" style={{color:"var(--ink-faint)",fontWeight:600,fontSize:12.5}}>{uiText("حتى", "Up to")} {money(maxPrice > highestPrice ? highestPrice : maxPrice)}</span></div>
             <div className="price-range">
               <input 
                 type="range" 
@@ -3351,35 +3351,35 @@ return (
             </div>
           </div>
           <div className="filter-block">
-            <div className="filter-title">العلامة التجارية</div>
+            <div className="filter-title">{uiText("العلامة التجارية", "Brand")}</div>
             {availableBrands.map(b=>(
               <label key={b} className={"filter-opt"+(selectedBrands.includes(b)?" checked":"")} onClick={()=>{toggleBrand(b);setPage(1);}}>
                 <span className="chk">{selectedBrands.includes(b) && <CheckIcon size={12}/>}</span>{b}
               </label>
             ))}
           </div>
-          <button className="btn btn-ghost btn-block" onClick={()=>{setSelectedCats([]);setSelectedBrands([]);setMaxPrice(highestPrice);setPage(1);}}>مسح الفلاتر</button>
+          <button className="btn btn-ghost btn-block" onClick={()=>{setSelectedCats([]);setSelectedBrands([]);setMaxPrice(highestPrice);setPage(1);}}>{uiText("مسح الفلاتر", "Clear filters")}</button>
         </aside>
 
         <div>
           <div className="shop-toolbar">
-            <button className="btn btn-outline mobile-filter-btn" onClick={()=>setMobileFiltersOpen(v=>!v)}><FilterIcon size={16}/> الفلاتر</button>
-            <span className="result-count">{filtered.length} نتيجة{search? " للبحث عن \u201c"+search+"\u201d" : ""}</span>
+            <button className="btn btn-outline mobile-filter-btn" onClick={()=>setMobileFiltersOpen(v=>!v)}><FilterIcon size={16}/> {uiText("الفلاتر", "Filters")}</button>
+            <span className="result-count">{filtered.length} {uiText("نتيجة", filtered.length === 1 ? "result" : "results")}{search? " " + uiText("للبحث عن", "for") + " \u201c"+search+"\u201d" : ""}</span>
             <div className="toolbar-right">
               <div className="select-pill">
-                ترتيب:
+                {uiText("ترتيب:", "Sort:")}
                 <select value={sortBy} onChange={e=>setSortBy(e.target.value)}>
-                  <option value="featured">مميز</option>
-                  <option value="newest">الأحدث</option>
-                  <option value="price-asc">السعر: من الأقل للأعلى</option>
-                  <option value="price-desc">السعر: من الأعلى للأقل</option>
-                  <option value="rating">الأعلى تقييمًا</option>
+                  <option value="featured">{uiText("مميز", "Featured")}</option>
+                  <option value="newest">{uiText("الأحدث", "Newest")}</option>
+                  <option value="price-asc">{uiText("السعر: من الأقل للأعلى", "Price: low to high")}</option>
+                  <option value="price-desc">{uiText("السعر: من الأعلى للأقل", "Price: high to low")}</option>
+                  <option value="rating">{uiText("الأعلى تقييمًا", "Top rated")}</option>
                 </select>
                 <ChevronDown size={14}/>
               </div>
               <div className="view-toggle">
-                <button className={view==="grid"?"active":""} onClick={()=>setView("grid")} aria-label="عرض شبكي"><GridIcon size={16}/></button>
-                <button className={view==="list"?"active":""} onClick={()=>setView("list")} aria-label="عرض قائمة"><ListIcon size={16}/></button>
+                <button className={view==="grid"?"active":""} onClick={()=>setView("grid")} aria-label={uiText("عرض شبكي", "Grid view")}><GridIcon size={16}/></button>
+                <button className={view==="list"?"active":""} onClick={()=>setView("list")} aria-label={uiText("عرض قائمة", "List view")}><ListIcon size={16}/></button>
               </div>
             </div>
           </div>
@@ -3388,7 +3388,7 @@ return (
             <div className="empty-state">
               <div className="icon-circle"><SearchIcon size={34}/></div>
               <h3 style={{fontSize:20,marginBottom:8}}>{headingText("لم نجد منتجات")}</h3>
-              <p style={{color:"var(--ink-soft)",marginBottom:20}}>جرّب تعديل الفلاتر أو كلمات البحث.</p>
+              <p style={{color:"var(--ink-soft)",marginBottom:20}}>{uiText("جرّب تعديل الفلاتر أو كلمات البحث.", "Try adjusting the filters or search terms.")}</p>
             </div>
          ) : view==="grid" ? (
             <div className="grid-4">
@@ -3418,7 +3418,7 @@ return (
                   </div>
                   <div style={{textAlign:"right"}}>
                     <div className="pcard-price" style={{justifyContent:"flex-end",marginBottom:10}}><span className="price-now">{money(p.price)}</span>{p.was && <span className="price-was">{money(p.was)}</span>}</div>
-                    <button className="btn btn-add-cart" onClick={(e)=>{e.stopPropagation();quickAdd(p);}}>أضف إلى السلة</button>
+                    <button className="btn btn-add-cart" onClick={(e)=>{e.stopPropagation();quickAdd(p);}}>{uiText("أضف إلى السلة", "Add to cart")}</button>
                   </div>
                 </div>
               ))}
@@ -4238,14 +4238,14 @@ function AuthPage({user, isSignUpMode, setIsSignUpMode, emailInput, setEmailInpu
           {isSignUpMode ? headingText("إنشاء حساب جديد", "Create an account") : headingText("تسجيل الدخول", "Log in")}
         </h2>
         <p style={{fontSize: "13.5px", color: "var(--ink-soft)", textAlign: "center", marginBottom: "24px"}}>
-          أدخل بيانات بريدك الإلكتروني للمتابعة
+          {uiText("أدخل بيانات بريدك الإلكتروني للمتابعة", "Enter your email details to continue")}
         </p>
 
         <form onSubmit={handleEmailAuth} style={{display: "flex", flexDirection: "column", gap: "14px"}}>
           <input 
             type="email" 
             required 
-            placeholder="البريد الإلكتروني" 
+            placeholder={uiText("البريد الإلكتروني", "Email")}
             value={emailInput} 
             onChange={e => setEmailInput(e.target.value)}
             style={{padding: "13px 16px", borderRadius: "12px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit", fontSize: "14.5px"}}
@@ -4254,17 +4254,17 @@ function AuthPage({user, isSignUpMode, setIsSignUpMode, emailInput, setEmailInpu
             <input 
               type={showPassword ? "text" : "password"} 
               required 
-              placeholder="كلمة المرور (6 أحرف على الأقل)" 
+              placeholder={uiText("كلمة المرور (6 أحرف على الأقل)", "Password (at least 6 characters)")}
               value={passInput} 
               onChange={e => setPassInput(e.target.value)}
-              style={{width: "100%", padding: "13px 48px 13px 16px", borderRadius: "12px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit", fontSize: "14.5px"}}
+              style={{width: "100%", padding: activeLanguage === "en" ? "13px 48px 13px 16px" : "13px 16px 13px 48px", borderRadius: "12px", border: "1.5px solid var(--line)", outline: "none", fontFamily: "inherit", fontSize: "14.5px"}}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+              aria-label={showPassword ? uiText("إخفاء كلمة المرور", "Hide password") : uiText("إظهار كلمة المرور", "Show password")}
               aria-pressed={showPassword}
-              style={{position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", width: "28px", height: "28px", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, border: "none", background: "transparent", color: "var(--ink-soft)", cursor: "pointer"}}
+              style={{position: "absolute", left: activeLanguage === "en" ? "auto" : "10px", right: activeLanguage === "en" ? "10px" : "auto", top: "50%", transform: "translateY(-50%)", width: "28px", height: "28px", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, border: "none", background: "transparent", color: "var(--ink-soft)", cursor: "pointer"}}
             >
               {showPassword ? (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" aria-hidden="true">
@@ -4278,7 +4278,7 @@ function AuthPage({user, isSignUpMode, setIsSignUpMode, emailInput, setEmailInpu
             </button>
           </div>
           <button type="submit" className="btn btn-primary btn-lg" style={{width: "100%", marginTop: "6px"}}>
-            {isSignUpMode ? "تسجيل حساب جديد" : "تسجيل الدخول"}
+            {isSignUpMode ? uiText("تسجيل حساب جديد", "Create account") : uiText("تسجيل الدخول", "Log in")}
           </button>
         </form>
 
@@ -4288,7 +4288,7 @@ function AuthPage({user, isSignUpMode, setIsSignUpMode, emailInput, setEmailInpu
             onClick={() => setIsSignUpMode(!isSignUpMode)} 
             style={{background: "none", border: "none", color: "var(--periwinkle-deep)", cursor: "pointer", fontSize: "14px", fontWeight: "bold"}}
           >
-            {isSignUpMode ? "لديك حساب بالفعل؟ سجل دخول من هنا" : "ليس لديك حساب؟ أنشئ حساباً جديداً"}
+            {isSignUpMode ? uiText("لديك حساب بالفعل؟ سجل دخول من هنا", "Already have an account? Log in here") : uiText("ليس لديك حساب؟ أنشئ حساباً جديداً", "Don't have an account? Create a new account")}
           </button>
         </div>
       </div>
@@ -4912,10 +4912,10 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
         <div className="logout-modal-backdrop" onClick={() => setShowLogoutConfirm(false)}>
           <div className="logout-modal" role="dialog" aria-modal="true" aria-labelledby="logout-title" onClick={e => e.stopPropagation()}>
             <h2 id="logout-title">{headingText("هل أنت متأكد من تسجيل الخروج؟", "Are you sure you want to log out?")}</h2>
-            <p>ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.</p>
+            <p>{uiText("ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.", "You will need to log in again to access your account.")}</p>
             <div className="logout-modal-actions">
-              <button className="btn btn-outline" onClick={() => setShowLogoutConfirm(false)}>إلغاء</button>
-              <button className="btn btn-primary" onClick={() => { setShowLogoutConfirm(false); logout(); }}>تسجيل الخروج</button>
+              <button className="btn btn-outline" onClick={() => setShowLogoutConfirm(false)}>{uiText("إلغاء", "Cancel")}</button>
+              <button className="btn btn-primary" onClick={() => { setShowLogoutConfirm(false); logout(); }}>{uiText("تسجيل الخروج", "Log out")}</button>
             </div>
           </div>
         </div>
