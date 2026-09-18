@@ -588,6 +588,16 @@
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZnRtcGdvdHN4eXFid2F5cm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjI2NTgsImV4cCI6MjEwNDAzODY1OH0.3YttRUv4uH-tWVwPtGr6-K0xMCbAVuElOxs_brooANw';
   const supabase = createClient(supabaseUrl, supabaseKey);
 
+  function showSupabaseError(prefix, err) {
+    const status = err?.status ?? err?.details?.status;
+    const rawMessage = err?.message || String(err || 'حدث خطأ غير معروف');
+    const isPermissionIssue = status === 401 || status === 403 || /row-level|RLS|permission|policy|unauthorized/i.test(rawMessage);
+    const message = isPermissionIssue
+      ? 'مشكلة صلاحيات Supabase: فعّل سياسة RLS أو استخدم مفتاح مصادقة صحيح لجدول categories و bucket products. إذا كنت تستخدم المفتاح العام (anon)، لازم تمنح صلاحية INSERT/UPDATE/DELETE على الجدول.'
+      : rawMessage;
+    alert(`${prefix}: ${message}`);
+  }
+
   const richEditors = [
     { editor: document.getElementById('descEditor'), input: document.getElementById('desc') },
     { editor: document.getElementById('descEnEditor'), input: document.getElementById('desc_en') }
@@ -1053,43 +1063,66 @@
     document.getElementById('cancelCategoryEditBtn').classList.add('hidden');
   };
 
-  const categoryForm = document.getElementById('categoryForm');
+const categoryForm = document.getElementById('categoryForm');
   if (categoryForm) {
     categoryForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('catSubmitBtn');
       const editId = document.getElementById('editing_category_id').value;
       const file = catImgInput.files[0];
-      if (!editId && !file) return alert('اختر صورة للقسم');
 
       btn.disabled = true;
-      btn.innerText = 'جاري ضغط ورفع الصورة...';
+      btn.innerText = 'جاري حفظ القسم...';
 
       try {
-        const newCat = {
-          name: document.getElementById('cat_name').value.trim(),
-          name_en: document.getElementById('cat_name_en').value.trim() || null,
-          id: editId || (document.getElementById('cat_name_en').value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `category-${Date.now()}`)
-        };
-        if (file) newCat.img = (await uploadImages([file]))[0];
+        const catNameAr = document.getElementById('cat_name').value.trim();
+        const catNameEn = document.getElementById('cat_name_en').value.trim();
 
+        if (!catNameAr) throw new Error('يرجى كتابة اسم القسم بالعربي');
+
+        const slugBase = (catNameEn || catNameAr)
+          .toLowerCase()
+          .normalize('NFKD')
+          .replace(/[\u0600-\u06FF]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 40) || 'category';
+
+        const idValue = editId || `${slugBase}-${Date.now()}`;
+
+        const newCat = {
+          id: idValue,
+          name: catNameAr,
+          name_en: catNameEn || null
+        };
+
+        if (file) {
+          btn.innerText = 'جاري رفع الصورة...';
+          const uploadedUrls = await uploadImages([file]);
+          newCat.img = uploadedUrls[0];
+        } else if (!editId) {
+          newCat.img = 'https://placehold.co/300x300/EEF2FF/4F6FF5?text=Category';
+        }
+
+        btn.innerText = 'جاري الحفظ في قاعدة البيانات...';
         const { error } = editId
           ? await supabase.from('categories').update(newCat).eq('id', editId)
           : await supabase.from('categories').insert([newCat]);
+
         if (error) throw error;
 
         resetCategoryForm();
         alert(editId ? 'تم تحديث القسم بنجاح!' : 'تمت إضافة القسم بنجاح!');
         loadCategories();
       } catch (err) {
-        alert('حدث خطأ: ' + err.message);
+        console.error('Category Save Error:', err);
+        showSupabaseError('تعذر حفظ القسم', err);
       } finally {
         btn.disabled = false;
         btn.innerText = document.getElementById('editing_category_id').value ? 'حفظ تعديلات القسم' : 'حفظ ونشر القسم';
       }
     });
   }
-
   async function loadOrdersAndStats() {
     const tbody = document.getElementById('ordersTableBody');
     if (!tbody) return;
@@ -1388,8 +1421,12 @@
     });
   }
 
-  async function compressImage(file, maxWidth = 1200, quality = 0.75) {
-    return new Promise((resolve, reject) => {
+async function compressImage(file, maxWidth = 1200, quality = 0.8) {
+    return new Promise((resolve) => {
+      // إذا كان الملف صغير الحجم، نرفعه مباشرة لتجنب أخطاء التحويل
+      if (file.size < 500 * 1024) {
+        return resolve(file);
+      }
       const img = new Image();
       img.src = URL.createObjectURL(file);
       img.onload = () => {
@@ -1404,19 +1441,36 @@
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('فشل الضغط')), 'image/webp', quality);
+        canvas.toBlob(
+          (blob) => resolve(blob || file),
+          file.type || 'image/jpeg',
+          quality
+        );
       };
-      img.onerror = err => reject(err);
+      img.onerror = () => resolve(file);
     });
   }
 
   async function uploadImages(files) {
     const uploadedUrls = [];
     for (const file of files) {
-      const compressedBlob = await compressImage(file);
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.webp`;
-      const { error } = await supabase.storage.from('products').upload(fileName, compressedBlob, { contentType: 'image/webp', cacheControl: '3600', upsert: false });
-      if (error) throw error;
+      const fileToUpload = await compressImage(file);
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(fileName, fileToUpload, {
+          contentType: file.type || 'image/jpeg',
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('Storage Upload Error:', uploadError);
+        throw new Error(uploadError.message || 'فشل رفع الصورة إلى Storage');
+      }
+
       const { data } = supabase.storage.from('products').getPublicUrl(fileName);
       uploadedUrls.push(data.publicUrl);
     }
