@@ -582,7 +582,7 @@
 </div>
 
 <script type="module">
-  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
   const supabaseUrl = 'https://hxftmpgotsxyqbwayrnv.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4ZnRtcGdvdHN4eXFid2F5cm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjI2NTgsImV4cCI6MjEwNDAzODY1OH0.3YttRUv4uH-tWVwPtGr6-K0xMCbAVuElOxs_brooANw';
@@ -1422,61 +1422,84 @@ const categoryForm = document.getElementById('categoryForm');
   }
 
 async function compressImage(file, maxWidth = 1200, quality = 0.8) {
-    return new Promise((resolve) => {
-      // إذا كان الملف صغير الحجم، نرفعه مباشرة لتجنب أخطاء التحويل
-      if (file.size < 500 * 1024) {
-        return resolve(file);
-      }
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => resolve(blob || file),
-          file.type || 'image/jpeg',
-          quality
-        );
-      };
-      img.onerror = () => resolve(file);
-    });
-  }
-
-  async function uploadImages(files) {
-    const uploadedUrls = [];
-    for (const file of files) {
-      const fileToUpload = await compressImage(file);
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('products')
-        .upload(fileName, fileToUpload, {
-          contentType: file.type || 'image/jpeg',
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) {
-        console.error('Storage Upload Error:', uploadError);
-        throw new Error(uploadError.message || 'فشل رفع الصورة إلى Storage');
-      }
-
-      const { data } = supabase.storage.from('products').getPublicUrl(fileName);
-      uploadedUrls.push(data.publicUrl);
+  return new Promise((resolve) => {
+    // تمرير الملفات الصغيرة أو التي ليست صوراً كما هي
+    if (!file || file.size < 500 * 1024 || !file.type.startsWith('image/')) {
+      return resolve(file);
     }
-    return uploadedUrls;
-  }
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.src = objectUrl;
 
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let width = img.width;
+      let height = img.height;
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      canvas.toBlob((blob) => {
+        if (!blob) return resolve(file);
+        const compressedFile = new File([blob], file.name, {
+          type: mimeType,
+          lastModified: Date.now(),
+        });
+        resolve(compressedFile);
+      }, mimeType, quality);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file);
+    };
+  });
+}
+
+async function uploadImages(files) {
+  const uploadedUrls = [];
+  for (const file of files) {
+    if (!file) continue;
+
+    // 1. ضغط الصورة للحفاظ على المساحة المجانية
+    const fileToUpload = await compressImage(file);
+
+    const ext = (fileToUpload.name.split('.').pop() || 'jpg').toLowerCase();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+
+    // 2. استخدام Fetch API المباشر لتجاوز أخطاء مكتبة Supabase JS نهائياً
+    const response = await fetch(`${supabaseUrl}/storage/v1/object/products/${fileName}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'apikey': supabaseKey,
+        'Content-Type': fileToUpload.type || 'image/jpeg',
+        'x-upsert': 'false'
+      },
+      body: fileToUpload // إرسال الملف مباشرة للسيرفر
+    });
+
+    // لو السيرفر رفض، هيظهرلك الخطأ الحرفي من قاعدة البيانات
+    if (!response.ok) {
+      const errorText = await response.text();
+      alert(`تفاصيل خطأ السيرفر:\n${errorText}`);
+      console.error('Storage Upload Error:', errorText);
+      throw new Error('فشل الرفع: ' + errorText);
+    }
+
+    // 3. توليد الرابط العام للصورة بعد نجاح الرفع
+    const { data } = supabase.storage.from('products').getPublicUrl(fileName);
+    uploadedUrls.push(data.publicUrl);
+  }
+  return uploadedUrls;
+}
   function cleanListInput(val) {
     if (!val || val.trim() === '' || val.trim() === '0') return [];
     return val.split(/[\n,،]+/).map(item => item.trim()).filter(item => item !== '' && item !== '0');
