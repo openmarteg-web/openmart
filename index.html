@@ -2247,7 +2247,7 @@ const headingTranslations = {
   "سجل الطلبات": "Order history",
   "كل المنتجات": "All products",
   "لم نجد منتجات": "No products found",
-  "تسوق بلأقسام": "Shop by category",
+  "تسوق بالأقسام": "Shop by category",
   "المفضلة لدى العملاء": "Customer favorites",
   "أحدث المنتجات": "Latest products",
   "المنتجات الأكثر مبيعاً": "Best sellers",
@@ -3186,7 +3186,7 @@ function CategoryRow({go, setCatFilter, categories}){
       <div className="section-head">
         <div>
           <span className="section-eyebrow">{uiText("تـصـفـح", "EXPLORE")}</span>
-          <h2 className="section-title">{headingText("تسوق بلأقسام")}</h2>
+          <h2 className="section-title">{headingText("تسوق بالأقسام")}</h2>
         </div>
       </div>
       <div className="cat-row">
@@ -4378,7 +4378,7 @@ function Footer({go}){
           <div className="footer-links">
             <a href="tel:+201044776168">{uiText("تواصل معنا", "Contact us")}</a>
             <a href="#" onClick={(e)=>{e.preventDefault();go("shipping");}}>{uiText("معلومات الشحن", "Shipping information")}</a>
-            <a href="#">{uiText("الإرجاع والاستبدال", "Returns and exchanges")}</a>
+            <a href="#" onClick={(e)=>{e.preventDefault();go("returns");}}>{uiText("الإرجاع والاستبدال", "Returns and exchanges")}</a>
             <a href="#">{uiText("الأسئلة الشائعة", "FAQ")}</a>
           </div>
         </div>
@@ -4396,6 +4396,162 @@ function Footer({go}){
         <a className="developer-credit" href="https://joeadvertiseeg.vercel.app/" target="_blank" rel="noopener noreferrer">Developed by Joe Advertise</a>
       </div>
     </footer>
+  );
+}
+
+function ReturnsPage({ lang, go }) {
+  const isEn = lang === "en";
+
+  const content = isEn ? {
+    title: "Returns & Exchange",
+    subtitle: "A simple and fair replacement policy.",
+    intro1: "If the received item has any defect from the factory and not caused by misuse, we offer a replacement within 3 days from the date of receipt.",
+    intro2: "We are committed to protecting your right to receive a product in proper condition and to solve any issue quickly and smoothly.",
+    expect: "Our policy:",
+    items: [
+      "Replacement within 3 days from the date of receipt",
+      "The defect must be from the factory and not from misuse",
+      "The item must be in its received condition",
+      "The request will be reviewed to confirm the issue and provide the appropriate solution"
+    ],
+    closing: "We are here to make things easy and fair for you.",
+    cta: "For any return or exchange request, please contact us and we will assist you quickly."
+  } : {
+    title: "الإرجاع والاستبدال",
+    subtitle: "سياسة واضحة وسريعة للاستبدال.",
+    intro1: "بدّل خلال 3 أيام من تاريخ الاستلام، لو في الصنف المستلم أي عيب من المصنع وليس بسبب سوء الاستخدام.",
+    intro2: "نحاول نضمن لك تجربة شراء آمنة ومرنة، ونتعامل مع أي مشكلة بكل سهولة ووضوح.",
+    expect: "سياسة الاستبدال:",
+    items: [
+      "الاستبدال خلال 3 أيام من تاريخ الاستلام",
+      "العيب يكون من المصنع وليس بسبب سوء الاستخدام",
+      "يجب أن يكون الصنف في حالته المستلمة",
+      "سيتم مراجعة الطلب للتأكد من المشكلة وتقديم الحل المناسب"
+    ],
+    closing: "نحن هنا لنساعدك في أي مشكلة بشكل عادل وسريع.",
+    cta: "لأي طلب إرجاع أو استبدال، تواصل معنا وسنقدم لك الدعم فورًا."
+  };
+
+  return (
+    <div style={{
+      background: "#ffffff",
+      color: "#111111",
+      minHeight: "70vh",
+      padding: "50px 0 80px",
+      fontFamily: '"Cairo", "IBM Plex Sans Arabic", sans-serif'
+    }}>
+      <div style={{
+        maxWidth: "1180px",
+        margin: "0 auto",
+        padding: "0 28px"
+      }}>
+        <div style={{
+          maxWidth: "920px",
+          margin: "0 auto",
+          textAlign: isEn ? "left" : "right",
+          direction: isEn ? "ltr" : "rtl"
+        }}>
+          <h1 style={{
+            margin: "0 0 18px",
+            fontSize: isEn ? "46px" : "40px",
+            lineHeight: 1.15,
+            fontWeight: 700,
+            color: "#111111"
+          }}>
+            {content.title}
+          </h1>
+
+          <h2 style={{
+            margin: "0 0 18px",
+            fontSize: isEn ? "28px" : "25px",
+            lineHeight: 1.4,
+            fontWeight: 600,
+            color: "#111111"
+          }}>
+            {content.subtitle}
+          </h2>
+
+          <p style={{
+            margin: "0 0 16px",
+            fontSize: "18px",
+            lineHeight: 1.8,
+            color: "#111111"
+          }}>
+            {content.intro1}
+          </p>
+
+          <p style={{
+            margin: "0 0 18px",
+            fontSize: "18px",
+            lineHeight: 1.8,
+            color: "#111111"
+          }}>
+            {content.intro2}
+          </p>
+
+          <p style={{
+            margin: "18px 0 18px",
+            fontSize: "18px",
+            lineHeight: 1.8,
+            color: "#111111",
+            fontWeight: 600
+          }}>
+            {content.expect}
+          </p>
+
+          <ul style={{
+            listStyle: "none",
+            margin: "0 0 24px",
+            padding: 0
+          }}>
+            {content.items.map((item, index) => (
+              <li key={index} style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "12px",
+                fontSize: "17px",
+                lineHeight: 1.8,
+                color: "#111111",
+                marginBottom: "10px"
+              }}>
+                <span style={{
+                  width: "10px",
+                  height: "10px",
+                  borderRadius: "50%",
+                  background: index % 2 === 0 ? "#E7B5C5" : "#C9BAF5",
+                  marginTop: "13px",
+                  flexShrink: 0
+                }} />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div style={{
+            background: "#f5f5f5",
+            border: "1px solid rgba(0,0,0,0.08)",
+            borderRadius: "10px",
+            padding: "18px 20px",
+            margin: "24px 0",
+            fontSize: "18px",
+            lineHeight: 1.7,
+            fontWeight: 700,
+            color: "#111111"
+          }}>
+            {content.closing}
+          </div>
+
+          <div style={{
+            fontSize: "18px",
+            lineHeight: 1.8,
+            fontWeight: 700,
+            color: "#111111"
+          }}>
+            {content.cta}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -5145,6 +5301,7 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
             )}
 
       {page === "shipping" && <ShippingPage lang={lang} go={go} />}
+      {page === "returns" && <ReturnsPage lang={lang} go={go} />}
 
       {page==="about" && (
         <div style={{background:"#ffffff", color:"#111111", padding:"80px 0 100px", minHeight:"70vh"}}>
