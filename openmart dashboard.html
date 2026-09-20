@@ -213,7 +213,7 @@
       <span id="adminUserBadge" style="font-size: 12.5px; color: var(--muted);">المشرف: Admin (تخطي الدخول)</span>
     </div>
     <div class="header-actions">
-      <button class="btn-logout" id="logoutBtn" style="display:none;">تسجيل خروج</button>
+      <button class="btn-logout" id="logoutBtn">تسجيل خروج</button>
     </div>
   </div>
 
@@ -689,11 +689,17 @@
 
   const dashboardSection = document.getElementById('dashboardSection');
   const loginSection = document.getElementById('loginSection');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const loginForm = document.getElementById('loginForm');
   const loginPassword = document.getElementById('loginPassword');
   const passwordToggle = document.getElementById('passwordToggle');
   const imgFilesInput = document.getElementById('img_files');
   const previewsGrid = document.getElementById('previewsGrid');
   const filesCountBadge = document.getElementById('filesCountBadge');
+
+  const ADMIN_EMAIL = 'admin@openmart.com';
+  const ADMIN_PASSWORD = 'openmart.egy';
+  const AUTH_KEY = 'openmart_dashboard_auth';
 
   const catImgInput = document.getElementById('cat_img_file');
   const catImgPreview = document.getElementById('catImgPreview');
@@ -755,15 +761,60 @@
     });
   }
 
-  // تخطي تسجيل الدخول والفتح المباشر للوحة التحكم
-  function checkAuth() {
+  function showDashboard() {
     if (loginSection) loginSection.classList.add('hidden');
     if (dashboardSection) dashboardSection.classList.remove('hidden');
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    localStorage.setItem(AUTH_KEY, '1');
     window.switchDashboardTab('overview');
     loadProducts();
     loadCategories();
     loadCoupons();
     loadOrdersAndStats();
+  }
+
+  function showLogin() {
+    if (dashboardSection) dashboardSection.classList.add('hidden');
+    if (loginSection) loginSection.classList.remove('hidden');
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    localStorage.setItem(AUTH_KEY, '0');
+    if (loginForm) loginForm.reset();
+  }
+
+  function checkAuth() {
+    const isAuthenticated = localStorage.getItem(AUTH_KEY) === '1';
+    if (isAuthenticated) {
+      showDashboard();
+    } else {
+      showLogin();
+    }
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      showLogin();
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const email = document.getElementById('loginEmail')?.value.trim();
+      const password = document.getElementById('loginPassword')?.value.trim();
+
+      if (!email || !password) {
+        alert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+        return;
+      }
+
+      if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+        alert('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+        loginForm.reset();
+        return;
+      }
+
+      showDashboard();
+    });
   }
 
   const topbarForm = document.getElementById('topbarForm');
