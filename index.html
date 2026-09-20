@@ -3056,7 +3056,7 @@ const links = [["الرئيسية","home"],["المتجر","shop"],["الأكث�
    HOME PAGE
 ============================================================ */
 const SLIDES = [
-  {eyebrow:"موسم جديد", title:"نقرة واحدة.", accent:"ويصبح لك.", sub:"معدات مختارة لحياتك اليومية — أحذية رياضية، صوتيات، وإكسسوارات صُممت لتناسب أسلوب حياتك.", img:"https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1000&q=80&auto=format&fit=crop", price:"360 ج.م", cta:"تسوق التشكيلة"},
+  {eyebrow:"موسم جديد", title:"نقرة واحدة.", accent:"ويصبح لك.", sub:"اشتري بذكاء. اكتشف أكثر\nتشكيلة مختارة بعناية من الجادجتس، الإكسسوارات، مستلزمات البيت ومنتجات الحياة اليومية — جودة تستحق، أسعار مميزة، وأحدث الترندات في مكان واحد.", img:"https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1000&q=80&auto=format&fit=crop", price:"360 ج.م", cta:"اكتشف مجموعتنا الآن"},
 ];
 
 function Hero({go}){
@@ -3141,9 +3141,9 @@ function Hero({go}){
           <div>
             <span className="hero-eyebrow"><CursorIcon size={13}/> {uiText(s.eyebrow, "New season")}</span>
             <h1 className="hero-title">{headingText(s.title, "One click.")} <span className="accent">{headingText(s.accent, "And it's yours.")}</span></h1>
-            <p className="hero-sub">{uiText(s.sub, "Curated essentials for your everyday life - sneakers, audio, and accessories designed to fit your style.")}</p>
+            <p className="hero-sub">{uiText(s.sub, "Shop Smart. Discover More.\nA carefully curated selection of gadgets, accessories, home essentials, and lifestyle products — bringing quality, value, and the latest trends together.")}</p>
             <div className="hero-cta-row">
-              <button className="btn btn-primary btn-lg" onClick={()=>scrollToSection("products")}>{uiText(s.cta, "Shop the collection")}<ChevronLeft size={16}/></button>
+              <button className="btn btn-primary btn-lg" onClick={()=>scrollToSection("products")}>{uiText(s.cta, "Explore Our Collection.")}<ChevronLeft size={16}/></button>
               <button className="btn btn-outline btn-lg" onClick={()=>go("shop")}>{uiText("تصفح الأقسام", "Browse categories")}</button>
             </div>
           </div>
@@ -4986,9 +4986,14 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
       {page==="about" && (
         <div className="wrap" style={{padding:"80px 0",maxWidth:760}}>
           <span className="pill-badge">من نحن</span>
-          <h1 style={{fontSize:36,margin:"18px 0"}}>{headingText("سوق إلكتروني يبدأ بحركة واحدة: النقرة.")}</h1>
-          <p style={{color:"var(--ink-soft)",lineHeight:1.7,fontSize:16}}>بدأ أوبن مارت بفكرة بسيطة: يجب أن يكون التسوق عبر الإنترنت سهلاً كالنقرة التي بدأته. نتعاون مع استوديوهات مستقلة وعلامات تجارية مختارة لنقدم لك منتجات متينة، بأسعار عادلة، وتوصيل سريع. هذا نموذج تجريبي للواجهة، ولا تتم معالجة الحسابات أو المدفوعات.</p>
-          <button className="btn btn-primary btn-lg" style={{marginTop:20}} onClick={()=>go("shop")}>ابدأ التسوق</button>
+          <h1 style={{fontSize:36,margin:"18px 0"}}>{headingText("OpenMart Egypt", "OpenMart Egypt")}</h1>
+          <p style={{color:"var(--ink-soft)",lineHeight:1.7,fontSize:16}}>
+            {uiText(
+              "في OpenMart Egypt بدأنا بفكرة بسيطة: نخلّي التسوق أسهل. مش لازم تضيع وقتك في البحث عن منتجات مفيدة، مميزة، وجودتها كويسة وبسعر مناسب. علشان كده عملنا OpenMart كوجهة تسوق سهلة ومريحة، تقدر من خلالها تكتشف مجموعة متنوعة من المنتجات في مكان واحد. من الجادجتس والـSmart Accessories والمنتجات الترند، لاحتياجات البيت وكل المنتجات اللي بتسهّل حياتك اليومية — بنختار منتجاتنا بعناية علشان نقدم لك جودة، قيمة حقيقية، وسعر مناسب. وبنستمر دايمًا في البحث عن منتجات جديدة ومميزة، علشان كل مرة تزور فيها OpenMart تلاقي حاجة جديدة تستحق الاكتشاف. هدفنا بسيط: تسوق أسهل. منتجات تستاهل. أسعار مناسبة. وتجربة أفضل. OpenMart Egypt — اشتري بذكاء. اكتشف أكتر. عيش أحسن.",
+              "At OpenMart Egypt, we started with a simple idea: make shopping easier. You shouldn’t have to spend hours searching for useful, exciting, and quality products at the right price. That’s why we created OpenMart — an easy and convenient shopping destination where you can discover a wide range of products, all in one place. From trending gadgets and smart accessories to home essentials and everyday must-haves, we carefully select products that offer quality, value, and real everyday usefulness. We’re always looking for something new and exciting to add, so every visit gives you something new to discover. Our goal is simple: Easy shopping. Great products. Fair prices. A better experience. OpenMart Egypt — Shop Smart. Discover More. Live Better."
+            )}
+          </p>
+          <button className="btn btn-primary btn-lg" style={{marginTop:20}} onClick={()=>go("shop")}>{uiText("ابدأ التسوق", "Start shopping")}</button>
         </div>
       )}
 
