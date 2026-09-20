@@ -2317,7 +2317,7 @@ const UI_TRANSLATIONS = {
   "يجب تسجيل الدخول لعرض الطلبات المرتبطة بحسابك.": "You must log in to view orders linked to your account.",
   "لم تقم بإجراء أي طلبات حتى الآن.": "You have not placed any orders yet.", "طلب رقم": "Order #",
   "الكمية:": "Quantity:", "سجل الدخول لإتمام الطلب أسرع": "Log in for faster checkout",
-  "موسم جديد": "New season", "نقرة واحدة.": "One click.", "ويصبح لك.": "And it's yours.",
+  "موسم جديد": "New season", "اشتري بذكاء.": "Shop smart.", "اكتشف أكثر.": "Discover more.",
   "تصفح": "Explore", "إغلاق الفلاتر": "Close filters", "نتيجة": "result", "نتائج": "results",
   "منتجات مشابهة ومقترحة": "Similar and recommended products", "المنتج غير موجود": "Product not found",
   "غير متوفر حاليًا": "Currently out of stock", "قطعة": "piece", "قطع": "pieces",
@@ -3045,7 +3045,9 @@ const links = [["الرئيسية","home"],["المتجر","shop"],["الأكث�
             <HeartIcon size={19}/>
             {wishlist.length > 0 && <span className="badge">{wishlist.length}</span>}
           </button>
-          <span style={{fontSize:12.5,color:"var(--ink-faint)",alignSelf:"center"}}>سجل الدخول لإتمام الطلب أسرع</span>
+          {!user && (
+            <span style={{fontSize:12.5,color:"var(--ink-faint)",alignSelf:"center"}}>سجل الدخول لإتمام الطلب أسرع</span>
+          )}
         </div>
       </div>
     </>
@@ -3056,7 +3058,7 @@ const links = [["الرئيسية","home"],["المتجر","shop"],["الأكث�
    HOME PAGE
 ============================================================ */
 const SLIDES = [
-  {eyebrow:"موسم جديد", title:"نقرة واحدة.", accent:"ويصبح لك.", sub:"اشتري بذكاء. اكتشف أكثر\nتشكيلة مختارة بعناية من الجادجتس، الإكسسوارات، مستلزمات البيت ومنتجات الحياة اليومية — جودة تستحق، أسعار مميزة، وأحدث الترندات في مكان واحد.", img:"https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1000&q=80&auto=format&fit=crop", price:"360 ج.م", cta:"اكتشف مجموعتنا الآن"},
+  {eyebrow:"موسم جديد", title:"اشتري بذكاء.", accent:"اكتشف أكثر.", sub:"تشكيلة مختارة بعناية من الجادجتس، الإكسسوارات، مستلزمات البيت ومنتجات الحياة اليومية — جودة تستحق، أسعار مميزة، وأحدث الترندات في مكان واحد.", img:"https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1000&q=80&auto=format&fit=crop", price:"360 ج.م", cta:"اكتشف مجموعتنا الآن"},
 ];
 
 function Hero({go}){
@@ -3140,8 +3142,8 @@ function Hero({go}){
         >
           <div>
             <span className="hero-eyebrow"><CursorIcon size={13}/> {uiText(s.eyebrow, "New season")}</span>
-            <h1 className="hero-title">{headingText(s.title, "One click.")} <span className="accent">{headingText(s.accent, "And it's yours.")}</span></h1>
-            <p className="hero-sub">{uiText(s.sub, "Shop Smart. Discover More.\nA carefully curated selection of gadgets, accessories, home essentials, and lifestyle products — bringing quality, value, and the latest trends together.")}</p>
+            <h1 className="hero-title">{headingText(s.title, "Shop Smart.")} <span className="accent">{headingText(s.accent, "Discover More.")}</span></h1>
+            <p className="hero-sub">{uiText(s.sub, "A carefully curated selection of gadgets, accessories, home essentials, and lifestyle products — bringing quality, value, and the latest trends together.")}</p>
             <div className="hero-cta-row">
               <button className="btn btn-primary btn-lg" onClick={()=>scrollToSection("products")}>{uiText(s.cta, "Explore Our Collection.")}<ChevronLeft size={16}/></button>
               <button className="btn btn-outline btn-lg" onClick={()=>go("shop")}>{uiText("تصفح الأقسام", "Browse categories")}</button>
@@ -4985,14 +4987,43 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
 
       {page==="about" && (
         <div className="wrap" style={{padding:"80px 0",maxWidth:760}}>
-          <span className="pill-badge">من نحن</span>
-          <h1 style={{fontSize:36,margin:"18px 0"}}>{headingText("OpenMart Egypt", "OpenMart Egypt")}</h1>
-          <p style={{color:"var(--ink-soft)",lineHeight:1.7,fontSize:16}}>
-            {uiText(
-              "في OpenMart Egypt بدأنا بفكرة بسيطة: نخلّي التسوق أسهل. مش لازم تضيع وقتك في البحث عن منتجات مفيدة، مميزة، وجودتها كويسة وبسعر مناسب. علشان كده عملنا OpenMart كوجهة تسوق سهلة ومريحة، تقدر من خلالها تكتشف مجموعة متنوعة من المنتجات في مكان واحد. من الجادجتس والـSmart Accessories والمنتجات الترند، لاحتياجات البيت وكل المنتجات اللي بتسهّل حياتك اليومية — بنختار منتجاتنا بعناية علشان نقدم لك جودة، قيمة حقيقية، وسعر مناسب. وبنستمر دايمًا في البحث عن منتجات جديدة ومميزة، علشان كل مرة تزور فيها OpenMart تلاقي حاجة جديدة تستحق الاكتشاف. هدفنا بسيط: تسوق أسهل. منتجات تستاهل. أسعار مناسبة. وتجربة أفضل. OpenMart Egypt — اشتري بذكاء. اكتشف أكتر. عيش أحسن.",
-              "At OpenMart Egypt, we started with a simple idea: make shopping easier. You shouldn’t have to spend hours searching for useful, exciting, and quality products at the right price. That’s why we created OpenMart — an easy and convenient shopping destination where you can discover a wide range of products, all in one place. From trending gadgets and smart accessories to home essentials and everyday must-haves, we carefully select products that offer quality, value, and real everyday usefulness. We’re always looking for something new and exciting to add, so every visit gives you something new to discover. Our goal is simple: Easy shopping. Great products. Fair prices. A better experience. OpenMart Egypt — Shop Smart. Discover More. Live Better."
-            )}
-          </p>
+          <span className="pill-badge">{uiText("من نحن","About")}</span>
+          <h1 style={{fontSize:36,margin:"18px 0"}}>{headingText("عن OpenMart Egypt", "About OpenMart Egypt")}</h1>
+
+          <div style={{color:"var(--ink-soft)",lineHeight:1.7,fontSize:16}}>
+            <p style={{margin:"0 0 10px"}}>
+              {uiText("في ", "In ")}
+              <strong>{uiText("OpenMart Egypt", "OpenMart Egypt")}</strong>
+              {uiText(" بدأنا بفكرة بسيطة: ", " we started with a simple idea: ")}
+              <strong>{uiText("نخلّي التسوق أسهل.", "make shopping easier.")}</strong>
+            </p>
+
+            <p style={{margin:"0 0 10px"}}>
+              • {uiText("مش لازم تضيع وقتك في البحث عن منتجات مفيدة، مميزة، وجودتها كويسة وبسعر مناسب. علشان كده عملنا OpenMart كوجهة تسوق سهلة ومريحة، تقدر من خلالها تكتشف مجموعة متنوعة من المنتجات في مكان واحد.", "You shouldn’t have to spend hours searching for useful, high-quality products at a reasonable price. That’s why we created OpenMart as an easy and comfortable shopping destination where you can discover a wide range of products in one place.")}
+            </p>
+
+            <p style={{margin:"0 0 10px"}}>
+              • {uiText("من gadgets والـSmart Accessories والمنتجات الترند، لاحتياجات البيت وكل المنتجات اللي بتسهّل حياتك اليومية — بنختار منتجاتنا بعناية علشان نقدم لك ", "From gadgets and Smart Accessories to trending essentials, home needs, and everyday products that make life easier — we carefully choose our products to give you ")}
+              <strong>{uiText("جودة، قيمة حقيقية، وسعر مناسب.", "quality, real value, and a fair price.")}</strong>
+            </p>
+
+            <p style={{margin:"0 0 10px"}}>
+              • {uiText("وبنستمر دايمًا في البحث عن منتجات جديدة ومميزة، علشان كل مرة تزور فيها OpenMart تلاقي حاجة جديدة تستحق الاكتشاف.", "We keep looking for new and exciting products so every time you visit OpenMart, you’ll find something worth discovering.")}
+            </p>
+
+            <div style={{marginTop:18}}>
+              <p style={{fontWeight:700, margin:"0 0 10px"}}>{uiText("هدفنا بسيط:", "Our goal is simple:")}</p>
+              <ol style={{margin:"0 0 0 20px", paddingLeft:18}}>
+                <li>
+                  <strong>{uiText("تسوق أسهل. منتجات تستاهل. أسعار مناسبة. وتجربة أفضل.", "Easier shopping. Better products. Fair prices. A better experience.")}</strong>
+                </li>
+                <li>
+                  <strong>{uiText("OpenMart Egypt — اشتري بذكاء. اكتشف أكتر. عيش أحسن.", "OpenMart Egypt — Shop smart. Discover more. Live better.")}</strong>
+                </li>
+              </ol>
+            </div>
+          </div>
+
           <button className="btn btn-primary btn-lg" style={{marginTop:20}} onClick={()=>go("shop")}>{uiText("ابدأ التسوق", "Start shopping")}</button>
         </div>
       )}
