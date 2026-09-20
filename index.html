@@ -2247,7 +2247,7 @@ const headingTranslations = {
   "سجل الطلبات": "Order history",
   "كل المنتجات": "All products",
   "لم نجد منتجات": "No products found",
-  "تسوق بلأصـنـاف": "Shop by category",
+  "تسوق بلأقسام": "Shop by category",
   "المفضلة لدى العملاء": "Customer favorites",
   "أحدث المنتجات": "Latest products",
   "المنتجات الأكثر مبيعاً": "Best sellers",
@@ -3186,7 +3186,7 @@ function CategoryRow({go, setCatFilter, categories}){
       <div className="section-head">
         <div>
           <span className="section-eyebrow">{uiText("تـصـفـح", "EXPLORE")}</span>
-          <h2 className="section-title">{headingText("تسوق بلأصـنـاف")}</h2>
+          <h2 className="section-title">{headingText("تسوق بلأقسام")}</h2>
         </div>
       </div>
       <div className="cat-row">
@@ -4357,7 +4357,7 @@ function Footer({go}){
       <div className="wrap footer-grid">
         <div>
           <img className="footer-brand-logo" src={LOGO} alt="شعار أوبن مارت" />
-          <p className="footer-desc">{uiText("سوق مختار لاحتياجاتك اليومية من الأحذية والصوتيات والإكسسوارات وغيرها، لمن ينقر ويواصل يومه.", "A curated store for your daily needs, from footwear and audio to accessories and more, for those who click and keep moving.")}</p>
+          <p className="footer-desc">{uiText("وجهتك الجديدة لخبرة تسوق سهلة وممتعة", "A curated store for your daily needs, from footwear and audio to accessories and more, for those who click and keep moving.")}</p>
           <div className="footer-social">
             <a href="https://www.instagram.com/openmart_egypt/" target="_blank" rel="noopener noreferrer" aria-label={uiText("إنستغرام", "Instagram")}><InstaIcon size={17}/></a>
             <a href="https://www.facebook.com/openmartegypt" target="_blank" rel="noopener noreferrer" aria-label={uiText("فيسبوك", "Facebook")}><FbIcon size={17}/></a>
@@ -4371,14 +4371,13 @@ function Footer({go}){
             <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("كل المنتجات", "All products")}</a>
             <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("وصل حديثًا", "New arrivals")}</a>
             <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("الأكثر مبيعًا", "Best sellers")}</a>
-            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("التخفيضات", "Sale")}</a>
           </div>
         </div>
         <div>
           <div className="footer-h">{uiText("الدعم", "Support")}</div>
           <div className="footer-links">
-            <a href="#">{uiText("تواصل معنا", "Contact us")}</a>
-            <a href="#">{uiText("معلومات الشحن", "Shipping information")}</a>
+            <a href="tel:+201044776168">{uiText("تواصل معنا", "Contact us")}</a>
+            <a href="#" onClick={(e)=>{e.preventDefault();go("shipping");}}>{uiText("معلومات الشحن", "Shipping information")}</a>
             <a href="#">{uiText("الإرجاع والاستبدال", "Returns and exchanges")}</a>
             <a href="#">{uiText("الأسئلة الشائعة", "FAQ")}</a>
           </div>
@@ -4386,9 +4385,8 @@ function Footer({go}){
         <div>
           <div className="footer-h">{uiText("الشركة", "Company")}</div>
           <div className="footer-links">
-            <a href="#">{uiText("عن أوبن مارت", "About Openmart")}</a>
+            <a href="#" onClick={(e)=>{e.preventDefault(); go("about");}}>{uiText("عن أوبن مارت", "About Openmart")}</a>
             <a href="#">{uiText("الوظائف", "Careers")}</a>
-            <a href="#">{uiText("الاستدامة", "Sustainability")}</a>
             <a href="#">{uiText("سياسة الخصوصية", "Privacy policy")}</a>
           </div>
         </div>
@@ -4398,6 +4396,167 @@ function Footer({go}){
         <a className="developer-credit" href="https://joeadvertiseeg.vercel.app/" target="_blank" rel="noopener noreferrer">Developed by Joe Advertise</a>
       </div>
     </footer>
+  );
+}
+
+function ShippingPage({ lang, go }) {
+  const isEn = lang === "en";
+
+  const content = isEn ? {
+    title: "Shipping & Delivery",
+    subtitle: "Fast. Easy. Delivered to Your Door.",
+    intro1: "At OpenMart Egypt, we make getting your order as easy as shopping for it.",
+    intro2: "We deliver your orders across Cairo and all governorates in Egypt, directly to your doorstep.",
+    expect: "What you can expect:",
+    items: [
+      "Delivery to Cairo and all Egypt",
+      "Your order is carefully prepared and packed before shipping",
+      "Our team may contact you to confirm your order",
+      "Cash on Delivery may be available on eligible orders",
+      "Delivery time depends on your location and order details",
+      "Delivery fees are calculated according to your location and order"
+    ],
+    closing: "We always do our best to get your order to you quickly, safely, and hassle-free.",
+    cta: "Order today. We’ll take care of the rest."
+  } : {
+    title: "الشحن والتوصيل",
+    subtitle: "بسرعة، بسهولة… لحد باب بيتك",
+    intro1: "في OpenMart Egypt بنخلي استلام طلبك سهل زي عملية الشراء نفسها.",
+    intro2: "بنوصّل طلباتك داخل القاهرة وجميع محافظات مصر لحد باب بيتك.",
+    expect: "إيه اللي تتوقعه؟",
+    items: [
+      "توصيل داخل القاهرة وجميع أنحاء مصر",
+      "بنجهز ونغلف طلبك بعناية قبل الشحن",
+      "ممكن فريقنا يتواصل معاك لتأكيد الطلب",
+      "الدفع عند الاستلام متاح لبعض الطلبات",
+      "مدة التوصيل بتختلف حسب المحافظة وتفاصيل الطلب",
+      "مصاريف الشحن بتتحسب حسب عنوان التوصيل والطلب"
+    ],
+    closing: "بنحاول دايمًا إن طلبك يوصلك بسرعة، بأمان، ومن غير وجع دماغ.",
+    cta: "اطلب دلوقتي… وسيب الباقي علينا."
+  };
+
+  return (
+    <div style={{
+      background: "#ffffff",
+      color: "#111111",
+      minHeight: "70vh",
+      padding: "50px 0 80px",
+      fontFamily: '"Cairo", "IBM Plex Sans Arabic", sans-serif'
+    }}>
+      <div style={{
+        maxWidth: "1180px",
+        margin: "0 auto",
+        padding: "0 28px"
+      }}>
+        <div style={{
+          maxWidth: "920px",
+          margin: "0 auto",
+          textAlign: isEn ? "left" : "right",
+          direction: isEn ? "ltr" : "rtl"
+        }}>
+          <h1 style={{
+            margin: "0 0 18px",
+            fontSize: isEn ? "46px" : "40px",
+            lineHeight: 1.15,
+            fontWeight: 700,
+            color: "#111111"
+          }}>
+            {content.title}
+          </h1>
+
+          <h2 style={{
+            margin: "0 0 18px",
+            fontSize: isEn ? "28px" : "25px",
+            lineHeight: 1.4,
+            fontWeight: 600,
+            color: "#111111"
+          }}>
+            {content.subtitle}
+          </h2>
+
+          <p style={{
+            margin: "0 0 16px",
+            fontSize: "18px",
+            lineHeight: 1.8,
+            color: "#111111"
+          }}>
+            {content.intro1}
+          </p>
+
+          <p style={{
+            margin: "0 0 18px",
+            fontSize: "18px",
+            lineHeight: 1.8,
+            color: "#111111"
+          }}>
+            {content.intro2}
+          </p>
+
+          <p style={{
+            margin: "18px 0 18px",
+            fontSize: "18px",
+            lineHeight: 1.8,
+            color: "#111111",
+            fontWeight: 600
+          }}>
+            {content.expect}
+          </p>
+
+          <ul style={{
+            listStyle: "none",
+            margin: "0 0 24px",
+            padding: 0
+          }}>
+            {content.items.map((item, index) => (
+              <li key={index} style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "12px",
+                fontSize: "17px",
+                lineHeight: 1.8,
+                color: "#111111",
+                marginBottom: "10px"
+              }}>
+                <span style={{
+                  width: "10px",
+                  height: "10px",
+                  borderRadius: "50%",
+                  background: index % 2 === 0 ? "#E7B5C5" : "#C9BAF5",
+                  marginTop: "13px",
+                  flexShrink: 0
+                }} />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div style={{
+            background: "#f5f5f5",
+            border: "1px solid rgba(0,0,0,0.08)",
+            borderRadius: "10px",
+            padding: "18px 20px",
+            margin: "24px 0",
+            fontSize: "18px",
+            lineHeight: 1.7,
+            fontWeight: 700,
+            color: "#111111"
+          }}>
+            {content.closing}
+          </div>
+
+          <div style={{
+            fontSize: "18px",
+            lineHeight: 1.8,
+            fontWeight: 700,
+            color: "#111111"
+          }}>
+            {content.cta}
+          </div>
+        </div>
+
+      </div>
+    </div>
   );
 }
 
@@ -4985,46 +5144,50 @@ const buyNowDirect = (product, selectedVariant, selectedQty = 1) => {
               />
             )}
 
+      {page === "shipping" && <ShippingPage lang={lang} go={go} />}
+
       {page==="about" && (
-        <div className="wrap" style={{padding:"80px 0",maxWidth:760}}>
-          <span className="pill-badge">{uiText("من نحن","About")}</span>
-          <h1 style={{fontSize:36,margin:"18px 0"}}>{headingText("عن OpenMart Egypt", "About OpenMart Egypt")}</h1>
+        <div style={{background:"#ffffff", color:"#111111", padding:"80px 0 100px", minHeight:"70vh"}}>
+          <div className="wrap" style={{maxWidth:980, margin:"0 auto", textAlign: lang === "en" ? "left" : "right", direction: lang === "en" ? "ltr" : "rtl"}}>
+            <span className="pill-badge" style={{background:"rgba(0,0,0,0.04)", color:"#111111", borderColor:"rgba(0,0,0,0.10)"}}>{uiText("من نحن","About")}</span>
+            <h1 style={{fontSize:36,margin:"18px 0", color:"#111111", fontWeight:800}}>{headingText("عن OpenMart Egypt", "About OpenMart Egypt")}</h1>
 
-          <div style={{color:"var(--ink-soft)",lineHeight:1.7,fontSize:16}}>
-            <p style={{margin:"0 0 10px"}}>
-              {uiText("في ", "In ")}
-              <strong>{uiText("OpenMart Egypt", "OpenMart Egypt")}</strong>
-              {uiText(" بدأنا بفكرة بسيطة: ", " we started with a simple idea: ")}
-              <strong>{uiText("نخلّي التسوق أسهل.", "make shopping easier.")}</strong>
-            </p>
+            <div style={{color:"#111111",lineHeight:1.9,fontSize:18}}>
+              <p style={{margin:"0 0 10px"}}>
+                {uiText("في ", "In ")}
+                <strong style={{color:"#111111"}}>{uiText("OpenMart Egypt", "OpenMart Egypt")}</strong>
+                {uiText(" بدأنا بفكرة بسيطة: ", " we started with a simple idea: ")}
+                <strong style={{color:"#111111"}}>{uiText("نخلّي التسوق أسهل.", "make shopping easier.")}</strong>
+              </p>
 
-            <p style={{margin:"0 0 10px"}}>
-              • {uiText("مش لازم تضيع وقتك في البحث عن منتجات مفيدة، مميزة، وجودتها كويسة وبسعر مناسب. علشان كده عملنا OpenMart كوجهة تسوق سهلة ومريحة، تقدر من خلالها تكتشف مجموعة متنوعة من المنتجات في مكان واحد.", "You shouldn’t have to spend hours searching for useful, high-quality products at a reasonable price. That’s why we created OpenMart as an easy and comfortable shopping destination where you can discover a wide range of products in one place.")}
-            </p>
+              <p style={{margin:"0 0 10px"}}>
+                • {uiText("مش لازم تضيع وقتك في البحث عن منتجات مفيدة، مميزة، وجودتها كويسة وبسعر مناسب. علشان كده عملنا OpenMart كوجهة تسوق سهلة ومريحة، تقدر من خلالها تكتشف مجموعة متنوعة من المنتجات في مكان واحد.", "You shouldn’t have to spend hours searching for useful, high-quality products at a reasonable price. That’s why we created OpenMart as an easy and comfortable shopping destination where you can discover a wide range of products in one place.")}
+              </p>
 
-            <p style={{margin:"0 0 10px"}}>
-              • {uiText("من gadgets والـSmart Accessories والمنتجات الترند، لاحتياجات البيت وكل المنتجات اللي بتسهّل حياتك اليومية — بنختار منتجاتنا بعناية علشان نقدم لك ", "From gadgets and Smart Accessories to trending essentials, home needs, and everyday products that make life easier — we carefully choose our products to give you ")}
-              <strong>{uiText("جودة، قيمة حقيقية، وسعر مناسب.", "quality, real value, and a fair price.")}</strong>
-            </p>
+              <p style={{margin:"0 0 10px"}}>
+                • {uiText("من gadgets والـSmart Accessories والمنتجات الترند، لاحتياجات البيت وكل المنتجات اللي بتسهّل حياتك اليومية — بنختار منتجاتنا بعناية علشان نقدم لك ", "From gadgets and Smart Accessories to trending essentials, home needs, and everyday products that make life easier — we carefully choose our products to give you ")}
+                <strong style={{color:"#111111"}}>{uiText("جودة، قيمة حقيقية، وسعر مناسب.", "quality, real value, and a fair price.")}</strong>
+              </p>
 
-            <p style={{margin:"0 0 10px"}}>
-              • {uiText("وبنستمر دايمًا في البحث عن منتجات جديدة ومميزة، علشان كل مرة تزور فيها OpenMart تلاقي حاجة جديدة تستحق الاكتشاف.", "We keep looking for new and exciting products so every time you visit OpenMart, you’ll find something worth discovering.")}
-            </p>
+              <p style={{margin:"0 0 10px"}}>
+                • {uiText("وبنستمر دايمًا في البحث عن منتجات جديدة ومميزة، علشان كل مرة تزور فيها OpenMart تلاقي حاجة جديدة تستحق الاكتشاف.", "We keep looking for new and exciting products so every time you visit OpenMart, you’ll find something worth discovering.")}
+              </p>
 
-            <div style={{marginTop:18}}>
-              <p style={{fontWeight:700, margin:"0 0 10px"}}>{uiText("هدفنا بسيط:", "Our goal is simple:")}</p>
-              <ol style={{margin:"0 0 0 20px", paddingLeft:18}}>
-                <li>
-                  <strong>{uiText("تسوق أسهل. منتجات تستاهل. أسعار مناسبة. وتجربة أفضل.", "Easier shopping. Better products. Fair prices. A better experience.")}</strong>
-                </li>
-                <li>
-                  <strong>{uiText("OpenMart Egypt — اشتري بذكاء. اكتشف أكتر. عيش أحسن.", "OpenMart Egypt — Shop smart. Discover more. Live better.")}</strong>
-                </li>
-              </ol>
+              <div style={{marginTop:20}}>
+                <p style={{fontWeight:700, margin:"0 0 10px", color:"#111111"}}>{uiText("هدفنا بسيط:", "Our goal is simple:")}</p>
+                <ol style={{margin:"0 0 0 20px", paddingLeft:18, color:"#111111"}}>
+                  <li>
+                    <strong style={{color:"#111111"}}>{uiText("تسوق أسهل. منتجات تستاهل. أسعار مناسبة. وتجربة أفضل.", "Easier shopping. Better products. Fair prices. A better experience.")}</strong>
+                  </li>
+                  <li>
+                    <strong style={{color:"#111111"}}>{uiText("OpenMart Egypt — اشتري بذكاء. اكتشف أكتر. عيش أحسن.", "OpenMart Egypt — Shop smart. Discover more. Live better.")}</strong>
+                  </li>
+                </ol>
+              </div>
             </div>
-          </div>
 
-          <button className="btn btn-primary btn-lg" style={{marginTop:20}} onClick={()=>go("shop")}>{uiText("ابدأ التسوق", "Start shopping")}</button>
+            <button className="btn btn-primary btn-lg" style={{marginTop:22}} onClick={()=>go("shop")}>{uiText("ابدأ التسوق", "Start shopping")}</button>
+          </div>
         </div>
       )}
 
