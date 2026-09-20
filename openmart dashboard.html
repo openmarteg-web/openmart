@@ -697,75 +697,10 @@
   const previewsGrid = document.getElementById('previewsGrid');
   const filesCountBadge = document.getElementById('filesCountBadge');
 
-  const ADMIN_EMAIL = 'admin@openmart.com';
-  const ADMIN_PASSWORD = 'openmart.egy';
-  const AUTH_KEY = 'openmart_dashboard_auth';
-
-  const catImgInput = document.getElementById('cat_img_file');
-  const catImgPreview = document.getElementById('catImgPreview');
-  const catImgPreviewText = document.getElementById('catImgPreviewText');
-
-  passwordToggle?.addEventListener('click', () => {
-    const isPasswordVisible = loginPassword.type === 'text';
-    loginPassword.type = isPasswordVisible ? 'password' : 'text';
-    passwordToggle.setAttribute('aria-pressed', String(!isPasswordVisible));
-    passwordToggle.setAttribute('aria-label', isPasswordVisible ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور');
-    passwordToggle.innerHTML = isPasswordVisible
-      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
-      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 4.2A10.7 10.7 0 0 1 12 4c6.5 0 10 8 10 8a18.5 18.5 0 0 1-3.1 4.3"></path><path d="M6.6 6.6C3.7 8.5 2 12 2 12s3.5 8 10 8a10.7 10.7 0 0 0 3.1-.5"></path></svg>';
-  });
-
-  window.switchDashboardTab = function(tab) {
-    const viewIds = ['overviewStats', 'overviewTopbar', 'overviewHero', 'couponsView', 'productsView', 'categoriesView', 'ordersView'];
-    const buttonIds = ['tabBtnOverview', 'tabBtnProducts', 'tabBtnProductsSub', 'tabBtnCategories', 'tabBtnOrders', 'tabBtnCoupons'];
-    const productsSubnav = document.querySelector('.products-subnav');
-
-    viewIds.forEach(id => document.getElementById(id)?.classList.add('hidden'));
-    buttonIds.forEach(id => document.getElementById(id)?.classList.remove('active'));
-    productsSubnav?.classList.add('hidden');
-
-    if (tab === 'overview') {
-      ['overviewStats', 'overviewTopbar', 'overviewHero'].forEach(id => document.getElementById(id)?.classList.remove('hidden'));
-      document.getElementById('tabBtnOverview')?.classList.add('active');
-    } else if (tab === 'products') {
-      document.getElementById('productsView')?.classList.remove('hidden');
-      productsSubnav?.classList.remove('hidden');
-      document.getElementById('tabBtnProducts')?.classList.add('active');
-      document.getElementById('tabBtnProductsSub')?.classList.add('active');
-      loadProducts();
-    } else if (tab === 'categories') {
-      document.getElementById('categoriesView')?.classList.remove('hidden');
-      productsSubnav?.classList.remove('hidden');
-      document.getElementById('tabBtnProducts')?.classList.add('active');
-      document.getElementById('tabBtnCategories')?.classList.add('active');
-      loadCategories();
-    } else if (tab === 'orders') {
-      document.getElementById('ordersView')?.classList.remove('hidden');
-      document.getElementById('tabBtnOrders')?.classList.add('active');
-      loadOrdersAndStats();
-    } else if (tab === 'coupons') {
-      document.getElementById('couponsView')?.classList.remove('hidden');
-      document.getElementById('tabBtnCoupons')?.classList.add('active');
-      loadCoupons();
-    }
-  };
-
-  if (catImgInput) {
-    catImgInput.addEventListener('change', () => {
-      const file = catImgInput.files[0];
-      if (file) {
-        catImgPreview.src = URL.createObjectURL(file);
-        catImgPreview.style.display = 'block';
-        catImgPreviewText.style.display = 'none';
-      }
-    });
-  }
-
   function showDashboard() {
     if (loginSection) loginSection.classList.add('hidden');
     if (dashboardSection) dashboardSection.classList.remove('hidden');
     if (logoutBtn) logoutBtn.style.display = 'inline-flex';
-    localStorage.setItem(AUTH_KEY, '1');
     window.switchDashboardTab('overview');
     loadProducts();
     loadCategories();
@@ -777,39 +712,53 @@
     if (dashboardSection) dashboardSection.classList.add('hidden');
     if (loginSection) loginSection.classList.remove('hidden');
     if (logoutBtn) logoutBtn.style.display = 'none';
-    localStorage.setItem(AUTH_KEY, '0');
     if (loginForm) loginForm.reset();
   }
 
-  function checkAuth() {
-    const isAuthenticated = localStorage.getItem(AUTH_KEY) === '1';
-    if (isAuthenticated) {
+  // فحص الجلسة الحقيقية عند فتح الصفحة
+  async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
       showDashboard();
     } else {
       showLogin();
     }
   }
 
+  // تسجيل الخروج الحقيقي من السيرفر
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
+    logoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
       showLogin();
     });
   }
 
+  // تسجيل الدخول الحقيقي في Supabase
   if (loginForm) {
-    loginForm.addEventListener('submit', (event) => {
+    loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const email = document.getElementById('loginEmail')?.value.trim();
       const password = document.getElementById('loginPassword')?.value.trim();
+      const btn = document.getElementById('loginBtn');
 
       if (!email || !password) {
         alert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
         return;
       }
 
-      if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
-        alert('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-        loginForm.reset();
+      btn.disabled = true;
+      btn.innerText = 'جاري التحقق...';
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      btn.disabled = false;
+      btn.innerText = 'دخول للوحة التحكم';
+
+      if (error) {
+        alert('فشل تسجيل الدخول: ' + error.message);
         return;
       }
 
