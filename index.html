@@ -4850,7 +4850,7 @@ const [orders, setOrders] = useState(() => {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const defaultTopbarText = "شحن مجاني للطلبات فوق 75 ج.م • منتجات جديدة كل جمعة • إرجاع مجاني خلال 30 يوم";
+  const defaultTopbarText = "شحن مجاني للطلبات فوق 1000 ج.م • منتجات جديدة كل جمعة • إستبدال خلال 3 أيام";
   const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmart_topbar_text") || defaultTopbarText);
   const [topbarTextEn, setTopbarTextEn] = useState(() => localStorage.getItem("openmart_topbar_text_en") || "");
   useEffect(() => {
