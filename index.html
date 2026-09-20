@@ -2,9 +2,9 @@
 <html lang="ar" dir="rtl">
 <head>
   <!-- ================= 1. أيقونة المتصفح (Favicon) ================= -->
-<link rel="icon" type="image/jpeg" href="https://openmartegypt.com/logo.jpeg" />
-<link rel="shortcut icon" href="https://openmartegypt.com/logo.jpeg" />
-<link rel="apple-touch-icon" href="https://openmartegypt.com/logo.jpeg" />
+<link rel="icon" type="image/jpeg" href="logo.jpeg" />
+<link rel="shortcut icon" href="logo.jpeg" />
+<link rel="apple-touch-icon" href="logo.jpeg" />
 
 <!-- ================= 2. الوصف الأساسي للموقع ومحركات البحث ================= -->
 <meta name="description" content="أوبن مارت مصر - وجهتك الأولى للتسوق الإلكتروني، أحدث المنتجات، عروض مميزة وتوصيل سريع حتى باب بيتك." />
@@ -16,8 +16,8 @@
 <meta property="og:title" content="أوبن مارت مصر | متجر التسوق الذكي" />
 <meta property="og:description" content="تشكيلة مختارة من الجادجتس، الإكسسوارات ومستلزمات البيت بأفضل جودة وسعر مع توصيل لجميع المحافظات." />
 <meta property="og:url" content="https://openmartegypt.com/" />
-<meta property="og:image" content="https://openmartegypt.com/logo.jpeg" />
-<meta property="og:image:secure_url" content="https://openmartegypt.com/logo.jpeg" />
+<meta property="og:image" content="logo.jpeg" />
+<meta property="og:image:secure_url" content="logo.jpeg" />
 <meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="600" />
 <meta property="og:image:height" content="600" />
@@ -26,15 +26,39 @@
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="أوبن مارت مصر | متجر التسوق الذكي" />
 <meta name="twitter:description" content="تشكيلة مختارة من الجادجتس، الإكسسوارات ومستلزمات البيت بأفضل جودة وسعر مع توصيل لجميع المحافظات." />
-<meta name="twitter:image" content="https://openmartegypt.com/logo.jpeg" />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta property="twitter:image" content="logo.jpeg" />
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title> أوبن مارت مصر</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Baloo+Bhaijaan+2:wght@600;700;800&family=Cairo:wght@500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&family=Baloo+Bhaijaan+2:wght@600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --placeholder-start: #eef3ff;
+    --placeholder-end: #f4f6fb;
+  }
+
+  .image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--placeholder-start), var(--placeholder-end));
+    color: rgba(31, 41, 55, 0.45);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: inherit;
+  }
+
+  .hero-visual .image-placeholder,
+  .cat-circle .image-placeholder,
+  .pcard-media .image-placeholder {
+    min-height: 100%;
+  }
   .pd-rich-text ul, .pd-rich-text ol {
     list-style-position: inside !important;
     padding-right: 0 !important;
@@ -341,14 +365,14 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: 'Baloo 2', sans-serif;
+  font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   direction: rtl;
   text-align: right;
 }
 html[lang="ar"] body {
-  font-family: 'Baloo Bhaijaan 2', 'Cairo', sans-serif;
+  font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
 }
 h1,h2,h3,h4,.display{
   font-family:'Baloo 2',sans-serif;
@@ -2411,15 +2435,15 @@ const productCategories = product => Array.isArray(product.cat)
 const productHasCategory = (product, categoryId) => productCategories(product).includes(categoryId);
 
 const CATEGORIES = [
-  {id:"home-appliances", name:"أدوات منزليه", img:"https://images.unsplash.com/photo-1556911220-bff31c812dba?w=300&q=80&auto=format&fit=crop"},
-  {id:"kitchen", name:"مطبخ", img:"https://images.unsplash.com/photo-1556910103-1c02745a8728?w=300&q=80&auto=format&fit=crop"},
-  {id:"bathroom", name:"حمام", img:"https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=300&q=80&auto=format&fit=crop"},
-  {id:"camping", name:"تخييم ورحلات", img:"https://images.unsplash.com/photo-1504280390227-315bc32b2123?w=300&q=80&auto=format&fit=crop"},
-  {id:"sports", name:"أدوات رياضه", img:"https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=300&q=80&auto=format&fit=crop"},
-  {id:"car-accessories", name:"اكسسوار للسياره", img:"https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=300&q=80&auto=format&fit=crop"},
-  {id:"cleaning", name:"تنظيف", img:"https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300&q=80&auto=format&fit=crop"},
-  {id:"perfumes", name:"عطور", img:"https://images.unsplash.com/photo-1594034183984-297eb0947cb2?w=300&q=80&auto=format&fit=crop"},
-  {id:"health-beauty", name:"صحه وجمال", img:"https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&q=80&auto=format&fit=crop"},
+  {id:"home-appliances", name:"أدوات منزليه", img:""},
+  {id:"kitchen", name:"مطبخ", img:""},
+  {id:"bathroom", name:"حمام", img:""},
+  {id:"camping", name:"تخييم ورحلات", img:""},
+  {id:"sports", name:"أدوات رياضه", img:""},
+  {id:"car-accessories", name:"اكسسوار للسياره", img:""},
+  {id:"cleaning", name:"تنظيف", img:""},
+  {id:"perfumes", name:"عطور", img:""},
+  {id:"health-beauty", name:"صحه وجمال", img:""},
 ];
 
 const PRODUCTS = [];
@@ -2614,16 +2638,18 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow, index = 0
     }
   };
 
+  const hasProductImage = !!(p.img && String(p.img).trim());
+
   return (
     <div ref={cardRef} className={`pcard fade-in${isVisible ? " is-visible" : ""}`} style={{"--card-index": index}}>
-      <div className={`pcard-media${isOutOfStock ? " is-out-of-stock" : ""}`} onClick={()=>onOpen(p.id)}>
+      <div className={`pcard-media${isOutOfStock ? " is-out-of-stock" : ""}${hasProductImage ? "" : " placeholder"}`} onClick={()=>onOpen(p.id)}>
         {/* شارة المنتج إن وجدت، أو يظهر مؤشر الضغط للتفاصيل */}
         {p.badge ? <Badge type={p.badge}/> : null}
 
         <button className={"pcard-wish"+(wished?" active":"")} onClick={(e)=>{e.stopPropagation();onWish(p.id);}} aria-label="قائمة الأمنيات">
           <HeartIcon size={16} style={{fill: wished ? "currentColor":"none"}}/>
         </button>
-        <img src={p.img} alt={productName(p)} loading="lazy"/>
+        {hasProductImage ? <img src={p.img} alt={productName(p)} loading="lazy" /> : <div className="image-placeholder">{String(productName(p) || "Openmart").slice(0, 2).toUpperCase()}</div>}
         {isOutOfStock && <div className="pcard-sold-out" aria-label={uiText("نفد المخزون", "Sold out")}><span>{uiText("نفد المخزون", "SOLD OUT")}</span></div>}
       </div>
 
@@ -2742,7 +2768,7 @@ function Header({page, go, cartCount, wishCount, onOpenMenu, search, setSearch, 
 
           <div className="header-actions">
             <a className="header-whatsapp" href="https://wa.me/201044776168" target="_blank" rel="noreferrer" aria-label="التواصل عبر واتساب" title="التواصل عبر واتساب">
-              <img src="https://cdn.simpleicons.org/whatsapp/ffffff" alt="واتساب" />
+              <svg viewBox="0 0 24 24" aria-hidden="true" width="19" height="19" fill="currentColor"><path d="M20.52 3.48A11.8 11.8 0 0 0 12.05 0C5.51 0 .18 5.32.18 11.86c0 2.09.55 4.12 1.59 5.9L.05 24l6.4-1.68c1.72.94 3.66 1.43 5.6 1.43h.01c6.54 0 11.87-5.32 11.87-11.86 0-3.17-1.23-6.16-3.41-8.41Zm-8.47 18.26c-1.7 0-3.37-.46-4.82-1.32l-.35-.21-3.8 1 1.01-3.7-.23-.38A9.9 9.9 0 0 1 2.2 11.86c0-5.48 4.46-9.94 9.96-9.94 2.66 0 5.15 1.04 7.03 2.92a9.94 9.94 0 0 1 2.92 7.02c0 5.48-4.45 9.94-9.94 9.94Zm5.46-7.45c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.66.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.08-.3-.15-1.28-.47-2.44-1.52-.9-.8-1.51-1.8-1.68-2.1-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.9-2.18-.24-.58-.48-.5-.66-.5h-.56c-.2 0-.52.08-.8.37-.28.3-1.06 1.04-1.06 2.54 0 1.49 1.08 2.95 1.23 3.15.15.2 2.12 3.24 5.12 4.54.72.31 1.28.49 1.72.63.72.23 1.38.2 1.9.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.08-.12-.3-.2-.6-.35Z"/></svg>
             </a>
 {/* أيقونات السوشيال ميديا للكمبيوتر */}
             <div className="nav-social">
@@ -3084,7 +3110,7 @@ const links = [["الرئيسية","home"],["المتجر","shop"],["الأكث�
    HOME PAGE
 ============================================================ */
 const SLIDES = [
-  {eyebrow:"موسم جديد", title:"اشتري بذكاء.", accent:"اكتشف أكثر.", sub:"تشكيلة مختارة بعناية من الجادجتس، الإكسسوارات، مستلزمات البيت ومنتجات الحياة اليومية — جودة تستحق، أسعار مميزة، وأحدث الترندات في مكان واحد.", img:"https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1000&q=80&auto=format&fit=crop", price:"360 ج.م", cta:"اكتشف مجموعتنا الآن"},
+  {eyebrow:"موسم جديد", title:"اشتري بذكاء.", accent:"اكتشف أكثر.", sub:"تشكيلة مختارة بعناية من الجادجتس، الإكسسوارات، مستلزمات البيت ومنتجات الحياة اليومية — جودة تستحق، أسعار مميزة، وأحدث الترندات في مكان واحد.", img:"", price:"360 ج.م", cta:"اكتشف مجموعتنا الآن"},
 ];
 
 function Hero({go}){
@@ -3175,8 +3201,8 @@ function Hero({go}){
               <button className="btn btn-outline btn-lg" onClick={()=>go("shop")}>{uiText("تصفح الأقسام", "Browse categories")}</button>
             </div>
           </div>
-          <div className="hero-visual">
-            <img src={s.img} alt="Hero Banner" />
+          <div className={`hero-visual${s.img ? "" : " placeholder"}`}>
+            {s.img ? <img src={s.img} alt="Hero Banner" /> : <div className="image-placeholder">Openmart</div>}
             {heroSlides.length > 1 && <>
               <button className="hero-nav-arrow prev" onClick={() => goToSlide(1)} aria-label={uiText("الصورة التالية", "Next slide")}><ChevronRight size={20}/></button>
               <button className="hero-nav-arrow next" onClick={() => goToSlide(-1)} aria-label={uiText("الصورة السابقة", "Previous slide")}><ChevronLeft size={20}/></button>
@@ -3218,7 +3244,9 @@ function CategoryRow({go, setCatFilter, categories}){
       <div className="cat-row">
         {list.map(c=>(
           <a href="#" className="cat-card" key={c.id} onClick={(e)=>{e.preventDefault();setCatFilter(c.id);go("shop");}}>
-            <div className="cat-circle"><img src={c.img} alt={categoryName(c)}/></div>
+            <div className={`cat-circle${c.img ? "" : " placeholder"}`}>
+              {c.img ? <img src={c.img} alt={categoryName(c)}/> : <div className="image-placeholder">{categoryName(c).slice(0, 2).toUpperCase()}</div>}
+            </div>
             <span className="cat-name">{categoryName(c)}</span>
           </a>
         ))}
