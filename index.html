@@ -54,6 +54,316 @@
     border-radius: inherit;
   }
 
+  /* ===== شاشة تحميل خفيفة (wireframe) ===== */
+  .page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: start center;
+    background: rgba(245, 247, 250, 0.96);
+    backdrop-filter: blur(2px);
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+    overflow-y: auto;
+    padding: 0 0 32px;
+  }
+
+  .page-loader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .page-loader__shell {
+    width: min(100%, 1280px);
+    padding: 0 12px;
+  }
+
+  .page-loader__topbar,
+  .page-loader__header,
+  .page-loader__hero,
+  .page-loader__brands,
+  .page-loader__categories,
+  .page-loader__section,
+  .page-loader__products,
+  .page-loader__promo,
+  .page-loader__footer {
+    margin-bottom: 18px;
+  }
+
+  .page-loader__topbar {
+    height: 38px;
+    border-radius: 0 0 16px 16px;
+    background: linear-gradient(90deg, #4a6df3, #4f72f5);
+  }
+
+  .page-loader__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 74px;
+    padding: 12px 18px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(17,17,17,0.04);
+  }
+
+  .page-loader__brand { display: flex; align-items: center; gap: 12px; flex: 1; }
+  .page-loader__nav { display: flex; gap: 12px; align-items: center; justify-content: center; flex: 2; }
+  .page-loader__actions { display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
+
+  .loader-logo,
+  .loader-line,
+  .loader-pill,
+  .loader-box,
+  .loader-circle,
+  .loader-card,
+  .loader-banner,
+  .loader-footer-box {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, #edf1f7 25%, #f8f9fc 50%, #edf1f7 75%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.25s linear infinite;
+  }
+
+  .loader-logo::before,
+  .loader-line::before,
+  .loader-pill::before,
+  .loader-box::before,
+  .loader-circle::before,
+  .loader-card::before,
+  .loader-banner::before,
+  .loader-footer-box::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+    transform: translateX(-100%);
+    animation: skeletonFlash 1.25s ease-in-out infinite;
+  }
+
+  .loader-logo { width: 42px; height: 42px; border-radius: 12px; }
+  .loader-line { width: 150px; height: 18px; border-radius: 999px; }
+  .loader-pill { width: 84px; height: 12px; border-radius: 999px; }
+  .loader-box { width: 120px; height: 16px; border-radius: 999px; }
+  .loader-circle { width: 40px; height: 40px; border-radius: 50%; }
+
+  .page-loader__hero {
+    position: relative;
+    min-height: 560px;
+    border-radius: 28px;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid rgba(17,17,17,0.05);
+    overflow: hidden;
+    padding: 18px 28px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-loader__hero-visual {
+    position: relative;
+    width: min(100%, 1180px);
+    height: 500px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #eef1f6, #f7f8fb);
+  }
+
+  .page-loader__hero-visual::before {
+    content: "";
+    position: absolute;
+    width: 58%;
+    height: 120px;
+    left: 50%;
+    top: 38px;
+    transform: translateX(-50%);
+    border-radius: 20px;
+    background: rgba(137, 160, 220, 0.16);
+  }
+
+  .page-loader__hero-visual::after {
+    content: "";
+    position: absolute;
+    width: 62%;
+    height: 250px;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    border-radius: 24px 24px 30px 30px;
+    background: rgba(74, 109, 243, 0.14);
+  }
+
+  .page-loader__hero-text {
+    position: absolute;
+    left: 50%;
+    top: 74px;
+    transform: translateX(-50%);
+    width: min(72%, 640px);
+    height: 92px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.18);
+  }
+
+  .page-loader__hero-badges {
+    position: absolute;
+    inset: 0;
+  }
+
+  .page-loader__hero-badges .loader-pill {
+    position: absolute;
+    width: 200px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(237,241,247,0.9);
+  }
+
+  .page-loader__hero-badges .loader-pill:nth-child(1) { left: 18%; top: 180px; }
+  .page-loader__hero-badges .loader-pill:nth-child(2) { right: 18%; top: 180px; }
+
+  .page-loader__hero-knob {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(103, 132, 244, 0.15);
+    left: 24%;
+    bottom: 52px;
+  }
+
+  .page-loader__hero-knob.right {
+    left: auto;
+    right: 18%;
+    bottom: 88px;
+  }
+
+  .page-loader__brands {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 22px;
+    padding: 12px 10px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.7);
+  }
+
+  .page-loader__brands .loader-box {
+    width: 120px;
+    height: 26px;
+    border-radius: 999px;
+  }
+
+  .page-loader__categories {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 18px;
+    padding: 14px 6px 0;
+  }
+
+  .loader-category { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .loader-category .loader-circle { width: 88px; height: 88px; }
+  .loader-category .loader-box { width: 70px; height: 14px; }
+
+  .page-loader__section {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 4px 0;
+  }
+
+  .page-loader__section .loader-box:first-child { width: 190px; height: 28px; }
+  .page-loader__section .loader-box:last-child { width: 110px; height: 16px; }
+
+  .page-loader__products {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+    padding: 0 4px;
+  }
+
+  .loader-card {
+    min-height: 300px;
+    border-radius: 22px;
+    padding: 12px;
+    background: rgba(255,255,255,0.72);
+    box-shadow: 0 6px 18px rgba(17,17,17,0.04);
+  }
+
+  .loader-card__media {
+    height: 180px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #edf1f7, #f7f8fb);
+  }
+
+  .loader-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .loader-card__body .loader-box:nth-child(1) { width: 70px; height: 12px; }
+  .loader-card__body .loader-box:nth-child(2) { width: 100%; height: 18px; }
+  .loader-card__body .loader-box:nth-child(3) { width: 90px; height: 14px; }
+  .loader-card__body .loader-box:nth-child(4) { width: 110px; height: 22px; }
+
+  .page-loader__promo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    padding: 0 4px;
+  }
+
+  .loader-banner {
+    min-height: 220px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #e7edff, #f7f8ff);
+  }
+
+  .page-loader__footer {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr 1.4fr;
+    gap: 18px;
+    padding: 14px 4px 0;
+  }
+
+  .loader-footer-box {
+    height: 130px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.72);
+  }
+
+  @keyframes skeletonShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  @keyframes skeletonFlash {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  @media (max-width: 1000px) {
+    .page-loader__categories { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .page-loader__products { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .page-loader__hero { min-height: 490px; }
+    .page-loader__hero-visual { height: 420px; }
+  }
+
+  @media (max-width: 760px) {
+    .page-loader__header { flex-wrap: wrap; }
+    .page-loader__nav, .page-loader__actions, .page-loader__brand { width: 100%; justify-content: center; }
+    .page-loader__products, .page-loader__promo, .page-loader__footer { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 520px) {
+    .page-loader__categories, .page-loader__products, .page-loader__promo, .page-loader__footer { grid-template-columns: 1fr; }
+    .page-loader__hero { min-height: 400px; }
+    .page-loader__hero-visual { height: 320px; }
+    .page-loader__hero-text { width: 82%; height: 64px; top: 52px; }
+  }
+
   .hero-visual .image-placeholder,
   .cat-circle .image-placeholder,
   .pcard-media .image-placeholder {
@@ -651,24 +961,94 @@ html[lang="ar"] .footer-brand-word {
 
 /* mobile drawer */
 .drawer-overlay{
-  position:fixed;inset:0;background:rgba(33,28,46,.45);z-index:90;
-  opacity:0;pointer-events:none;transition:opacity .3s var(--ease);
+  position:fixed;inset:0;background:rgba(15,23,42,.24);z-index:90;
+  opacity:0;pointer-events:none;transition:opacity .28s ease;
 }
 .drawer-overlay.open{opacity:1;pointer-events:auto;}
 .drawer{
-  position:fixed;top:0;right:0;height:100%;width:min(340px,86vw);
-  background:var(--paper);z-index:95;
-  transform:translateX(100%);transition:transform .38s var(--ease);
-  display:flex;flex-direction:column;box-shadow:var(--shadow-lg);
+  position:fixed;top:0;right:0;height:100%;width:min(355px,86vw);
+  background:linear-gradient(180deg, #f8f9fb 0%, #f2f4f7 100%);
+  color:#111827;z-index:95;
+  transform:translateX(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);
+  display:flex;flex-direction:column;box-shadow:-22px 0 30px rgba(15,23,42,.12);
+  border-radius:28px 0 0 28px;
+  overflow:visible;border-left:1px solid rgba(15,23,42,.06);
 }
 .drawer.open{transform:translateX(0);}
-.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:20px;border-bottom:1px solid var(--line-soft);}
-.drawer-search{margin:16px 20px;display:flex;align-items:center;gap:8px;background:var(--sand);border-radius:var(--r-pill);padding:10px 16px;}
-.drawer-search input{border:none;background:transparent;outline:none;flex:1;font-family:inherit;font-size:14px;}
-.drawer-nav{display:flex;flex-direction:column;padding:8px 12px;gap:2px;}
-.drawer-nav a{padding:14px 12px;font-weight:600;font-size:16px;border-radius:12px;}
-.drawer-nav a:hover{background:var(--sand);}
-.drawer-foot{margin-top:auto;padding:20px;border-top:1px solid var(--line-soft);display:flex;gap:10px;}
+.drawer-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 18px 16px;border-bottom:1px solid rgba(17,24,39,.08);
+}
+.drawer-brand{
+  display:flex;align-items:center;gap:10px;font-weight:800;color:#111827;
+}
+.drawer-brand-mark{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,#e5e7eb,#dbe3ef);
+  display:grid;place-items:center;box-shadow:0 8px 18px rgba(148,163,184,.22);
+  color:#111827;
+}
+.drawer-brand-text{font-size:17px;letter-spacing:.02em;color:#111827;}
+.drawer-brand-text span{color:#6b7280;}
+.drawer-close{
+  width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(17,24,39,.08);background:#fff;color:#111827;
+  transition:all .2s ease;box-shadow:0 6px 18px rgba(15,23,42,.04);
+}
+.drawer-close:hover{background:#f3f4f6;transform:rotate(90deg);}
+.drawer-search{
+  margin:16px 18px;display:flex;align-items:center;gap:10px;
+  background:#fff;border:1px solid rgba(17,24,39,.08);
+  border-radius:14px;padding:11px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 6px 14px rgba(15,23,42,.03);
+}
+.drawer-search input{border:none;background:transparent;outline:none;flex:1;font-family:inherit;font-size:14px;color:#111827;}
+.drawer-search input::placeholder{color:rgba(17,24,39,.5);}
+.drawer-search svg{color:#475569 !important;}
+.drawer-nav{
+  display:flex;flex-direction:column;gap:12px;padding:8px 12px 18px;flex:1;
+}
+.drawer-nav-item{
+  width:100%;display:flex;align-items:center;gap:12px;padding:12px 12px;
+  border:1px solid rgba(17,24,39,.06);border-radius:16px;background:rgba(255,255,255,.8);
+  color:#111827;text-align:right;cursor:pointer;transition:all .25s cubic-bezier(.22,1,.36,1);
+  position:relative;overflow:hidden;box-shadow:0 8px 16px rgba(15,23,42,.03);
+}
+.drawer-nav-item::before{
+  content:"";position:absolute;inset:0;background:linear-gradient(140deg, rgba(148,163,184,.05), rgba(255,255,255,.3));
+  opacity:0;transition:opacity .2s ease;
+}
+.drawer-nav-item:hover::before,
+.drawer-nav-item.active::before{opacity:1;}
+.drawer-nav-item:hover,
+.drawer-nav-item.active{
+  transform:translateX(-4px);background:#ffffff;box-shadow:0 12px 22px rgba(15,23,42,.07);border-color:rgba(17,24,39,.1);
+}
+.drawer-item-icon{
+  width:40px;height:40px;border-radius:12px;
+  background:#f3f4f6;display:grid;place-items:center;color:#111827;border:1px solid rgba(17,24,39,.06);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+  position:relative;z-index:1;flex-shrink:0;
+}
+.drawer-item-text{
+  font-size:15px;font-weight:700;letter-spacing:.01em;position:relative;z-index:1;flex:1;color:#111827;
+}
+.drawer-item-arrow{
+  width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+  background:#f7f9fb;color:#475569;position:relative;z-index:1;border:1px solid rgba(17,24,39,.06);
+}
+.drawer-foot{
+  margin-top:auto;padding:14px 18px 20px;border-top:1px solid rgba(17,24,39,.08);display:flex;justify-content:center;gap:10px;background:rgba(255,255,255,.35);
+}
+.drawer-foot a{
+  width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+  background:#fff;color:#111827;box-shadow:0 6px 18px rgba(15,23,42,.08);border:1px solid rgba(17,24,39,.06);
+  transition:transform .2s ease, filter .2s ease;
+}
+.drawer-foot a:hover{transform:translateY(-2px);filter:brightness(1.04);}
+.drawer-foot a.soc-insta{background:radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);color:#fff;border:none;}
+.drawer-foot a.soc-fb{background:#1877F2;color:#fff;border:none;}
+.drawer-foot a.soc-tiktok{background:#000;color:#fff;border:none;}
+.drawer-foot a.soc-yt{background:#FF0000;color:#fff;border:none;}
 
 /* ============ HERO ============ */
 .hero {
@@ -2114,7 +2494,131 @@ html[dir="ltr"] .pcard-stock-message {
 </style>
 </head>
 <body>
+<div id="page-loader" class="page-loader" aria-live="polite" aria-busy="true">
+  <div class="page-loader__shell">
+    <div class="page-loader__topbar"></div>
+
+    <div class="page-loader__header">
+      <div class="page-loader__brand">
+        <div class="loader-logo"></div>
+        <div class="loader-line"></div>
+      </div>
+      <div class="page-loader__nav">
+        <div class="loader-pill"></div>
+        <div class="loader-pill"></div>
+        <div class="loader-pill"></div>
+        <div class="loader-pill"></div>
+      </div>
+      <div class="page-loader__actions">
+        <div class="loader-circle"></div>
+        <div class="loader-circle"></div>
+        <div class="loader-circle"></div>
+      </div>
+    </div>
+
+    <div class="page-loader__hero">
+      <div class="page-loader__hero-visual">
+        <div class="page-loader__hero-text"></div>
+        <div class="page-loader__hero-badges">
+          <div class="loader-pill"></div>
+          <div class="loader-pill"></div>
+        </div>
+        <div class="page-loader__hero-knob"></div>
+        <div class="page-loader__hero-knob right"></div>
+      </div>
+    </div>
+
+    <div class="page-loader__brands">
+      <div class="loader-box"></div>
+      <div class="loader-box"></div>
+      <div class="loader-box"></div>
+      <div class="loader-box"></div>
+      <div class="loader-box"></div>
+    </div>
+
+    <div class="page-loader__categories">
+      <div class="loader-category"><div class="loader-circle"></div><div class="loader-box"></div></div>
+      <div class="loader-category"><div class="loader-circle"></div><div class="loader-box"></div></div>
+      <div class="loader-category"><div class="loader-circle"></div><div class="loader-box"></div></div>
+      <div class="loader-category"><div class="loader-circle"></div><div class="loader-box"></div></div>
+      <div class="loader-category"><div class="loader-circle"></div><div class="loader-box"></div></div>
+      <div class="loader-category"><div class="loader-circle"></div><div class="loader-box"></div></div>
+      <div class="loader-category"><div class="loader-circle"></div><div class="loader-box"></div></div>
+    </div>
+
+    <div class="page-loader__section">
+      <div class="loader-box"></div>
+      <div class="loader-box"></div>
+    </div>
+
+    <div class="page-loader__products">
+      <div class="loader-card">
+        <div class="loader-card__media"></div>
+        <div class="loader-card__body">
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+        </div>
+      </div>
+      <div class="loader-card">
+        <div class="loader-card__media"></div>
+        <div class="loader-card__body">
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+        </div>
+      </div>
+      <div class="loader-card">
+        <div class="loader-card__media"></div>
+        <div class="loader-card__body">
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+        </div>
+      </div>
+      <div class="loader-card">
+        <div class="loader-card__media"></div>
+        <div class="loader-card__body">
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+          <div class="loader-box"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-loader__promo">
+      <div class="loader-banner"></div>
+      <div class="loader-banner"></div>
+    </div>
+
+    <div class="page-loader__footer">
+      <div class="loader-footer-box"></div>
+      <div class="loader-footer-box"></div>
+      <div class="loader-footer-box"></div>
+      <div class="loader-footer-box"></div>
+      <div class="loader-footer-box"></div>
+    </div>
+  </div>
+</div>
 <div id="root"></div>
+
+<script>
+  window.addEventListener('load', function () {
+    const loader = document.getElementById('page-loader');
+    const root = document.getElementById('root');
+    if (!loader) return;
+
+    requestAnimationFrame(() => {
+      loader.classList.add('is-hidden');
+      if (root) root.setAttribute('aria-busy', 'false');
+      setTimeout(() => loader.remove(), 400);
+    });
+  });
+</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -2307,6 +2811,7 @@ const Icon = ({children, size=20, ...p}) => (
 const SearchIcon = p => <Icon {...p}><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></Icon>;
 const HeartIcon = p => <Icon {...p}><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></Icon>;
 const BagIcon = p => <Icon {...p}><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></Icon>;
+const HomeIcon = p => <Icon {...p}><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M9 20v-6h6v6"/></Icon>;
 const CartIcon = p => <Icon {...p}><path fill="currentColor" stroke="none" d="M3 4h2.1c.7 0 1.3.5 1.5 1.2l.4 1.5h14.2c.7 0 1.2.7 1 1.4l-1.7 6.5c-.2.8-.9 1.4-1.8 1.4H9.2c-.9 0-1.6-.5-2-1.3L4.9 6H3V4Zm5.7 8.5.8 1.5h9.2l1.1-4.3H7.4l1.3 2.8Z"/><circle cx="9" cy="19" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="19" r="1.5" fill="currentColor" stroke="none"/></Icon>;
 const UserIcon = p => <Icon {...p}><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></Icon>;
 const MenuIcon = p => <Icon {...p}><path d="M4 7h16M4 12h16M4 17h16"/></Icon>;
@@ -2327,6 +2832,12 @@ const CheckIcon = p => <Icon {...p}><path d="M5 12l5 5L20 7"/></Icon>;
 const FilterIcon = p => <Icon {...p}><path d="M4 6h16M7 12h10M10 18h4"/></Icon>;
 const GridIcon = p => <Icon {...p}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></Icon>;
 const ListIcon = p => <Icon {...p}><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></Icon>;
+const CalendarIcon = p => <Icon {...p}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></Icon>;
+const BellIcon = p => <Icon {...p}><path d="M6 9a6 6 0 0 1 12 0v5l2 3H4l2-3V9Z"/><path d="M10 20a2 2 0 0 0 4 0"/></Icon>;
+const ChartIcon = p => <Icon {...p}><path d="M4 18V7"/><path d="M10 18V4"/><path d="M16 18v-8"/><path d="M22 18V10"/></Icon>;
+const BookmarkIcon = p => <Icon {...p}><path d="M7 4h10a2 2 0 0 1 2 2v15l-7-4-7 4V6a2 2 0 0 1 2-2Z"/></Icon>;
+const SettingsIcon = p => <Icon {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a7.8 7.8 0 0 0 .1-1l2-1.5-2-3.4-2.4 1a7.7 7.7 0 0 0-1.7-1L15 4h-6l-.4 2.1a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.4L4.7 14a7.8 7.8 0 0 0 .1 1L2.8 16.5l2 3.4 2.4-1a7.7 7.7 0 0 0 1.7 1l.4 2.1h6l.4-2.1a7.7 7.7 0 0 0 1.7-1l2.4 1 2-3.4L19.4 15Z"/></Icon>;
+const LogoutIcon = p => <Icon {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></Icon>;
 const TruckIcon = p => <Icon {...p}><rect x="1" y="6" width="14" height="11" rx="1.5"/><path d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="18" cy="19" r="1.6"/></Icon>;
 const ShieldIcon = p => <Icon {...p}><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/></Icon>;
 const RefreshIcon = p => <Icon {...p}><path d="M3 12a9 9 0 0 1 15.3-6.4L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.3 6.4L3 16m0 5v-5h5"/></Icon>;
@@ -3106,7 +3617,15 @@ function OrdersPage({orders, go, user}) {
   );
 }
 function MobileDrawer({open, onClose, go, search, setSearch, login, requestLogout, wishlist, user} ){
-const links = [["الرئيسية","home"],["المتجر","shop"],["الأكثر مبيعاً","shop"],["عربة التسوق","cart"],["من نحن","about"]];  return (
+  const links = [
+    { id: "home", label: "الرئيسية", icon: <HomeIcon size={17}/> },
+    { id: "shop", label: "المتجر", icon: <BagIcon size={17}/> },
+    { id: "wishlist", label: "المفضلة", icon: <HeartIcon size={17}/> },
+    { id: "cart", label: "عربة التسوق", icon: <CartIcon size={17}/> },
+    { id: "about", label: "من نحن", icon: <ChartIcon size={17}/> },
+  ];
+
+  return (
     <>
       <div className={"drawer-overlay"+(open?" open":"")} onClick={onClose}></div>
       <div className={"drawer"+(open?" open":"")}>
@@ -3116,13 +3635,19 @@ const links = [["الرئيسية","home"],["المتجر","shop"],["الأكث�
         </div>
         <form className="drawer-search" onSubmit={(e)=>{e.preventDefault();go("shop");onClose();}}>
           <SearchIcon size={16} style={{color:"var(--ink-faint)"}}/>
-<input placeholder="ابحث عن المنتجات..." value={search} onChange={e=>setSearch(e.target.value)} />        </form>
+          <input placeholder="ابحث عن المنتجات..." value={search} onChange={e=>setSearch(e.target.value)} />
+        </form>
+
         <nav className="drawer-nav">
-          {links.map(([label,id])=>(
-            <a key={label} href="#" onClick={(e)=>{e.preventDefault();go(id);onClose();}}>{label}</a>
+          {links.map(({id,label,icon}) => (
+            <a key={id} href="#" className={"drawer-nav-item"+(id === "home" ? " active" : "")} onClick={(e)=>{e.preventDefault();go(id);onClose();}}>
+              <span className="drawer-item-icon">{icon}</span>
+              <span className="drawer-item-text">{label}</span>
+              <span className="drawer-item-arrow"><ChevronLeft size={15}/></span>
+            </a>
           ))}
         </nav>
-        {/* أيقونات السوشيال ميديا في أسفل المنيو للموبايل */}
+
         <div className="drawer-social">
           <a href="https://www.instagram.com/openmart_egypt/" target="_blank" rel="noopener noreferrer" className="soc-insta" aria-label="إنستغرام">
             <InstaIcon size={16}/>
@@ -3137,6 +3662,7 @@ const links = [["الرئيسية","home"],["المتجر","shop"],["الأكث�
             <YoutubeIcon size={16}/>
           </a>
         </div>
+
         <div className="drawer-foot">
           {user ? (
             <button className="icon-btn" aria-label="حسابك نشط" title="حسابك نشط (اضغط لتسجيل الخروج)" onClick={()=>{requestLogout();onClose();}} style={{padding:0, overflow:"hidden", borderRadius:"50%"}}>
@@ -3436,7 +3962,6 @@ const highestPrice = useMemo(() => {
 
     if (sortBy === "price-asc") result.sort((a, b) => a.price - b.price);
     else if (sortBy === "price-desc") result.sort((a, b) => b.price - a.price);
-    else if (sortBy === "rating") result.sort((a, b) => b.rating - a.rating);
     else if (sortBy === "newest") result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
 
     return result;
@@ -3521,7 +4046,6 @@ return (
                   <option value="newest">{uiText("الأحدث", "Newest")}</option>
                   <option value="price-asc">{uiText("السعر: من الأقل للأعلى", "Price: low to high")}</option>
                   <option value="price-desc">{uiText("السعر: من الأعلى للأقل", "Price: high to low")}</option>
-                  <option value="rating">{uiText("الأعلى تقييمًا", "Top rated")}</option>
                 </select>
                 <ChevronDown size={14}/>
               </div>
