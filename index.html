@@ -3120,6 +3120,28 @@ const productSlug = product => {
   return slugify(sourceName);
 };
 const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
+const setProductMetaTags = product => {
+  const fallbackImage = "https://www.openmartegypt.com/logo.jpeg";
+  const imageUrl = String(product?.img || "").trim() || fallbackImage;
+  const title = product ? `${productName(product)} | Openmart Egypt` : "أوبن مارت مصر | متجر التسوق الذكي";
+  const description = product ? (productDesc(product) || `تسوق ${productName(product)} الآن في متجر أوبن مارت مصر.`) : "تشكيلة مختارة من الجادجتس، الإكسسوارات ومستلزمات البيت بأفضل جودة وسعر مع توصيل لجميع المحافظات.";
+
+  const setMeta = (selector, attr, value) => {
+    const node = document.head.querySelector(selector) || document.createElement("meta");
+    node.setAttribute(attr, value);
+    if (!node.parentNode) document.head.appendChild(node);
+    return node;
+  };
+
+  setMeta('meta[property="og:title"]', 'content', title);
+  setMeta('meta[property="og:description"]', 'content', description);
+  setMeta('meta[property="og:image"]', 'content', imageUrl);
+  setMeta('meta[property="og:image:secure_url"]', 'content', imageUrl);
+  setMeta('meta[name="twitter:title"]', 'content', title);
+  setMeta('meta[name="twitter:description"]', 'content', description);
+  setMeta('meta[name="twitter:image"]', 'content', imageUrl);
+  document.title = title;
+};
 const productByRoute = (routeValue, productList = []) => {
   if (!routeValue) return null;
   const rawValue = String(routeValue).trim();
@@ -5669,11 +5691,17 @@ const [orders, setOrders] = useState(() => {
   }, [sharedProductValue]);
 
   useEffect(() => {
-    if (!sharedProductValue) return;
+    if (!sharedProductValue) {
+      setProductMetaTags(null);
+      return;
+    }
     const matchedProduct = productByRoute(sharedProductValue, products);
     if (matchedProduct) {
       setProductId(Number(matchedProduct.id));
       setPage("product");
+      setProductMetaTags(matchedProduct);
+    } else {
+      setProductMetaTags(null);
     }
   }, [sharedProductValue, products]);
 // حفظ المفضلة تلقائياً عند تغييرها
