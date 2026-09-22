@@ -3116,7 +3116,7 @@ const productName = product => {
   return activeLanguage === "en" && englishName ? englishName : product?.name;
 };
 const productSlug = product => {
-  const sourceName = product?.name || product?.name_en || product?.nameEn || product?.title || `product-${product?.id ?? "item"}`;
+  const sourceName = product?.name_en || product?.nameEn || product?.name || product?.title || `product-${product?.id ?? "item"}`;
   return slugify(sourceName);
 };
 const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
@@ -3131,7 +3131,15 @@ const productByRoute = (routeValue, productList = []) => {
   }
 
   const normalized = slugify(rawValue);
-  return productList.find(product => productSlug(product) === normalized) || null;
+  return productList.find(product => {
+    const candidates = [
+      productSlug(product),
+      slugify(product?.name || ""),
+      slugify(product?.name_en || product?.nameEn || ""),
+      slugify(product?.title || "")
+    ].filter(Boolean);
+    return candidates.includes(normalized);
+  }) || null;
 };
 const optionText = value => {
   if (activeLanguage !== "en" || value === null || value === undefined) return value;
