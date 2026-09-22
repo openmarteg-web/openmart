@@ -3101,11 +3101,38 @@ const SHIPPING_ZONES = [
 const isEnglish = () => activeLanguage === "en";
 const zoneName = zone => isEnglish() ? (zone?.nameEn || zone?.name) : zone?.name;
 const zoneTime = zone => isEnglish() ? (zone?.timeEn || zone?.time) : zone?.time;
+const slugify = value => String(value ?? "")
+  .trim()
+  .normalize("NFKD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^\p{L}\p{N}\s-]/gu, " ")
+  .replace(/\s+/g, "-")
+  .replace(/-+/g, "-")
+  .replace(/^-|-$/g, "")
+  .toLowerCase();
+
 const productName = product => {
   const englishName = String(product?.name_en ?? product?.nameEn ?? "").trim();
   return activeLanguage === "en" && englishName ? englishName : product?.name;
 };
+const productSlug = product => {
+  const sourceName = product?.name || product?.name_en || product?.nameEn || product?.title || `product-${product?.id ?? "item"}`;
+  return slugify(sourceName);
+};
 const productDesc = product => (activeLanguage === "en" && product?.desc_en) ? product.desc_en : product?.desc;
+const productByRoute = (routeValue, productList = []) => {
+  if (!routeValue) return null;
+  const rawValue = String(routeValue).trim();
+  if (!rawValue) return null;
+
+  const directId = Number(rawValue);
+  if (!Number.isNaN(directId) && String(directId) === rawValue) {
+    return productList.find(product => String(product.id) === String(directId)) || null;
+  }
+
+  const normalized = slugify(rawValue);
+  return productList.find(product => productSlug(product) === normalized) || null;
+};
 const optionText = value => {
   if (activeLanguage !== "en" || value === null || value === undefined) return value;
   const translations = {
@@ -3238,7 +3265,7 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow, index = 0
 
   const shareProduct = async (event) => {
     event.stopPropagation();
-    const shareUrl = `${window.location.origin}${window.location.pathname}?product=${encodeURIComponent(p.id)}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?product=${encodeURIComponent(productSlug(p))}`;
     const shareData = { title: productName(p), text: productName(p), url: shareUrl };
 
     try {
@@ -5406,7 +5433,7 @@ function ShippingPage({ lang, go }) {
 function App(){
   const [lang, setLang] = useState(() => localStorage.getItem("openmart_lang") || "ar");
   activeLanguage = lang;
-  const sharedProductId = new URLSearchParams(window.location.search).get("product");
+  const sharedProductValue = new URLSearchParams(window.location.search).get("product");
 
 useEffect(() => {
   localStorage.setItem("openmart_lang", lang);
@@ -5461,8 +5488,13 @@ const [products, setProducts] = useState(getCachedProducts);
 const [loading, setLoading] = useState(() => getCachedProducts().length === 0);
   const [coupons, setCoupons] = useState([]);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [page, setPage] = useState(() => window.history.state?.openmart ? (window.history.state.page || "home") : (sharedProductId ? "product" : "home"));
-  const [productId, setProductId] = useState(() => window.history.state?.openmart ? (window.history.state.id || 1) : (sharedProductId || 1));
+  const [page, setPage] = useState(() => window.history.state?.openmart ? (window.history.state.page || "home") : (sharedProductValue ? "product" : "home"));
+  const [productId, setProductId] = useState(() => {
+    const fromState = window.history.state?.openmart ? (window.history.state.id || 1) : null;
+    if (fromState) return fromState;
+    const matchedProduct = productByRoute(sharedProductValue, getCachedProducts());
+    return matchedProduct ? Number(matchedProduct.id) : 1;
+  });
   const [cart, setCart] = useState(() => {
     try {
       const savedCart = JSON.parse(localStorage.getItem("openmart_cart") || "[]");
@@ -5516,10 +5548,13 @@ const [orders, setOrders] = useState(() => {
   useEffect(() => {
     const currentState = window.history.state;
     if (!currentState?.openmart) {
+      const targetPage = sharedProductValue ? "product" : "home";
+      const targetId = productByRoute(sharedProductValue, products) ? Number(productByRoute(sharedProductValue, products).id) : null;
+      const targetUrl = targetPage === "product" && targetId ? `?product=${encodeURIComponent(productSlug(productByRoute(sharedProductValue, products)) || targetId)}` : window.location.pathname;
       window.history.replaceState(
-        { openmart: true, page: sharedProductId ? "product" : "home", id: sharedProductId || null },
+        { openmart: true, page: targetPage, id: targetId || null },
         "",
-        window.location.href
+        targetUrl
       );
     }
 
@@ -5535,7 +5570,7 @@ const [orders, setOrders] = useState(() => {
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [products, sharedProductValue]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const defaultTopbarText = "شحن مجاني للطلبات فوق 1000 ج.م • منتجات جديدة كل جمعة • إستبدال خلال 3 أيام";
   const [topbarText, setTopbarText] = useState(() => localStorage.getItem("openmart_topbar_text") || defaultTopbarText);
@@ -5603,6 +5638,14 @@ const [orders, setOrders] = useState(() => {
               };
             })
             .filter(item => item.qty > 0));
+
+          if (sharedProductValue) {
+            const matchedProduct = productByRoute(sharedProductValue, data);
+            if (matchedProduct) {
+              setProductId(Number(matchedProduct.id));
+              setPage("product");
+            }
+          }
         }
         setLoading(false);
       }).catch(err => {
@@ -5612,7 +5655,16 @@ const [orders, setOrders] = useState(() => {
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [sharedProductValue]);
+
+  useEffect(() => {
+    if (!sharedProductValue) return;
+    const matchedProduct = productByRoute(sharedProductValue, products);
+    if (matchedProduct) {
+      setProductId(Number(matchedProduct.id));
+      setPage("product");
+    }
+  }, [sharedProductValue, products]);
 // حفظ المفضلة تلقائياً عند تغييرها
 useEffect(() => {
   localStorage.setItem("openmart_wishlist", JSON.stringify(wishlist));
@@ -5680,10 +5732,19 @@ useEffect(() => {
 
   // 3. دالة التنقل بين الصفحات
   const go = (p, id) => {
-    if(id) setProductId(id);
+    const nextId = Number(id);
+    if (id) setProductId(nextId);
     if (p === "home") setCartBarHidden(false);
     setPage(p);
-    window.history.pushState({ openmart: true, page: p, id: id || null }, "", "");
+
+    let targetUrl = window.location.pathname;
+    if (p === "product" && id) {
+      const matchedProduct = products.find(product => String(product.id) === String(id));
+      const routeValue = matchedProduct ? productSlug(matchedProduct) : String(id);
+      targetUrl = `?product=${encodeURIComponent(routeValue)}`;
+    }
+
+    window.history.pushState({ openmart: true, page: p, id: id || null }, "", targetUrl);
     if (p === "auth") {
       const previousScrollBehavior = document.documentElement.style.scrollBehavior;
       document.documentElement.style.scrollBehavior = "auto";
