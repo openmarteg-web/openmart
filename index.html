@@ -3265,7 +3265,7 @@ function ProductCard({p, onOpen, wished, onWish, onQuickAdd, onBuyNow, index = 0
 
   const shareProduct = async (event) => {
     event.stopPropagation();
-    const shareUrl = `${window.location.origin}${window.location.pathname}?product=${encodeURIComponent(productSlug(p))}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?product=${encodeURIComponent(String(p.id))}`;
     const shareData = { title: productName(p), text: productName(p), url: shareUrl };
 
     try {
@@ -5550,7 +5550,7 @@ const [orders, setOrders] = useState(() => {
     if (!currentState?.openmart) {
       const targetPage = sharedProductValue ? "product" : "home";
       const targetId = productByRoute(sharedProductValue, products) ? Number(productByRoute(sharedProductValue, products).id) : null;
-      const targetUrl = targetPage === "product" && targetId ? `?product=${encodeURIComponent(productSlug(productByRoute(sharedProductValue, products)) || targetId)}` : window.location.pathname;
+      const targetUrl = targetPage === "product" && targetId ? `?product=${encodeURIComponent(String(targetId))}` : window.location.pathname;
       window.history.replaceState(
         { openmart: true, page: targetPage, id: targetId || null },
         "",
@@ -5740,7 +5740,7 @@ useEffect(() => {
     let targetUrl = window.location.pathname;
     if (p === "product" && id) {
       const matchedProduct = products.find(product => String(product.id) === String(id));
-      const routeValue = matchedProduct ? productSlug(matchedProduct) : String(id);
+      const routeValue = matchedProduct ? String(matchedProduct.id) : String(id);
       targetUrl = `?product=${encodeURIComponent(routeValue)}`;
     }
 
