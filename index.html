@@ -2917,7 +2917,7 @@ const headingTranslations = {
   "تسوق بالأقسام": "Shop by category",
   "المفضلة لدى العملاء": "Customer favorites",
   "أحدث المنتجات": "Latest products",
-  "المنتجات الأكثر مبيعاً": "Best sellers",
+  "مواد استهلاكية": "Disposable Items",
   "وصل حديثاً": "New arrivals",
   "سوق إلكتروني يبدأ بحركة واحدة: النقرة.": "An online store that starts with one click.",
   "قد يعجبك أيضاً": "You may also like",
@@ -2928,7 +2928,7 @@ const headingTranslations = {
 const headingText = (arabic, english) => activeLanguage === "en" ? (english || headingTranslations[arabic] || arabic) : arabic;
 const uiText = (arabic, english) => activeLanguage === "en" ? english : arabic;
 const UI_TRANSLATIONS = {
-  "الرئيسية": "Home", "المتجر": "Shop", "من نحن": "About", "الأكثر مبيعاً": "Best sellers",
+  "الرئيسية": "Home", "المتجر": "Shop", "من نحن": "About", "مواد استهلاكية": "Disposable Items",
   "عربة التسوق": "Shopping cart", "المفضلة": "Wishlist", "طلباتي السابقة": "My orders",
   "ابحث عن المنتجات...": "Search products...", "ابحث عن المنتجات، الماركات...": "Search products, brands...",
   "أدوات منزليه": "Home appliances", "مطبخ": "Kitchen", "حمام": "Bathroom", "تخييم ورحلات": "Camping and trips",
@@ -4006,7 +4006,7 @@ function HomePage({go, wishlist, toggleWish, quickAdd, onBuyNow, setCatFilter, p
       <CategoryRow go={go} setCatFilter={setCatFilter} categories={categories}/>
       <ProductGridSection 
         sectionId="products"
-        title="المنتجات الأكثر مبيعاً" 
+        title="مواد استهلاكية" 
         eyebrow="المفضلة لدى العملاء" 
         items={displayItems} 
         go={go} 
@@ -5115,7 +5115,7 @@ function Footer({go}){
           <div className="footer-links">
             <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("كل المنتجات", "All products")}</a>
             <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("وصل حديثًا", "New arrivals")}</a>
-            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("الأكثر مبيعًا", "Best sellers")}</a>
+            <a href="#" onClick={(e)=>{e.preventDefault();go("shop");}}>{uiText("مواد استهلاكية", "Disposable Items")}</a>
           </div>
         </div>
         <div>

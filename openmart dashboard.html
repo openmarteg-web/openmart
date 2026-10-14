@@ -448,7 +448,7 @@
           </div>
 
           <div class="checkbox-row">
-            <label><input type="checkbox" id="is_best"> الأكثر مبيعاً</label>
+            <label><input type="checkbox" id="is_best"> مواد استهلاكية</label>
             <label><input type="checkbox" id="is_new" checked> وصل حديثاً</label>
           </div>
 
@@ -1281,7 +1281,7 @@
         <td>
           <b>${p.name}</b>
           ${p.name_en ? `<div style="font-size: 11.5px; color: var(--muted); font-family: sans-serif;">${p.name_en}</div>` : ''}
-          ${p.is_best ? '<span class="badge-tag">الأكثر مبيعاً</span>' : ''}
+          ${p.is_best ? '<span class="badge-tag">مواد استهلاكية</span>' : ''}
         </td>
         <td style="color: var(--muted);">${p.cat}</td>
         <td><b>${p.price} ج.م</b> ${p.old_price ? `<span style="text-decoration: line-through; color: var(--muted); font-size:12px;">${p.old_price}</span>` : ''}</td>
